@@ -1,11 +1,14 @@
 import requests
 import json
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 # First API call with reasoning
 response = requests.post(
   url="https://openrouter.ai/api/v1/chat/completions",
   headers={
-    "Authorization": "Bearer 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",
+    "Authorization": "Bearer " + os.getenv("OPENROUTER_API_KEY"),
     "Content-Type": "application/json",
   },
   data=json.dumps({
