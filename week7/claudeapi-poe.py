@@ -1,6 +1,8 @@
 # PYTHON — agent.py — The Core Agent Framework
 import os
 import anthropic
+from datetime import datetime
+from duckduckgo_search import DDGS
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -106,12 +108,43 @@ messages = [
 model = "claude-sonnet-4-6"
 
 
+def get_current_time() -> str:
+    """Returns the current date and time."""
+    print(" [Executing Tool: get_current_time] ")
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+def search_web(query: str) -> str:
+    """Uses DuckDuckGo to search the internet for real-time information."""
+    print(f" [Executing Tool: search_web for '{query}'] ")
+    with DDGS() as ddgs:
+        results = ddgs.text(query, max_results=3)
+    if not results: return "No results found."
+    return "\n".join([f"- {r['title']}: {r['body']}" for r in results])
+
+tools = [
+    {
+        "name": "get_current_time",
+        "description": "Retrieves the current local date and time.",
+        "input_schema": {"type": "object", "properties": {}}
+    },
+    {
+        "name": "search_web",
+        "description": "Searches the internet for real-time information.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"query": {"type": "string", "description": "search query"}},
+            "required": ["query"]
+        }
+    }
+]
+
 def chat(messages, system=None, temperature=1.0, stop_sequences=None):
     params = {
         "model": model,
         "max_tokens": 1000,
         "messages": messages,
-        "temperature": temperature
+        "temperature": temperature,
+        "tools": tools
     }
 
     if system:
@@ -120,8 +153,27 @@ def chat(messages, system=None, temperature=1.0, stop_sequences=None):
     if stop_sequences:
         params["stop_sequences"] = stop_sequences
 
-    message = client.messages.create(**params)
-    return message.content[0].text
+    response = client.messages.create(**params)
+    
+    if response.stop_reason == "tool_use":
+        messages.append({"role": "assistant", "content": response.content})
+        tool_call = next(block for block in response.content if block.type == "tool_use")
+        
+        if tool_call.name == "get_current_time":
+            tool_result = get_current_time()
+        elif tool_call.name == "search_web":
+            tool_result = search_web(tool_call.input["query"])
+        else:
+            tool_result = f"Error: Unknown tool {tool_call.name}"
+            
+        messages.append({
+            "role": "user",
+            "content": [{"type": "tool_result", "tool_use_id": tool_call.id, "content": tool_result}]
+        })
+        
+        return chat(messages, system, temperature, stop_sequences)
+
+    return response.content[0].text
 
 # Low temperature - more predictable
 #answer = chat(messages, temperature=0.0)
