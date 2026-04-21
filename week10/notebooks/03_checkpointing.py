@@ -103,24 +103,58 @@ app = g.compile(checkpointer=memory)
 
 # %%
 if __name__ == "__main__":
+    import time
+
+    BAR = "=" * 64
+
     thread_id = "ticket-demo-001"
     config = {"configurable": {"thread_id": thread_id}}
 
-    # Step 1: run until the interrupt pauses us
     initial = {
         "ticket_body": "My dashboard won't load since this morning.",
         "draft_response": None,
         "approved": None,
         "sent_response": None,
     }
-    state = app.invoke(initial, config=config)
-    print("\nPaused. Draft:")
-    print("  ", state.get("draft_response"))
 
-    # Step 2: simulate a human clicking "approve"
+    # ---------- STEP 1: run until interrupt() pauses the graph ----------
+    print("\n" + BAR)
+    print("STEP 1  graph.invoke()  ->  runs draft node, then pauses")
+    print(BAR)
+    print(f"Ticket in:   {initial['ticket_body']}")
+    print("Running...")
+    state = app.invoke(initial, config=config)
+
+    print("\n" + "-" * 64)
+    print(" [PAUSED]   the graph is waiting for human approval")
+    print("-" * 64)
+    print(f"Thread id:        {thread_id}")
+    print(f"Checkpoints db:   checkpoints.db  (state persisted on disk)")
+    print(f"Next node:        human_approval -> send")
+    print("\nDraft reply awaiting your decision:")
+    print("    " + (state.get("draft_response") or "").replace("\n", "\n    "))
+    print()
+
+    # Simulate a human reading the draft. Replace this delay with a real UI
+    # in production (Slack button, web form, email approval, etc.).
+    for i in range(3, 0, -1):
+        print(f"  (human reviewing... {i})", end="\r")
+        time.sleep(1)
+    print("  (human clicked APPROVE)          ")
+
+    # ---------- STEP 2: resume from the checkpoint ----------
+    print("\n" + BAR)
+    print("STEP 2  graph.invoke(Command(resume=...))  ->  continues from pause")
+    print(BAR)
     state = app.invoke(Command(resume={"action": "approve"}), config=config)
-    print("\nResumed. Final:")
-    print("  ", state.get("sent_response"))
+
+    print("\n" + "-" * 64)
+    print(" [RESUMED]  graph completed the send node")
+    print("-" * 64)
+    print(f"Approved:         {state.get('approved')}")
+    print("Final outbound:")
+    print("    " + (state.get("sent_response") or "").replace("\n", "\n    "))
+    print()
 
 
 # %% [markdown]
