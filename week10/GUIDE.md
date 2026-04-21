@@ -40,7 +40,7 @@ You need:
 
 1. **Python 3.11+**. Check with `python3 --version`.
 2. **[uv](https://docs.astral.sh/uv/)** for fast package installs: `curl -LsSf https://astral.sh/uv/install.sh | sh`
-3. **A free OpenRouter API key** for Qwen3 Coder 480B. Get one at <https://openrouter.ai/keys> with email signup only, no credit card. Free tier (Apr 2026) = 20 requests per minute, 50 per day per model. The class default is Qwen3 Coder because Google's Gemini free tier is now only 20 RPD per model after the Dec 2025 cuts, which breaks mid-class.
+3. **A free OpenRouter API key** for GPT-OSS 120B. Get one at <https://openrouter.ai/keys> with email signup only, no credit card. Free tier (Apr 2026) = 20 requests per minute, 50 per day per model. The class default is GPT-OSS 120B (OpenAI's open-weight release) because it handles tool calling well under OpenRouter's dynamic throttle; Google's Gemini free tier is now only 20 RPD per model after the Dec 2025 cuts, which breaks mid-class.
 4. *(Optional)* An Anthropic API key for Exercise 5. Sign up at <https://console.anthropic.com>.
 5. *(Optional)* A free LangSmith account for Exercise 4. <https://smith.langchain.com>.
 
@@ -57,7 +57,7 @@ cp .env.example .env
 # Edit .env and put your OPENROUTER_API_KEY in it.
 
 python verify_setup.py
-# Expected output: all imports green, OPENROUTER_API_KEY found, Qwen3 smoke test passes
+# Expected output: all imports green, OPENROUTER_API_KEY found, GPT-OSS smoke test passes
 ```
 
 If `verify_setup.py` returns anything red, fix before going further. Most common failure: `OPENROUTER_API_KEY` not picked up because `.env` wasn't loaded in the shell. Either `source .env` first or `export OPENROUTER_API_KEY=...` manually.
@@ -135,7 +135,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 llm = ChatOpenAI(
-    model="qwen/qwen3-coder:free",
+    model="openai/gpt-oss-120b:free",
     base_url="https://openrouter.ai/api/v1",
     api_key=os.getenv("OPENROUTER_API_KEY"),
     temperature=0,
@@ -657,7 +657,7 @@ Canonical, current sources. Prefer these over third-party blog regurgitations.
 
 **Model tooling**
 - [Google AI Studio (Gemini free keys)](https://aistudio.google.com/apikey)
-- [OpenRouter](https://openrouter.ai/) — swap-demo lane: [GLM-5.1](https://openrouter.ai/z-ai/glm-5.1), [Qwen3 Coder 480B (free)](https://openrouter.ai/qwen/qwen3-coder), [DeepSeek R1 (free)](https://openrouter.ai/deepseek/deepseek-r1). Free tier is 20 RPM / 50 RPD; $10 credit lifts to 1000 RPD.
+- [OpenRouter](https://openrouter.ai/) — primary and swap lane: [GPT-OSS 120B (free)](https://openrouter.ai/openai/gpt-oss-120b:free), [Qwen3 Coder 480B (free)](https://openrouter.ai/qwen/qwen3-coder), [DeepSeek R1 0528 (free)](https://openrouter.ai/deepseek/deepseek-r1-0528:free), [GLM 4.6 (free)](https://openrouter.ai/z-ai/glm-4.6). Free tier is 20 RPM / 50 RPD per model; $10 credit lifts to 1,000 RPD per model.
 - [Anthropic console (Claude keys)](https://console.anthropic.com)
 - [LangSmith (observability)](https://smith.langchain.com/)
 

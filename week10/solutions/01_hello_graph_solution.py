@@ -16,7 +16,7 @@ from langgraph.graph import END, START, StateGraph
 
 load_dotenv()
 
-llm = ChatOpenAI(model="qwen/qwen3-coder:free", base_url="https://openrouter.ai/api/v1", api_key=os.getenv("OPENROUTER_API_KEY"), temperature=0)
+llm = ChatOpenAI(model="openai/gpt-oss-120b:free", base_url="https://openrouter.ai/api/v1", api_key=os.getenv("OPENROUTER_API_KEY"), temperature=0)
 
 Category = Literal["TECHNICAL", "BILLING", "GENERAL"]
 Priority = Literal["LOW", "MEDIUM", "HIGH"]

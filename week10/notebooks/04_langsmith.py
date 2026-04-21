@@ -40,7 +40,7 @@ else:
     print("LangSmith tracing: OFF (no LANGSMITH_API_KEY)")
 
 llm = ChatOpenAI(
-    model="qwen/qwen3-coder:free",
+    model="openai/gpt-oss-120b:free",
     base_url="https://openrouter.ai/api/v1",
     api_key=os.getenv("OPENROUTER_API_KEY"),
     temperature=0,

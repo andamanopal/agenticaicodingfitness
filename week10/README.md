@@ -22,7 +22,7 @@ LangGraph powers production agent systems at Uber, JPMorgan, BlackRock, Cisco, L
    python verify_setup.py
    ```
 3. API keys (put in `.env` or export in shell):
-   - `OPENROUTER_API_KEY`: **required**. Free email signup at [openrouter.ai/keys](https://openrouter.ai/keys). No credit card. Unlocks Qwen3 Coder 480B (free), DeepSeek R1 (free), GLM 4.6 (free). Free tier is 20 RPM / 50 RPD per model; adding $10 credit lifts to 1,000 RPD per model.
+   - `OPENROUTER_API_KEY`: **required**. Free email signup at [openrouter.ai/keys](https://openrouter.ai/keys). No credit card. Unlocks GPT-OSS 120B (free), Qwen3 Coder (free), DeepSeek R1 (free), GLM 4.6 (free), Llama 3.3 70B (free). Free tier is 20 RPM / 50 RPD per model; adding $10 credit lifts to 1,000 RPD per model.
    - `ANTHROPIC_API_KEY`: optional, only Ex 5. [console.anthropic.com](https://console.anthropic.com).
    - `GOOGLE_API_KEY`: optional, Gemini swap. Free at [aistudio.google.com/apikey](https://aistudio.google.com/apikey). Note: Gemini free tier is only 20 RPD per model (Apr 2026 post-cuts), so Gemini is not the default here — use OpenRouter.
    - `LANGSMITH_API_KEY`: optional, Ex 4. Free at [smith.langchain.com](https://smith.langchain.com).
@@ -66,8 +66,9 @@ git checkout solution-ex1
 
 ## Models used
 
-- **Ex 1–4**: Qwen3 Coder 480B (free) via OpenRouter. 262K context, MoE architecture, agentic-tool-use tuned. Free tier: 20 RPM / 50 RPD per model. No credit card required.
+- **Ex 1–4**: GPT-OSS 120B (free) via OpenRouter. OpenAI's open-weight model, fast first token, strong tool calling under throttle. Free tier: 20 RPM / 50 RPD per model. No credit card required.
 - **Swap demos (any Ex)**: OpenRouter gives you multiple free alternatives via the same `ChatOpenAI` client; edit the `model=` line in notebook 01:
+  - `qwen/qwen3-coder:free`: 480B MoE, agentic-tool-use tuned.
   - `deepseek/deepseek-r1-0528:free`: reasoning-heavy, slower, precise.
   - `z-ai/glm-4.6:free`: strong tool calling, GLM's latest free tier.
   - `meta-llama/llama-3.3-70b-instruct:free`: solid all-rounder.

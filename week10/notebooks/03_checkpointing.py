@@ -26,7 +26,8 @@ from langgraph.types import Command, interrupt
 load_dotenv()
 
 llm = ChatOpenAI(
-    model="qwen/qwen3-coder:free",
+    # model="qwen/qwen3-coder:free",
+    model="openai/gpt-oss-120b:free",
     base_url="https://openrouter.ai/api/v1",
     api_key=os.getenv("OPENROUTER_API_KEY"),
     temperature=0,
@@ -197,3 +198,5 @@ if __name__ == "__main__":
 # 2. Inspect the persisted history: `for c in memory.list(config): print(c)`.
 # 3. Kill the Python process after the interrupt fires, restart, and resume — prove the graph survives restart.
 # 4. Apply the BRIDGE pattern above to Ex 2's supervisor and prove it resumes mid-tool-call after a restart.
+
+# %%

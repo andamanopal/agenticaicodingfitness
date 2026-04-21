@@ -53,14 +53,14 @@ def check_keys() -> bool:
 
 
 def smoke_test_openrouter() -> bool:
-    print("\nSmoke test: calling Qwen3 Coder via OpenRouter...")
+    print("\nSmoke test: calling GPT-OSS 120B via OpenRouter...")
     if not os.getenv("OPENROUTER_API_KEY"):
         print("  [skip] no OPENROUTER_API_KEY")
         return False
     try:
         from langchain_openai import ChatOpenAI
         llm = ChatOpenAI(
-            model="qwen/qwen3-coder:free",
+            model="openai/gpt-oss-120b:free",
             base_url="https://openrouter.ai/api/v1",
             api_key=os.getenv("OPENROUTER_API_KEY"),
             temperature=0,

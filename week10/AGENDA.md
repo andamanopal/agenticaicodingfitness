@@ -31,7 +31,7 @@ Print this or keep it on a second monitor during class.
 11. Break
 12. Ex 4 briefing — LangSmith: every run traced, diff'd, priced
 13. Ex 5 briefing — Claude Agent SDK + Skills + Subagent + Managed Agents (Apr 8 2026)
-14. Model hierarchy: Qwen3 Coder 480B free (primary via OpenRouter, 20 RPM / 50 RPD per model) · swap lane (DeepSeek R1 free / GLM 4.6 free / Llama 3.3 70B free / paid Gemini) · Claude Sonnet 4.6 (Ex 5)
+14. Model hierarchy: GPT-OSS 120B free (primary via OpenRouter, 20 RPM / 50 RPD per model) · swap lane (Qwen3 Coder free / DeepSeek R1 free / GLM 4.6 free / Llama 3.3 70B free / paid Gemini) · Claude Sonnet 4.6 (Ex 5)
 15. Show & Tell — 3 demos, 3 minutes each
 16. Homework
 17. W11 preview — Swarm intelligence
@@ -61,7 +61,7 @@ Print this or keep it on a second monitor during class.
 - Ex 5 SDK install broken or event-loop error → demo mode (you run, they watch); if your own demo breaks, show the pre-recorded screencap.
 - **Ex 5 MCP-leak risk (presenter laptop)** → if your laptop has private MCP servers registered (internal DBs, CRM, HR), the SDK subprocess may enumerate those tool names even with `setting_sources=[]`. Do not run Ex 5 live from your own machine. Options: (1) pre-record a clean screencap from a fresh profile; (2) run from a clean VM; (3) present Ex 5 as slides-only.
 - Class running long → cut Ex 4 challenge; keep everything else.
-- **Students hit 429 rate limits in Ex 2** → tell them to swap to a different free model (edit the `model=` line to `deepseek/deepseek-r1-0528:free` or `z-ai/glm-4.6:free`); each free model has its own quota so rotating extends capacity.
+- **Students hit 429 rate limits in Ex 2** → tell them to swap to a different free model (edit the `model=` line to `qwen/qwen3-coder:free`, `deepseek/deepseek-r1-0528:free`, or `z-ai/glm-4.6:free`); each free model has its own quota so rotating extends capacity.
 
 ## Plan B timing (if you slip ~15-20 min behind)
 

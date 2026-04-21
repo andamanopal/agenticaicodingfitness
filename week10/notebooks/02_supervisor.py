@@ -27,10 +27,10 @@ from langgraph.prebuilt import create_react_agent
 
 load_dotenv()
 
-# Qwen3 Coder 480B via OpenRouter (free tier: 20 RPM / 50 RPD per model).
-# See notebook 01 for the full model-swap comment and Gemini alternative.
+# GPT-OSS 120B via OpenRouter (free tier: 20 RPM / 50 RPD per model).
+# See notebook 01 for the full model-swap comment list and alternatives.
 llm = ChatOpenAI(
-    model="qwen/qwen3-coder:free",
+    model="openai/gpt-oss-120b:free",
     base_url="https://openrouter.ai/api/v1",
     api_key=os.getenv("OPENROUTER_API_KEY"),
     temperature=0,

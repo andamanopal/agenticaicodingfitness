@@ -24,21 +24,22 @@ from langgraph.graph import END, START, StateGraph
 load_dotenv()
 
 # %% [markdown]
-# ## Model (Qwen3 Coder 480B via OpenRouter, free tier: 20 RPM / 50 RPD per model)
+# ## Model (GPT-OSS 120B via OpenRouter, free tier: 20 RPM / 50 RPD per model)
 #
 # Free email signup at [openrouter.ai](https://openrouter.ai/keys). No credit card.
-# Qwen3 Coder is a 480B MoE agentic-tool-use model that handles classification and
-# supervisor routing cleanly on the free tier.
+# GPT-OSS 120B is OpenAI's open-weight model routed through OpenRouter's free lane.
+# Strong tool calling, fast first token, and handles classification and supervisor
+# routing cleanly under throttle conditions.
 #
-# Alternative free models you can swap in via the same `ChatOpenAI` client:
+# Alternative free models you can swap in by un-commenting a different `model=` line
+# in the `ChatOpenAI()` call below:
 #
-# ```python
-# # model="deepseek/deepseek-r1-0528:free",   # reasoning-heavy, slower, precise
-# # model="z-ai/glm-4.6:free",           # strong tool calling
-# # model="meta-llama/llama-3.3-70b-instruct:free",  # solid all-rounder
-# ```
+# - `qwen/qwen3-coder:free`: 480B MoE, agentic-tool-use tuned
+# - `deepseek/deepseek-r1-0528:free`: reasoning-heavy, slower, precise
+# - `z-ai/glm-4.6:free`: strong tool calling, GLM's latest free tier
+# - `meta-llama/llama-3.3-70b-instruct:free`: solid all-rounder
 #
-# To use Gemini instead (requires paid tier for classroom reliability: free is 20 RPD):
+# To use Gemini instead (requires paid tier for classroom reliability; free is 20 RPD):
 #
 # ```python
 # from langchain_google_genai import ChatGoogleGenerativeAI
@@ -47,8 +48,9 @@ load_dotenv()
 
 # %%
 llm = ChatOpenAI(
+    model="openai/gpt-oss-120b:free",
     # model="qwen/qwen3-coder:free",
-    model="deepseek/deepseek-r1-0528:free",
+    # model="deepseek/deepseek-r1-0528:free",
     # model="z-ai/glm-4.6:free",
     # model="meta-llama/llama-3.3-70b-instruct:free",
     base_url="https://openrouter.ai/api/v1",
