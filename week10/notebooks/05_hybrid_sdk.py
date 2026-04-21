@@ -13,6 +13,13 @@
 #
 # **Note:** requires `ANTHROPIC_API_KEY`. If you don't have one, watch along:
 # the fallback prints a stub so the graph still runs.
+#
+# **⚠️ Operator warning.** If you have Claude Code installed with private MCP
+# servers (internal DBs, CRM, HR, etc.), the SDK's subprocess may enumerate
+# those tool names in its output even with `setting_sources=[]`. Do not
+# live-demo this exercise on a laptop that has sensitive MCPs configured.
+# Use a clean machine, a fresh user profile, or run from a terminal with
+# `env -i` to strip inherited context.
 
 # %%
 from __future__ import annotations
@@ -60,22 +67,36 @@ async def diagnose_with_sdk(state: HybridState) -> HybridState:
         model="sonnet",
     )
 
+    # ISOLATION: pass setting_sources=[] (empty list) to opt out of all host
+    # Claude Code config, including user-level MCP servers. If you omit this,
+    # the SDK's subprocess picks up your local MCPs and can leak private data.
+    # If you still see host data in the output, run from a terminal outside
+    # your Claude Code workspace, or use `env -i` to strip inherited env vars.
     options = ClaudeAgentOptions(
         system_prompt="You are a senior support engineer.",
         agents={"researcher": researcher},
-        allowed_tools=["Agent"],              # Agent tool enables subagent calls
-        setting_sources=["user", "project"],  # enable Agent Skills discovery
+        allowed_tools=["Agent"],  # main agent can only spawn the researcher subagent
+        setting_sources=[],       # opt out of user/project config (no MCPs, no Skills)
         max_turns=5,
     )
 
-    chunks: list[str] = []
+    # Collect only final human-readable TextBlock content from the main agent.
+    # Skips ThinkingBlock / ToolUseBlock / ToolResultBlock reprs for clean output.
+    texts: list[str] = []
     async for msg in query(
         prompt=f"Use the researcher subagent to diagnose: {state['ticket']}",
         options=options,
     ):
-        if hasattr(msg, "content"):
-            chunks.append(str(msg.content))
-    return {"diagnosis": "\n".join(chunks) if chunks else "[no diagnosis]"}
+        content = getattr(msg, "content", None)
+        if isinstance(content, list):
+            for block in content:
+                if type(block).__name__ == "TextBlock":
+                    text = getattr(block, "text", None)
+                    if text:
+                        texts.append(text)
+        elif isinstance(content, str) and content.strip():
+            texts.append(content)
+    return {"diagnosis": "\n\n".join(texts) if texts else "[no diagnosis]"}
 
 
 def draft_answer(state: HybridState) -> HybridState:

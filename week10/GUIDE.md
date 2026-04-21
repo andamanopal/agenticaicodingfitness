@@ -477,7 +477,9 @@ async def diagnose_with_sdk(state: HybridState) -> HybridState:
         system_prompt="You are a senior support engineer.",
         agents={"researcher": researcher},
         allowed_tools=["Agent"],
-        setting_sources=["user", "project"],  # enables Agent Skills discovery
+        # Do NOT set setting_sources here. Passing ["user", "project"] would
+        # inherit every MCP server configured in your local Claude Code, which
+        # can leak private data into the agent's reasoning. Keep the demo hermetic.
         max_turns=5,
     )
 
@@ -598,7 +600,7 @@ Pick three of the four:
 # Glossary
 
 - **Agent.** An LLM with tools and a loop. In this guide: `create_react_agent(model, tools, prompt)`.
-- **Agent Skill.** A structured, discoverable unit of specialized knowledge, discoverable from `setting_sources=["user", "project"]` in the Claude Agent SDK.
+- **Agent Skill.** A structured, discoverable unit of specialized knowledge. The Claude Agent SDK discovers Skills via `setting_sources` or an explicit `skills=` allowlist. For classroom demos, prefer the explicit allowlist so the agent stays isolated from host MCPs.
 - **Checkpointer.** A storage backend that persists graph state after every node. `SqliteSaver`, `PostgresSaver`, etc.
 - **Claude Agent SDK.** Anthropic's agent framework, renamed from Claude Code SDK on September 29, 2025, alongside Claude Sonnet 4.5 to reflect its broader applicability beyond coding. Best for agent execution inside a node.
 - **Claude Managed Agents.** Anthropic's hosted runtime for production agents, public beta since April 8, 2026.

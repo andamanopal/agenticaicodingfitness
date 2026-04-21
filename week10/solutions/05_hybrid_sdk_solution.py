@@ -64,24 +64,32 @@ async def diagnose_with_parallel_subagents(state: HybridState) -> HybridState:
             "metric_correlator": metric_correlator,
         },
         allowed_tools=["Agent"],
-        setting_sources=["user", "project"],
+        # Do NOT pass setting_sources: it inherits locally-configured MCP servers
+        # into the agent, which can leak private data from your host Claude Code config.
         max_turns=8,
     )
 
-    chunks: list[str] = []
+    texts: list[str] = []
     async for msg in query(
         prompt=f"Diagnose this incident using both subagents: {state['ticket']}",
         options=options,
     ):
-        if hasattr(msg, "content"):
-            chunks.append(str(msg.content))
-    return {"diagnosis": "\n".join(chunks) if chunks else "[no diagnosis]"}
+        content = getattr(msg, "content", None)
+        if isinstance(content, list):
+            for block in content:
+                if type(block).__name__ == "TextBlock":
+                    text = getattr(block, "text", None)
+                    if text:
+                        texts.append(text)
+        elif isinstance(content, str) and content.strip():
+            texts.append(content)
+    return {"diagnosis": "\n\n".join(texts) if texts else "[no diagnosis]"}
 
 
 def draft_answer(state: HybridState) -> HybridState:
     return {
         "answer": (
-            "Hello — our combined diagnosis:\n"
+            "Hello, our combined diagnosis:\n"
             f"{state['diagnosis']}\n\n"
             "We'll follow up within 1 business hour."
         )
