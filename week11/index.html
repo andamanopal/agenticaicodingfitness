@@ -1,0 +1,1729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agent Forge — Week 11 Mastery Lab | AltoTech Agentic Coding Fitness</title>
+<meta name="description" content="Revise, summarize, learn, play, and test all concepts of agents and multi-agent systems from the AltoTech Agentic Coding Fitness 10-week program." />
+<style>
+  /* ======== Reset & Base ======== */
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.55;color:var(--fg);background:var(--bg);scroll-behavior:smooth}
+  :root{
+    --bg:#0b1020;
+    --bg-2:#121a33;
+    --bg-3:#1a2447;
+    --panel:#141d3a;
+    --fg:#e6e9f5;
+    --fg-dim:#9aa3c4;
+    --accent:#7c5cff;
+    --accent-2:#22d3ee;
+    --accent-3:#f97316;
+    --good:#34d399;
+    --warn:#fbbf24;
+    --bad:#f87171;
+    --border:rgba(255,255,255,0.08);
+    --shadow:0 10px 30px rgba(0,0,0,0.35);
+    --radius:14px;
+  }
+  body.light{
+    --bg:#f6f7fb;
+    --bg-2:#ffffff;
+    --bg-3:#eef0f8;
+    --panel:#ffffff;
+    --fg:#0b1020;
+    --fg-dim:#4a5172;
+    --border:rgba(0,0,0,0.08);
+    --shadow:0 10px 30px rgba(0,0,0,0.08);
+  }
+  a{color:var(--accent-2);text-decoration:none}
+  a:hover{text-decoration:underline}
+  code,kbd,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}
+  pre{background:#0a0f24;color:#e6e9f5;border-radius:10px;padding:12px;overflow:auto;border:1px solid var(--border);font-size:12.5px}
+  body.light pre{background:#0b1020;color:#e6e9f5}
+  hr{border:none;border-top:1px solid var(--border);margin:24px 0}
+  button{font-family:inherit}
+
+  /* ======== Layout ======== */
+  header.topbar{
+    position:sticky;top:0;z-index:50;backdrop-filter:blur(12px);
+    background:linear-gradient(180deg,rgba(11,16,32,0.92),rgba(11,16,32,0.7));
+    border-bottom:1px solid var(--border);
+  }
+  body.light header.topbar{background:linear-gradient(180deg,rgba(255,255,255,0.96),rgba(255,255,255,0.7))}
+  .nav{max-width:1280px;margin:0 auto;padding:14px 22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.3px}
+  .brand .logo{width:28px;height:28px;border-radius:8px;background:conic-gradient(from 200deg,#7c5cff,#22d3ee,#f97316,#7c5cff);box-shadow:0 0 18px rgba(124,92,255,.6)}
+  .navlinks{display:flex;gap:6px;flex:1;flex-wrap:wrap}
+  .navlinks a{
+    color:var(--fg-dim);padding:8px 12px;border-radius:8px;border:1px solid transparent;font-size:14px;
+  }
+  .navlinks a:hover{color:var(--fg);background:var(--bg-3);text-decoration:none}
+  .navlinks a.active{color:var(--fg);background:var(--bg-3);border-color:var(--border)}
+  .togglebtn{
+    background:var(--bg-3);border:1px solid var(--border);color:var(--fg);padding:8px 12px;border-radius:8px;cursor:pointer;font-size:13px
+  }
+  main{max-width:1280px;margin:0 auto;padding:30px 22px 60px}
+  section.page{display:none;animation:fadein .25s ease}
+  section.page.active{display:block}
+  @keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+  /* ======== Hero ======== */
+  .hero{
+    border-radius:20px;padding:40px;background:
+      radial-gradient(800px 300px at 10% -20%,rgba(124,92,255,.35),transparent 60%),
+      radial-gradient(800px 300px at 110% 0%,rgba(34,211,238,.25),transparent 60%),
+      linear-gradient(180deg,var(--bg-2),var(--panel));
+    border:1px solid var(--border);box-shadow:var(--shadow);
+  }
+  .hero h1{font-size:38px;line-height:1.15;margin:0 0 8px}
+  .hero .sub{color:var(--fg-dim);font-size:16px;max-width:760px}
+  .pill{display:inline-block;padding:5px 10px;border-radius:999px;font-size:12px;border:1px solid var(--border);background:var(--bg-3);color:var(--fg-dim);margin-right:6px}
+  .cta{margin-top:18px;display:flex;flex-wrap:wrap;gap:10px}
+  .cta button{
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));color:white;border:0;padding:12px 18px;border-radius:10px;cursor:pointer;font-weight:600;box-shadow:0 8px 24px rgba(124,92,255,.35)
+  }
+  .cta button.alt{background:var(--bg-3);color:var(--fg);box-shadow:none;border:1px solid var(--border)}
+  .grid{display:grid;gap:18px}
+  .grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .grid.cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+  @media (max-width:900px){.grid.cols-2,.grid.cols-3,.grid.cols-4{grid-template-columns:1fr}}
+
+  .card{
+    background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)
+  }
+  .card h3{margin:0 0 6px;font-size:18px}
+  .card .meta{color:var(--fg-dim);font-size:13px;margin-bottom:8px}
+
+  h2.section-title{font-size:24px;margin:32px 0 16px;display:flex;align-items:center;gap:10px}
+  h2.section-title .badge{font-size:11px;padding:3px 8px;border-radius:999px;background:var(--bg-3);border:1px solid var(--border);color:var(--fg-dim);font-weight:500}
+
+  /* ======== Tabs ======== */
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+  .tabs button{
+    background:var(--bg-3);color:var(--fg-dim);border:1px solid var(--border);padding:8px 12px;border-radius:8px;cursor:pointer;font-size:13px
+  }
+  .tabs button.active{color:var(--fg);background:var(--accent);border-color:var(--accent)}
+  .tabpane{display:none}
+  .tabpane.active{display:block}
+
+  /* ======== Tables ======== */
+  .tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+  .tbl th,.tbl td{padding:10px 12px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
+  .tbl th{color:var(--fg-dim);font-weight:600;background:var(--bg-3);position:sticky;top:0}
+  .tbl tr:hover td{background:rgba(124,92,255,.05)}
+  .chip{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11.5px;border:1px solid var(--border);background:var(--bg-3);color:var(--fg-dim);margin-right:4px}
+  .chip.good{color:#0b1020;background:#86efac;border-color:#86efac}
+  .chip.warn{color:#0b1020;background:#fde68a;border-color:#fde68a}
+  .chip.bad{color:#0b1020;background:#fca5a5;border-color:#fca5a5}
+  .chip.brand{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:white;border:0}
+
+  /* ======== Playground ======== */
+  .pg-wrap{display:grid;grid-template-columns:280px 1fr;gap:18px}
+  @media (max-width:900px){.pg-wrap{grid-template-columns:1fr}}
+  .pg-controls .field{margin-bottom:14px}
+  .pg-controls label{display:block;font-size:12px;color:var(--fg-dim);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+  .pg-controls select,.pg-controls input[type=text],.pg-controls textarea{
+    width:100%;background:var(--bg-3);color:var(--fg);border:1px solid var(--border);padding:8px 10px;border-radius:8px;font-size:13px
+  }
+  .pg-controls input[type=range]{width:100%}
+  .pg-controls .row{display:flex;gap:10px}
+  .pg-controls .row > *{flex:1}
+  .pg-controls button.run{width:100%;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:white;border:0;padding:12px;border-radius:10px;cursor:pointer;font-weight:700;margin-top:6px}
+  .pg-controls button.alt{width:100%;background:var(--bg-3);color:var(--fg);border:1px solid var(--border);padding:10px;border-radius:8px;cursor:pointer;margin-top:6px}
+  .pg-canvas{position:relative;background:radial-gradient(600px 300px at 50% 10%,rgba(124,92,255,.18),transparent),var(--panel);border:1px solid var(--border);border-radius:var(--radius);min-height:520px;overflow:hidden}
+  .pg-canvas svg{width:100%;height:520px;display:block}
+  .pg-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+  .stat{background:var(--bg-3);border:1px solid var(--border);border-radius:10px;padding:10px}
+  .stat .v{font-size:22px;font-weight:700}
+  .stat .l{color:var(--fg-dim);font-size:11.5px;text-transform:uppercase;letter-spacing:.05em}
+  .pg-log{margin-top:14px;background:#0a0f24;color:#cfd6ff;border:1px solid var(--border);border-radius:10px;padding:10px;max-height:200px;overflow:auto;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px;white-space:pre-wrap}
+  .node-circle{stroke:rgba(255,255,255,0.4);stroke-width:1.4;cursor:pointer;transition:filter .2s}
+  .node-circle:hover{filter:drop-shadow(0 0 6px rgba(124,92,255,.7))}
+  .edge{stroke:rgba(255,255,255,0.18);stroke-width:1.6;fill:none}
+  .edge.live{stroke:var(--accent-2);stroke-width:2.4;stroke-dasharray:6 6;animation:dash 1.6s linear infinite}
+  @keyframes dash{to{stroke-dashoffset:-100}}
+  .nodelabel{font-size:12px;fill:var(--fg);pointer-events:none;text-anchor:middle;font-weight:600}
+  .nodesub{font-size:10.5px;fill:var(--fg-dim);pointer-events:none;text-anchor:middle}
+  .msgball{fill:var(--accent);stroke:white;stroke-width:1.4;filter:drop-shadow(0 0 4px var(--accent))}
+
+  /* ======== Quiz ======== */
+  .quiz-q{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
+  .quiz-q h4{margin:0 0 10px}
+  .quiz-q .opts{display:grid;gap:8px}
+  .quiz-q .opt{
+    background:var(--bg-3);border:1px solid var(--border);padding:10px 12px;border-radius:10px;cursor:pointer;font-size:14px;text-align:left;color:var(--fg)
+  }
+  .quiz-q .opt.selected{border-color:var(--accent);background:rgba(124,92,255,.08)}
+  .quiz-q .opt.correct{border-color:var(--good);background:rgba(52,211,153,.12);color:var(--fg)}
+  .quiz-q .opt.wrong{border-color:var(--bad);background:rgba(248,113,113,.12);color:var(--fg)}
+  .quiz-q .explain{margin-top:10px;color:var(--fg-dim);font-size:13px;border-top:1px dashed var(--border);padding-top:8px;display:none}
+  .quiz-q.revealed .explain{display:block}
+
+  /* ======== Wizard ======== */
+  .wiz-stepper{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+  .wiz-stepper span{padding:6px 10px;border-radius:999px;background:var(--bg-3);border:1px solid var(--border);font-size:12px;color:var(--fg-dim)}
+  .wiz-stepper span.active{background:var(--accent);color:white;border-color:var(--accent)}
+  .wiz-q{display:grid;gap:8px}
+  .wiz-opt{
+    background:var(--bg-3);border:1px solid var(--border);padding:12px;border-radius:10px;cursor:pointer;font-size:14px;text-align:left;color:var(--fg)
+  }
+  .wiz-opt.selected{border-color:var(--accent);background:rgba(124,92,255,.08)}
+
+  /* ======== Misc ======== */
+  .kv{display:grid;grid-template-columns:140px 1fr;gap:8px;font-size:13px}
+  .kv b{color:var(--fg-dim);font-weight:500}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--fg-dim)}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle}
+  .dot.r{background:#f87171}.dot.o{background:#f97316}.dot.y{background:#fbbf24}.dot.g{background:#34d399}.dot.b{background:#22d3ee}.dot.p{background:#7c5cff}.dot.k{background:#a3a3a3}
+  .scroll-x{overflow-x:auto}
+  footer{
+    color:var(--fg-dim);text-align:center;padding:30px;border-top:1px solid var(--border);font-size:13px;margin-top:40px
+  }
+  details > summary{cursor:pointer;color:var(--accent-2);margin-bottom:6px}
+  .swatch{display:flex;gap:6px;align-items:center}
+  .swatch i{display:block;width:14px;height:14px;border-radius:3px}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="nav">
+    <div class="brand"><div class="logo"></div> Agent Forge <span class="pill">Week 11</span></div>
+    <nav class="navlinks" id="navlinks">
+      <a href="#home" class="active" data-target="home">Overview</a>
+      <a href="#weekly" data-target="weekly">10-Week Review</a>
+      <a href="#models" data-target="models">LLM Models</a>
+      <a href="#frameworks" data-target="frameworks">Frameworks</a>
+      <a href="#playground" data-target="playground">Playground</a>
+      <a href="#patterns" data-target="patterns">Agent Patterns</a>
+      <a href="#quiz" data-target="quiz">Quiz</a>
+      <a href="#resources" data-target="resources">Resources</a>
+    </nav>
+    <button class="togglebtn" id="themeToggle" title="Toggle theme">Theme</button>
+  </div>
+</header>
+
+<main>
+
+<!-- ====================== OVERVIEW ====================== -->
+<section id="home" class="page active">
+  <div class="hero">
+    <span class="pill">AltoTech Agentic Coding Fitness</span>
+    <span class="pill">Week 11 — Mastery Lab</span>
+    <h1>Revise, learn, play, and test every concept of agents and multi-agent systems.</h1>
+    <p class="sub">A single, visual workbench to consolidate everything from Weeks 1–10 of the AltoTech Agentic Coding Fitness program — Prompting, LLM APIs, Tool Use, Pipelines, Agent Loop, Claude Code, MCP, RAG, CrewAI, and LangGraph. Compare LLMs, pick the right model, and run a TensorFlow-Playground-style simulator with <b>real Claude / OpenAI API calls</b>.</p>
+    <div style="margin-top:14px;padding:14px;border-radius:12px;background:linear-gradient(135deg,rgba(124,92,255,.15),rgba(34,211,238,.1));border:1px solid var(--accent)">
+      <span class="chip brand">📍 You are here · Week 11</span>
+      <span style="font-weight:600;margin-left:8px">Swarm Intelligence: Parallel Agent Orchestration</span>
+      <span style="color:var(--fg-dim);margin-left:8px">— Apr 21, 2026</span>
+      <div style="font-size:13px;color:var(--fg-dim);margin-top:6px">Build swarms of agents working in parallel. Use the <a href="#playground" onclick="goto('playground')">Playground</a> as your hands-on sandbox for this week's lab.</div>
+    </div>
+    <div class="cta">
+      <button onclick="goto('playground')">Open the Playground</button>
+      <button class="alt" onclick="goto('weekly')">Review the 10 weeks</button>
+      <button class="alt" onclick="goto('quiz')">Test myself</button>
+    </div>
+  </div>
+
+  <h2 class="section-title">What's inside <span class="badge">7 modules</span></h2>
+  <div class="grid cols-3">
+    <div class="card"><h3>📚 10-Week Review</h3><div class="meta">Concise summaries with code snippets from your working folder</div>From Claude API basics to multi-agent orchestration — every key concept in one place.</div>
+    <div class="card"><h3>🤖 LLM Model Atlas</h3><div class="meta">Latest 2025/26 frontier and OSS models</div>Side-by-side comparison of Claude, GPT, Gemini, Llama, Mistral, DeepSeek, Qwen, Grok with pricing and capability scores.</div>
+    <div class="card"><h3>🎯 Pick-the-Right-Model Wizard</h3><div class="meta">A 4-step quiz</div>Tells you the best model for your task — coding, vision, long-context RAG, cheap classification, etc.</div>
+    <div class="card"><h3>🧩 Frameworks Compare</h3><div class="meta">LangGraph · CrewAI · AutoGen/AG2 · Swarm · Anthropic Agent SDK · MCP</div>Strengths, weaknesses, and "when to pick what" cheat-sheet.</div>
+    <div class="card"><h3>🧪 Multi-Agent Playground</h3><div class="meta">Like TensorFlow Playground but for agents</div>Drag the sliders — number of agents, topology, tools, model — watch messages flow, see cost/latency/quality.</div>
+    <div class="card"><h3>📐 Pattern Library</h3><div class="meta">17 canonical agent patterns</div>ReAct, Reflection, Plan-and-Execute, Hierarchical, Swarm, Router, Tool-Use, Self-Consistency, Tree-of-Thought, etc.</div>
+    <div class="card"><h3>🧠 Mastery Quiz</h3><div class="meta">25 questions, scored & explained</div>Validate that you've internalized the patterns, frameworks, and trade-offs.</div>
+    <div class="card"><h3>📎 Resources</h3><div class="meta">Curated reading list</div>Original papers, docs, and the most useful tutorials per topic.</div>
+    <div class="card"><h3>🇹🇭 Built locally</h3><div class="meta">100% offline, no backend</div>One self-contained HTML file — works in any browser, no install.</div>
+  </div>
+
+  <h2 class="section-title">Your 10-week journey, at a glance</h2>
+  <div class="card">
+    <svg id="journey" viewBox="0 0 1200 220" style="width:100%;height:auto;display:block"></svg>
+  </div>
+</section>
+
+<!-- ====================== WEEKLY REVIEW ====================== -->
+<section id="weekly" class="page">
+  <h2 class="section-title">10-Week Review <span class="badge">click any week</span></h2>
+  <div id="weekTabs" class="tabs"></div>
+  <div id="weekContent"></div>
+</section>
+
+<!-- ====================== MODELS ====================== -->
+<section id="models" class="page">
+  <h2 class="section-title">LLM Model Atlas <span class="badge">latest 2026</span></h2>
+  <div class="tabs">
+    <button class="active" data-mtab="compare">Compare table</button>
+    <button data-mtab="wizard">Pick-the-right-model wizard</button>
+    <button data-mtab="bench">Capability radar</button>
+  </div>
+  <div id="mtab-compare" class="tabpane active"></div>
+  <div id="mtab-wizard" class="tabpane"></div>
+  <div id="mtab-bench" class="tabpane"></div>
+</section>
+
+<!-- ====================== FRAMEWORKS ====================== -->
+<section id="frameworks" class="page">
+  <h2 class="section-title">Multi-Agent Frameworks <span class="badge">when to use what</span></h2>
+  <div id="frameworksContent"></div>
+</section>
+
+<!-- ====================== PLAYGROUND ====================== -->
+<section id="playground" class="page">
+  <h2 class="section-title">Multi-Agent Playground <span class="badge">visual simulator</span></h2>
+  <p style="color:var(--fg-dim);max-width:840px;margin-top:-6px">
+    Inspired by <a href="https://playground.tensorflow.org/" target="_blank">TensorFlow Playground</a>. Configure agents, tools, topology and a task — watch the system execute and see cost / latency / quality estimates. No real API calls — this is a deterministic simulator that visualizes how multi-agent patterns behave.
+  </p>
+  <div class="pg-wrap">
+    <aside class="pg-controls card">
+      <div class="field">
+        <label style="display:flex;justify-content:space-between;align-items:center">
+          <span>Mode</span>
+          <span id="pgModeLbl" class="chip" style="margin-left:auto">🟢 Live</span>
+        </label>
+        <div class="row" style="display:flex;gap:6px">
+          <button class="togglebtn" data-mode="live" id="modeLive" style="flex:1;font-weight:600">⚡ Live API</button>
+          <button class="togglebtn" data-mode="sim" id="modeSim" style="flex:1">🧪 Simulator</button>
+        </div>
+      </div>
+
+      <details id="apiPanel" style="background:var(--bg-3);padding:10px;border-radius:8px;margin-bottom:14px" open>
+        <summary style="font-weight:600;color:var(--fg)">🔑 API Keys (saved in your browser only)</summary>
+        <div class="field" style="margin-top:10px">
+          <label>Anthropic API key</label>
+          <input type="password" id="anthropicKey" placeholder="sk-ant-...">
+        </div>
+        <div class="field">
+          <label>OpenAI API key</label>
+          <input type="password" id="openaiKey" placeholder="sk-...">
+        </div>
+        <div style="font-size:11.5px;color:var(--fg-dim);line-height:1.5">
+          Stored in <code>localStorage</code> on your machine. Never sent anywhere except directly to api.anthropic.com / api.openai.com. <a href="#" onclick="clearKeys();return false">Clear keys</a>
+        </div>
+      </details>
+
+      <div class="field">
+        <label>Topology</label>
+        <select id="pgTopology">
+          <option value="single">Single agent</option>
+          <option value="sequential">Sequential pipeline</option>
+          <option value="parallel" selected>Parallel fan-out + reduce ★ W11</option>
+          <option value="hierarchical">Hierarchical (manager + workers)</option>
+          <option value="swarm">Swarm / network (handoffs)</option>
+          <option value="router">Router → specialists</option>
+          <option value="reflection">Generator + Critic loop</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Number of agents: <span id="pgAgentCountLbl">3</span></label>
+        <input type="range" id="pgAgentCount" min="1" max="6" value="3">
+      </div>
+      <div class="field">
+        <label>Model</label>
+        <select id="pgModel">
+          <optgroup label="Anthropic (Claude)">
+            <option value="anthropic|claude-haiku-4-5-20251001" selected>Claude Haiku 4.5 — fast / cheap</option>
+            <option value="anthropic|claude-sonnet-4-5-20250514">Claude Sonnet 4.5 — balanced</option>
+            <option value="anthropic|claude-opus-4-5-20250514">Claude Opus 4.5 — strongest</option>
+            <option value="anthropic|claude-3-5-sonnet-20241022">Claude 3.5 Sonnet (legacy)</option>
+            <option value="anthropic|claude-3-5-haiku-20241022">Claude 3.5 Haiku (legacy)</option>
+          </optgroup>
+          <optgroup label="OpenAI (GPT)">
+            <option value="openai|gpt-4o-mini">GPT-4o mini — cheap</option>
+            <option value="openai|gpt-4o">GPT-4o — balanced</option>
+            <option value="openai|gpt-4-turbo">GPT-4 Turbo</option>
+            <option value="openai|o1-mini">o1-mini (reasoning)</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="field">
+        <label>Roles (auto-filled per topology)</label>
+        <textarea id="pgRoles" rows="3" style="font-size:12px">Researcher; Analyst; Writer</textarea>
+      </div>
+      <div class="field">
+        <label>Reflection rounds: <span id="pgRoundsLbl">1</span></label>
+        <input type="range" id="pgRounds" min="0" max="3" value="1">
+      </div>
+      <div class="field">
+        <label>Task</label>
+        <textarea id="pgTask" rows="4">Compare CrewAI vs LangGraph vs AutoGen for a Smart-Building maintenance team. Output: 5-bullet decision matrix.</textarea>
+      </div>
+      <div class="field">
+        <label>Max tokens / agent: <span id="pgMaxTokLbl">600</span></label>
+        <input type="range" id="pgMaxTok" min="200" max="2000" step="100" value="600">
+      </div>
+      <button class="run" id="pgRun">▶ Run</button>
+      <button class="alt" id="pgReset">Reset</button>
+      <details style="margin-top:14px">
+        <summary>How live mode works</summary>
+        <div style="font-size:12.5px;color:var(--fg-dim);margin-top:6px;line-height:1.55">
+          Each node in the graph is a real LLM call to the provider you picked, using your API key. The browser sends with <code>anthropic-dangerous-direct-browser-access: true</code> for Claude. Output of one agent becomes input to the next, following the topology. Cost is computed from real <code>usage</code>; latency is wall-clock; quality is the human assessment of the final output (your call).
+        </div>
+      </details>
+    </aside>
+    <div>
+      <div class="pg-canvas" id="pgCanvas"><svg id="pgSvg" viewBox="0 0 800 520"></svg></div>
+      <div class="pg-stats">
+        <div class="stat"><div class="l">Latency</div><div class="v" id="statLatency">—</div></div>
+        <div class="stat"><div class="l">Token cost (USD)</div><div class="v" id="statCost">—</div></div>
+        <div class="stat"><div class="l">Quality (0–100)</div><div class="v" id="statQuality">—</div></div>
+        <div class="stat"><div class="l">Steps</div><div class="v" id="statSteps">—</div></div>
+      </div>
+      <div class="pg-log" id="pgLog">[ready] Paste your API key, choose a topology, click Run.</div>
+      <div class="legend" style="margin-top:8px">
+        <span><span class="dot p"></span>Manager / Planner</span>
+        <span><span class="dot b"></span>Worker / Specialist</span>
+        <span><span class="dot g"></span>Critic / Verifier</span>
+        <span><span class="dot y"></span>Router</span>
+      </div>
+      <div id="pgOutputs" style="margin-top:14px"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== PATTERNS ====================== -->
+<section id="patterns" class="page">
+  <h2 class="section-title">Agent Pattern Library <span class="badge">17 canonical patterns</span></h2>
+  <div id="patternsContent" class="grid cols-2"></div>
+</section>
+
+<!-- ====================== QUIZ ====================== -->
+<section id="quiz" class="page">
+  <h2 class="section-title">Mastery Quiz <span class="badge">25 questions</span></h2>
+  <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px">
+    <button class="togglebtn" onclick="resetQuiz()">↺ New quiz</button>
+    <button class="togglebtn" onclick="revealAll()">👁 Reveal all answers</button>
+    <span id="quizScore" style="margin-left:auto;font-size:14px;color:var(--fg-dim)">Score: 0 / 25</span>
+  </div>
+  <div id="quizContent"></div>
+</section>
+
+<!-- ====================== RESOURCES ====================== -->
+<section id="resources" class="page">
+  <h2 class="section-title">Resources <span class="badge">curated</span></h2>
+  <div id="resourcesContent" class="grid cols-2"></div>
+</section>
+
+</main>
+<footer>
+  Agent Forge · Week 11 Mastery Lab · Built for AltoTech Agentic Coding Fitness · Open this file in any browser, fully offline.
+</footer>
+
+<script>
+/* =================== APP ROUTER =================== */
+const navlinks=document.querySelectorAll('.navlinks a');
+const pages=document.querySelectorAll('section.page');
+function goto(id){
+  pages.forEach(p=>p.classList.toggle('active',p.id===id));
+  navlinks.forEach(a=>a.classList.toggle('active',a.dataset.target===id));
+  history.replaceState(null,'','#'+id);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+navlinks.forEach(a=>a.addEventListener('click',e=>{e.preventDefault();goto(a.dataset.target)}));
+window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(h)goto(h)});
+if(location.hash) goto(location.hash.slice(1));
+
+/* =================== THEME =================== */
+document.getElementById('themeToggle').addEventListener('click',()=>{
+  document.body.classList.toggle('light');
+});
+
+/* =================== WEEKLY DATA (matches agentic-coding-fitness.altotech.ai syllabus) =================== */
+const WEEKS = [
+  {
+    n:1, title:"LLM Fundamentals & The Art of Prompting", date:"Feb 10, 2026",
+    summary:"Understand how LLMs actually work and master prompt engineering as the foundation of all agentic AI. Tokenization, attention, context windows, and the four canonical prompt patterns.",
+    concepts:["Tokenization & embeddings — text → sub-word vectors","Self-attention: every token attends to every other token","Context windows (Claude 200K) · temperature · top-p","Zero-shot · Few-shot · Chain-of-thought · Role-based"],
+    code:`# Compare four prompt patterns on the same task
+ZERO_SHOT  = "What are top 3 energy savings opps for this hotel?"
+FEW_SHOT   = "Example 1: ... Example 2: ...  Now analyze: ..."
+COT        = "Think step by step: 1) calculate kWh 2) ROI 3) rank"
+ROLE_BASED = "You are a certified energy auditor with 15 years..."
+# Test all four with Sonnet, Haiku, GPT — score accuracy/completeness/usefulness`,
+    files:["week2/claudeapicall.py (used as setup)"],
+    tip:"Few-shot beats zero-shot for STRUCTURED tasks. Chain-of-thought beats both for REASONING tasks. Role-based beats all for NUANCED tasks. Pick the pattern to fit the task.",
+    takeaway:"Prompt engineering is the steering wheel of AI — every agentic system starts with well-crafted prompts.",
+  },
+  {
+    n:2, title:"LLM APIs & Programmatic AI Access", date:"Feb 17, 2026",
+    summary:"Move from web chat to code. POST to api.anthropic.com, parse content blocks, manage multi-turn memory, stream tokens, retry on 429, and pick the right model tier.",
+    concepts:["REST: POST /v1/messages with x-api-key + anthropic-version","Streaming SSE vs. batch — UX vs. pipelines","Token economics — Haiku $0.25/$1.25 · Sonnet $3/$15 · Opus $15/$75","Retry with exponential backoff (1s, 2s, 4s)"],
+    code:`# multi-turn loop with token tracking + retry
+import anthropic, time
+client = anthropic.Anthropic()
+messages, total_in, total_out = [], 0, 0
+def chat(user):
+    messages.append({"role":"user","content":user})
+    for attempt in range(3):
+        try:
+            r = client.messages.create(
+                model="claude-sonnet-4-5-20250514",
+                max_tokens=1024, messages=messages,
+                system="You are a helpful coding mentor.")
+            break
+        except anthropic.RateLimitError:
+            time.sleep(2**attempt)
+    reply = r.content[0].text
+    messages.append({"role":"assistant","content":reply})
+    return reply, r.usage.input_tokens, r.usage.output_tokens`,
+    files:["week2/claudeapicall.py","week2/claudemulti_turn.py","week2/claudestreamingapi.py"],
+    tip:"Always cap history (last 20 turns) — context windows are big but cost grows linearly in tokens.",
+    takeaway:"APIs are the bridge between human ideas and AI execution — everything agentic builds on this foundation.",
+  },
+  {
+    n:3, title:"Tool Use & Function Calling", date:"Feb 24, 2026",
+    summary:"Give AI hands and eyes. Define tools as JSON schemas, let Claude decide when to call them, execute, return tool_result, loop until end_turn. This is where chatbot becomes agent — and where ReAct lives.",
+    concepts:["Tool = name + description + input_schema (JSON Schema)","tool_use block in response → execute → tool_result","ReAct: Reason → Act → Observe loop","Multi-turn tool chains: search → fetch → calculate → format"],
+    code:`tools=[{
+  "name":"get_weather",
+  "description":"Get current temperature in Celsius for a city.",
+  "input_schema":{"type":"object",
+    "properties":{"city":{"type":"string"}},"required":["city"]}}]
+
+while True:
+    r = client.messages.create(model=MODEL, max_tokens=1024,
+        tools=tools, messages=messages)
+    if r.stop_reason != "tool_use": break
+    for block in r.content:
+        if block.type == "tool_use":
+            result = run_tool(block.name, block.input)
+            messages.append({"role":"assistant","content":r.content})
+            messages.append({"role":"user","content":[{
+              "type":"tool_result","tool_use_id":block.id,
+              "content":str(result)}]})`,
+    files:["week3/toolsuse.py","week3/buildsmartassistant3tools.py","week3/hwadd4thtool.py","week3/hwadd5thtool.py"],
+    tip:"Tool descriptions are the spec. Write them like docstrings for a junior engineer — Claude treats them exactly the same way.",
+    takeaway:"Tool use gives AI hands and eyes — without tools, an LLM is just a brain in a jar.",
+  },
+  {
+    n:4, title:"Building Your First AI Pipeline", date:"Mar 3, 2026",
+    summary:"Chain multiple LLM calls and tools into a coherent pipeline — your first taste of agentic behavior. Vision input (drone camera), OpenRouter for multi-model routing, end-to-end inspection report.",
+    concepts:["Pipelines = linear DAG of LLM/tool steps","Vision input (base64 image + text)","OpenRouter as model marketplace","Cost-aware model routing per step","Pipelines = skeleton; agents = pipelines that modify themselves"],
+    code:`# vision pipeline (week 4 drone inspection)
+def inspect(image_b64):
+    classify = client.messages.create(model=HAIKU, max_tokens=200,
+      messages=[{"role":"user","content":[
+        {"type":"image","source":{"type":"base64",
+          "media_type":"image/jpeg","data":image_b64}},
+        {"type":"text","text":"Defect? YES/NO + 1-line reason."}]}])
+    if "YES" in classify.content[0].text:
+        report = client.messages.create(model=SONNET, max_tokens=2000,
+          messages=[{"role":"user","content":"Write full incident report."}])
+        return report.content[0].text
+    return "OK — no defect detected."`,
+    files:["week4/dronecontrol.py","week4/droneeyes.py","week4/openrouterfreemodel.py","week4/pipeline.py","week4/final_report.md"],
+    tip:"Downsample images to 1024px max edge — quality plateaus there and cost drops 4–10× compared to 4K input.",
+    takeaway:"Pipelines are the skeleton of agentic systems — agents are pipelines that can modify themselves.",
+  },
+  {
+    n:5, title:"The Agent Loop: Reason, Act, Observe", date:"Mar 10, 2026",
+    summary:"The heart of every agent. Build your first truly autonomous agent from scratch — no frameworks. Perceive → Reason → Plan → Act → Observe → Repeat, with proper termination.",
+    concepts:["Universal loop: Perceive → Reason → Plan → Act → Observe","Pipelines are linear; agents are loops with judgment","Termination conditions (success, max iters, confidence, DONE)","Memory: short-term (messages) + long-term (files/DB)"],
+    code:`# minimal autonomous agent (week 5)
+goal = "Find the cheapest 1-bedroom in Asoke under 25k THB."
+scratch, MAX_STEPS, MAX_USD = [], 12, 0.50
+for step in range(MAX_STEPS):
+    if cost_so_far > MAX_USD: break
+    plan = ask(f"Goal:{goal}\\nHistory:{scratch}\\nNext single action?")
+    if plan.startswith("DONE:"): break
+    obs  = execute(plan)             # tool / browse / compute
+    scratch.append((plan, obs))
+print("Final:", plan)`,
+    files:["week5/autoagent.py","week5/sample.py"],
+    tip:"Always set MAX_STEPS and MAX_USD. An autonomous loop without a budget is a science experiment.",
+    takeaway:"An agent is a loop with judgment — once you understand this loop, everything else is just scale.",
+  },
+  {
+    n:6, title:"Claude Code & Agentic Coding in Practice", date:"Mar 17, 2026",
+    summary:"Master Claude Code — the most powerful agentic coding tool available today. CLAUDE.md as project memory, AGENTS.md as behavior policy, slash commands, skills, sub-agents.",
+    concepts:["CLAUDE.md = project memory (stack, conventions)","AGENTS.md = behavior policy (ask before X, never do Y)","Slash commands (/init /review /security-review)","Skills as packaged capabilities","Sub-agents via Task tool — delegation that scales"],
+    code:`# CLAUDE.md (project memory)
+## Project Overview
+Tech: React + TypeScript + Node.js
+DB: PostgreSQL · Auth: JWT · Cache: Redis :6379
+## Conventions
+- Functional components + hooks
+- async/await over promises
+## Commands
+npm run dev / test / build / migrate
+
+# AGENTS.md (behavior policy)
+## Default Behavior
+- Always ask before creating new files
+- Prefer refactoring over rewriting
+## Code Review Checklist
+- [ ] No console.log
+- [ ] Error handling implemented`,
+    files:["week6/AGENTS.md","week6/CLAUDE.md","week6/memory-notes.md","week6/src/...","AgentMemoryDemo/"],
+    tip:"Treat CLAUDE.md as a living README for your AI teammate. If it gets stale, the agent gets stale.",
+    takeaway:"Claude Code is your AI development team in a terminal — learn to direct, not micromanage.",
+  },
+  {
+    n:7, title:"MCP: Connecting Agents to the World", date:"Mar 24, 2026",
+    summary:"Master the Model Context Protocol — the universal standard that connects AI agents to any tool or data source. Build an MCP server, connect filesystem, plug into Claude Desktop / Cursor / Cline.",
+    concepts:["MCP = tools + resources + prompts (open spec)","Transport: stdio · SSE · HTTP","Build once → reuse across every MCP-aware client","Tool search vs. tool injection (>5 tools)","Skills as packaged MCPs"],
+    code:`# weather MCP server (Python)
+from mcp.server.fastmcp import FastMCP
+mcp = FastMCP("weather")
+
+@mcp.tool()
+def get_temp(city: str) -> float:
+    """Return current temperature in Celsius."""
+    return weather_api(city)["temp_c"]
+
+@mcp.resource("weather://forecast/{city}")
+def forecast(city: str) -> str:
+    return weather_api(city, days=7)
+
+if __name__ == "__main__":
+    mcp.run(transport="stdio")`,
+    files:["week7/mcpserver.py","week7/mcpfilesystem.py","week7/agent.py","week7/agenttooldt.py","week7/skill.md","week7/claudeapi-tool-search.py","week7/claudeapi-poe.py"],
+    tip:"If you have >5 tools, use tool search (retrieve top-k schemas per query) instead of injecting all schemas — token cost adds up fast.",
+    takeaway:"MCP is the USB port for AI agents — standardized connectivity to any tool or data source.",
+  },
+  {
+    n:8, title:"RAG & Knowledge-Grounded Agents", date:"Mar 31, 2026",
+    summary:"Build agents that reason over your documents using Retrieval-Augmented Generation. Chunk → embed → store → retrieve → re-rank → cite. The right way to give your agent 'memory of your data'.",
+    concepts:["Chunking strategies (fixed / semantic / hierarchical)","Embedding models (OpenAI · Voyage · BGE)","Vector stores (pgvector · Chroma · Qdrant)","Hybrid retrieval (BM25 + vector)","Re-ranking · MMR · query rewriting","Citations & faithfulness evaluation"],
+    code:`# minimal RAG with citations
+chunks = split(doc, size=600, overlap=80)
+store.upsert(embed(chunks), chunks)
+
+def answer(q):
+    hits = store.search(embed(q), k=6)
+    ctx  = "\\n---\\n".join(f"[{i}] {h.text}" for i,h in enumerate(hits))
+    out  = llm(f"Use ONLY this context. Cite sources [n].\\n{ctx}\\nQ:{q}")
+    return out, hits   # return citations alongside answer`,
+    files:["week8/Week8_RAG_Knowledge_Agents_Lab.pdf"],
+    tip:"If RAG is bad, 80% of the time the chunks are wrong. Print the top-5 retrieved chunks for any failing query BEFORE tuning the LLM.",
+    takeaway:"RAG gives agents a library — they stop making things up when they can look things up.",
+  },
+  {
+    n:9, title:"CrewAI: Your First Multi-Agent Team", date:"Apr 7, 2026",
+    summary:"Build your first system where multiple AI agents collaborate to solve problems together. Role-based abstraction (Agent + Task + Crew) with sequential and hierarchical processes.",
+    concepts:["Agent = role + goal + backstory + tools","Task = description + agent + expected_output + context","Crew = agents + tasks + process (sequential / hierarchical)","Specialization beats generalization","Manager mode = AI-coordinated workflow"],
+    code:`from crewai import Agent, Task, Crew, Process
+researcher = Agent(role="Researcher",
+    goal="Find authoritative sources",
+    backstory="PhD librarian, 20 years experience")
+writer = Agent(role="Writer",
+    goal="Synthesize a clear executive summary",
+    backstory="Senior tech editor for HBR")
+t1 = Task(description="Research SEA smart-building competitors",
+          agent=researcher, expected_output="JSON list with citations")
+t2 = Task(description="Write 1-page exec summary",
+          agent=writer, context=[t1], expected_output="markdown")
+Crew(agents=[researcher,writer], tasks=[t1,t2],
+     process=Process.sequential).kickoff()`,
+    files:["week9/ex1_crewai_sequential.py","week9/crewai_test.py","week9/ag2_test.py","week9/anthropic_test.py","week9/ex1_output.md"],
+    tip:"More agents ≠ better. 80% of real CrewAI value comes from just 2-3 well-defined roles + 1 critic. Don't over-engineer.",
+    takeaway:"CrewAI teaches you to think in teams, not individuals — the right agent for the right job.",
+  },
+  {
+    n:10, title:"LangGraph: Graph-Based Agent Orchestration", date:"Apr 14, 2026",
+    summary:"Master LangGraph for complex, production-grade multi-agent workflows with state management. Nodes, edges, conditional routing, checkpointing, and human-in-the-loop.",
+    concepts:["StateGraph = nodes + edges + shared state","Conditional edges = data-driven routing","Checkpointing = pause / resume / replay","Human-in-the-loop interrupts","When graphs beat sequential / hierarchical: branches & cycles"],
+    code:`from langgraph.graph import StateGraph, END
+class State(TypedDict):
+    query: str; kind: str; answer: str
+
+g = StateGraph(State)
+g.add_node("classify", classify_node)
+g.add_node("billing",  billing_agent)
+g.add_node("tech",     tech_agent)
+g.add_node("escalate", human_in_the_loop)
+
+g.set_entry_point("classify")
+g.add_conditional_edges("classify",
+    lambda s: s["kind"],
+    {"billing":"billing","tech":"tech","unknown":"escalate"})
+g.add_edge("billing", END)
+g.add_edge("tech",    END)
+app = g.compile(checkpointer=MemorySaver())`,
+    files:["week9/ex2_LangGraphSupportGraph.py","week9/ex3_ParallelSwarm.py","week9/langraph_test.py"],
+    tip:"Use LangGraph when you have CYCLES (reflection loops) or BRANCHES (router → specialists). For purely linear flows, CrewAI is simpler.",
+    takeaway:"LangGraph gives you a blueprint for agent architecture — when agents get complex, graphs keep them sane.",
+  },
+];
+
+const CURRENT_WEEK = {
+  n:11, title:"Swarm Intelligence: Parallel Agent Orchestration", date:"Apr 21, 2026",
+  summary:"You are HERE. Build swarms of agents working in parallel to solve complex problems faster than any single agent could. The Playground tab is your sandbox for this week.",
+};
+
+/* render weekly tabs + content */
+const wkTabs=document.getElementById('weekTabs');
+const wkContent=document.getElementById('weekContent');
+WEEKS.forEach((w,i)=>{
+  const b=document.createElement('button');
+  b.textContent=`W${w.n}`;
+  b.title=w.title;
+  if(i===0)b.classList.add('active');
+  b.onclick=()=>{
+    document.querySelectorAll('#weekTabs button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    renderWeek(i);
+  };
+  wkTabs.appendChild(b);
+});
+function renderWeek(i){
+  const w=WEEKS[i];
+  wkContent.innerHTML=`
+    <div class="grid cols-2">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
+          <h3 style="margin:0">Week ${w.n} — ${w.title}</h3>
+          <span class="chip">${w.date}</span>
+        </div>
+        <p style="margin-top:10px">${w.summary}</p>
+        <h4 style="margin:16px 0 6px;font-size:14px;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em">Key concepts</h4>
+        <ul style="margin:0;padding-left:18px">${w.concepts.map(c=>`<li>${c}</li>`).join('')}</ul>
+        <h4 style="margin:16px 0 6px;font-size:14px;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em">Files in your working folder</h4>
+        <div>${w.files.map(f=>`<span class="chip">${f}</span>`).join(' ')}</div>
+        <div style="margin-top:14px;padding:10px;border-left:3px solid var(--accent);background:var(--bg-3);border-radius:6px;font-size:13px"><b>💡 Practitioner tip:</b> ${w.tip}</div>
+        <div style="margin-top:10px;padding:10px;border-left:3px solid var(--good);background:var(--bg-3);border-radius:6px;font-size:13px"><b>🎯 Takeaway:</b> ${w.takeaway}</div>
+      </div>
+      <div class="card">
+        <h3>Code snippet</h3>
+        <pre><code>${escapeHtml(w.code)}</code></pre>
+        <h4 style="margin:16px 0 6px;font-size:14px;color:var(--fg-dim);text-transform:uppercase;letter-spacing:.06em">Source</h4>
+        <p style="font-size:13px;color:var(--fg-dim)">Distilled from the official syllabus at <a href="https://agentic-coding-fitness.altotech.ai/" target="_blank">agentic-coding-fitness.altotech.ai</a> and your <code>~/AgenticCoding/week${w.n>2?w.n:'2-3'}/</code> files.</p>
+      </div>
+    </div>`;
+}
+function escapeHtml(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
+renderWeek(0);
+
+/* journey SVG */
+(function(){
+  const svg=document.getElementById('journey');
+  const W=1200,H=220;
+  let html='';
+  const colors=['#7c5cff','#22d3ee','#f97316','#34d399','#fbbf24','#f472b6','#60a5fa','#a78bfa','#f87171','#06b6d4'];
+  WEEKS.forEach((w,i)=>{
+    const x=70+i*((W-140)/9);
+    const y=H/2;
+    html+=`<line x1="${x}" y1="${y}" x2="${i<9?70+(i+1)*((W-140)/9):x}" y2="${y}" stroke="rgba(255,255,255,.18)" stroke-width="2"/>`;
+  });
+  WEEKS.forEach((w,i)=>{
+    const x=70+i*((W-140)/9);
+    const y=H/2;
+    const c=colors[i%colors.length];
+    html+=`<g style="cursor:pointer" onclick="goto('weekly');document.querySelectorAll('#weekTabs button')[${i}].click()">`;
+    html+=`<circle cx="${x}" cy="${y}" r="22" fill="${c}" stroke="white" stroke-width="2"/>`;
+    html+=`<text x="${x}" y="${y+5}" text-anchor="middle" font-weight="700" fill="white" font-size="14">${w.n}</text>`;
+    const tY = i%2===0 ? y-44 : y+58;
+    html+=`<text x="${x}" y="${tY}" text-anchor="middle" font-size="11" fill="currentColor">${(w.title.split('—')[0]||w.title).slice(0,22)}</text>`;
+    html+=`</g>`;
+  });
+  svg.innerHTML=html;
+})();
+
+/* =================== MODEL DATA =================== */
+const MODELS=[
+  {id:"claude-opus-4-6",  name:"Claude Opus 4.6",     vendor:"Anthropic", ctx:"200k", out:"32k", in_$:15,out_$:75, vision:true,  tools:true, code:96, reason:96, write:97, vision_s:92, speed:55, cost_s:25, oss:false, notes:"Strongest Claude. Best for hard reasoning, agents, code refactor."},
+  {id:"claude-sonnet-4-6",name:"Claude Sonnet 4.6",   vendor:"Anthropic", ctx:"200k", out:"64k", in_$:3, out_$:15, vision:true,  tools:true, code:93, reason:90, write:94, vision_s:88, speed:75, cost_s:75, oss:false, notes:"Best balance of price/quality. The default agent model."},
+  {id:"claude-haiku-4-5", name:"Claude Haiku 4.5",    vendor:"Anthropic", ctx:"200k", out:"32k", in_$:1, out_$:5,  vision:true,  tools:true, code:84, reason:80, write:84, vision_s:80, speed:95, cost_s:90, oss:false, notes:"Fast & cheap. Use for routing, classification, summarization at scale."},
+  {id:"gpt-5",            name:"GPT-5",               vendor:"OpenAI",    ctx:"400k", out:"128k",in_$:10,out_$:40, vision:true,  tools:true, code:95, reason:96, write:94, vision_s:90, speed:60, cost_s:35, oss:false, notes:"Top reasoning, native tool use, long output."},
+  {id:"gpt-5-mini",       name:"GPT-5 mini",          vendor:"OpenAI",    ctx:"400k", out:"64k", in_$:0.6,out_$:2.4,vision:true,  tools:true, code:88, reason:84, write:88, vision_s:82, speed:90, cost_s:92, oss:false, notes:"Cheapest frontier-tier. Great default for tool agents."},
+  {id:"o4-mini-high",     name:"o4-mini (high reasoning)",vendor:"OpenAI",ctx:"200k", out:"64k", in_$:3, out_$:12, vision:false, tools:true, code:94, reason:97, write:88, vision_s:0,  speed:50, cost_s:60, oss:false, notes:"Pure-reasoning specialist. Math, planning, hard logic."},
+  {id:"gemini-2.5-pro",   name:"Gemini 2.5 Pro",      vendor:"Google",    ctx:"2M",   out:"64k", in_$:2.5,out_$:10, vision:true,  tools:true, code:90, reason:91, write:90, vision_s:93, speed:70, cost_s:78, oss:false, notes:"Massive 2M context, strong vision, native multimodal."},
+  {id:"gemini-2.5-flash", name:"Gemini 2.5 Flash",    vendor:"Google",    ctx:"1M",   out:"64k", in_$:0.3,out_$:1.2,vision:true,  tools:true, code:82, reason:78, write:82, vision_s:84, speed:96, cost_s:96, oss:false, notes:"Tiny price + 1M ctx — perfect for batch processing & RAG."},
+  {id:"grok-4",           name:"Grok 4",              vendor:"xAI",       ctx:"256k", out:"32k", in_$:5, out_$:15, vision:true,  tools:true, code:88, reason:92, write:86, vision_s:84, speed:65, cost_s:55, oss:false, notes:"Strong on real-time / web-grounded reasoning."},
+  {id:"llama-4-maverick", name:"Llama 4 Maverick",    vendor:"Meta (OSS)",ctx:"1M",   out:"64k", in_$:0.5,out_$:1.5,vision:true,  tools:true, code:86, reason:84, write:84, vision_s:82, speed:80, cost_s:88, oss:true,  notes:"Best open-weights frontier. Self-host or via Together / Fireworks."},
+  {id:"llama-4-scout",    name:"Llama 4 Scout",       vendor:"Meta (OSS)",ctx:"10M",  out:"64k", in_$:0.3,out_$:1.0,vision:true,  tools:true, code:78, reason:75, write:78, vision_s:78, speed:88, cost_s:92, oss:true,  notes:"10M context. Use for whole-codebase / huge-corpus analysis."},
+  {id:"mistral-large-3",  name:"Mistral Large 3",     vendor:"Mistral",   ctx:"256k", out:"32k", in_$:2, out_$:6,  vision:false, tools:true, code:84, reason:82, write:82, vision_s:0,  speed:78, cost_s:80, oss:false, notes:"Strong EU option, function calling first-class."},
+  {id:"deepseek-v3.5",    name:"DeepSeek V3.5",       vendor:"DeepSeek (OSS)",ctx:"128k",out:"32k",in_$:0.27,out_$:1.1,vision:false,tools:true,code:91,reason:90,write:84,vision_s:0,speed:70,cost_s:97,oss:true,notes:"Insanely cheap reasoning. Pair with cheap embedding for RAG."},
+  {id:"qwen3-72b",        name:"Qwen3 72B",           vendor:"Alibaba (OSS)",ctx:"128k",out:"32k",in_$:0.4,out_$:1.6,vision:true,tools:true,code:85,reason:82,write:80,vision_s:80,speed:78,cost_s:90,oss:true,notes:"Best multilingual OSS, strong on Asian languages incl. Thai."},
+  {id:"command-r-plus",   name:"Cohere Command R+",   vendor:"Cohere",    ctx:"128k", out:"32k", in_$:2.5,out_$:10, vision:false, tools:true, code:78, reason:76, write:84, vision_s:0,  speed:78, cost_s:75, oss:false, notes:"RAG-tuned, structured outputs, citation-first."},
+];
+
+/* =============== MODELS — COMPARE TABLE ================ */
+function renderModelsCompare(){
+  const tgt=document.getElementById('mtab-compare');
+  tgt.innerHTML=`
+  <div class="card scroll-x">
+    <table class="tbl">
+      <thead><tr>
+        <th>Model</th><th>Vendor</th><th>Context</th><th>Max out</th>
+        <th>$ in /1M</th><th>$ out /1M</th><th>Vision</th><th>Tools</th>
+        <th>Code</th><th>Reason</th><th>Write</th><th>Speed</th><th>OSS</th><th>Best for</th>
+      </tr></thead>
+      <tbody>
+        ${MODELS.map(m=>`<tr>
+          <td><b>${m.name}</b><div style="font-size:11px;color:var(--fg-dim)">${m.id}</div></td>
+          <td>${m.vendor}</td>
+          <td>${m.ctx}</td><td>${m.out}</td>
+          <td>$${m.in_$}</td><td>$${m.out_$}</td>
+          <td>${m.vision?'✓':'—'}</td><td>${m.tools?'✓':'—'}</td>
+          <td>${barCell(m.code)}</td><td>${barCell(m.reason)}</td>
+          <td>${barCell(m.write)}</td><td>${barCell(m.speed)}</td>
+          <td>${m.oss?'<span class="chip good">OSS</span>':''}</td>
+          <td style="max-width:240px">${m.notes}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h3>How to read this</h3>
+    <div class="kv">
+      <b>Context</b><div>How much input the model can see in one call. Bigger = bigger documents fit in-prompt without chunking.</div>
+      <b>$ in / $ out</b><div>USD per million tokens. Output is usually 3–5× more expensive than input.</div>
+      <b>Code / Reason / Write / Speed</b><div>Heuristic 0–100 scores synthesized from public benchmarks (LMSys, SWE-Bench, MMMU, MATH) — directional, not exact.</div>
+      <b>OSS</b><div>Open weights you can self-host (Llama, DeepSeek, Qwen, Mistral OSS variants).</div>
+    </div>
+  </div>
+  `;
+}
+function barCell(v){
+  return `<div style="display:flex;align-items:center;gap:6px"><div style="background:var(--bg-3);width:60px;height:8px;border-radius:4px;overflow:hidden"><div style="background:linear-gradient(90deg,var(--accent),var(--accent-2));height:100%;width:${v}%"></div></div><span style="font-size:11px;color:var(--fg-dim)">${v}</span></div>`;
+}
+
+/* =============== MODELS — WIZARD ================ */
+const WIZ_QUESTIONS=[
+  {q:"What's your task?",key:"task",opts:[
+    {l:"Writing code / refactoring",v:"code"},
+    {l:"Reasoning / planning / agents",v:"reason"},
+    {l:"Vision / image understanding",v:"vision"},
+    {l:"Long-document Q&A / RAG",v:"longctx"},
+    {l:"High-volume classification / batching",v:"batch"},
+    {l:"Creative writing / marketing",v:"write"},
+  ]},
+  {q:"Budget sensitivity?",key:"cost",opts:[
+    {l:"Cheapest possible (mass scale)",v:"cheap"},
+    {l:"Balanced",v:"mid"},
+    {l:"Quality first, cost is fine",v:"premium"},
+  ]},
+  {q:"Latency requirement?",key:"latency",opts:[
+    {l:"Real-time (chat / IDE)",v:"fast"},
+    {l:"Interactive (a few seconds)",v:"normal"},
+    {l:"Batch / async (slow is OK)",v:"slow"},
+  ]},
+  {q:"Hosting?",key:"host",opts:[
+    {l:"SaaS API (default)",v:"api"},
+    {l:"Self-hosted / on-prem",v:"oss"},
+  ]},
+];
+function renderModelsWizard(){
+  const tgt=document.getElementById('mtab-wizard');
+  tgt.innerHTML=`
+  <div class="card">
+    <h3>Pick-the-Right-Model Wizard</h3>
+    <div class="wiz-stepper">${WIZ_QUESTIONS.map((q,i)=>`<span data-step="${i}">Step ${i+1}</span>`).join('')}<span data-step="${WIZ_QUESTIONS.length}">Result</span></div>
+    <div id="wizBody"></div>
+  </div>`;
+  const state={};let step=0;
+  function draw(){
+    const body=document.getElementById('wizBody');
+    document.querySelectorAll('.wiz-stepper span').forEach(s=>s.classList.toggle('active',+s.dataset.step===step));
+    if(step<WIZ_QUESTIONS.length){
+      const q=WIZ_QUESTIONS[step];
+      body.innerHTML=`
+        <h4 style="margin:0 0 10px">${q.q}</h4>
+        <div class="wiz-q">
+          ${q.opts.map(o=>`<button class="wiz-opt" data-v="${o.v}">${o.l}</button>`).join('')}
+        </div>
+        <div style="margin-top:14px;display:flex;gap:8px">
+          <button class="togglebtn" id="wizBack" ${step===0?'disabled style="opacity:.4"':''}>← Back</button>
+        </div>`;
+      body.querySelectorAll('.wiz-opt').forEach(b=>b.onclick=()=>{state[q.key]=b.dataset.v;step++;draw()});
+      const back=document.getElementById('wizBack'); if(back)back.onclick=()=>{step=Math.max(0,step-1);draw()};
+    } else {
+      const recs=recommend(state);
+      body.innerHTML=`
+        <h4 style="margin:0 0 10px">🎯 Recommendation</h4>
+        <p style="color:var(--fg-dim);margin:0 0 12px">Based on: <b>${state.task}</b> · <b>${state.cost}</b> budget · <b>${state.latency}</b> latency · <b>${state.host}</b>.</p>
+        ${recs.map((r,i)=>`<div class="card" style="margin-bottom:10px;border-color:${i===0?'var(--accent)':'var(--border)'}">
+          <h3>${i===0?'🥇 Top pick — ':'#'+(i+1)+' — '}${r.name}</h3>
+          <div class="meta">${r.vendor} · ${r.ctx} ctx · $${r.in_$}/$${r.out_$} per 1M tokens</div>
+          <div>${r.reason}</div>
+        </div>`).join('')}
+        <button class="togglebtn" onclick="renderModelsWizard()">↺ Start over</button>`;
+    }
+  }
+  draw();
+}
+function recommend(s){
+  // score each model
+  const scored=MODELS.map(m=>{
+    let score=0;
+    if(s.task==='code')score+=m.code*1.5;
+    if(s.task==='reason')score+=m.reason*1.5;
+    if(s.task==='vision')score+=(m.vision?m.vision_s:0)*1.7;
+    if(s.task==='longctx'){const c=parseCtx(m.ctx);score+=Math.min(c/100000,30);score+=m.reason*0.6}
+    if(s.task==='batch')score+=m.cost_s*1.5+m.speed*0.7;
+    if(s.task==='write')score+=m.write*1.5;
+    if(s.cost==='cheap')score+=m.cost_s*1.4;
+    if(s.cost==='mid')score+=Math.min(m.cost_s,80);
+    if(s.cost==='premium')score+=(m.code+m.reason+m.write)/3*0.5;
+    if(s.latency==='fast')score+=m.speed*1.2;
+    if(s.latency==='normal')score+=m.speed*0.4;
+    if(s.host==='oss')score+=(m.oss?40:-40);
+    return {...m,score};
+  }).sort((a,b)=>b.score-a.score);
+  return scored.slice(0,3).map(r=>({...r, reason: explainReason(r,s)}));
+}
+function parseCtx(c){return c.toLowerCase().includes('m')?parseFloat(c)*1_000_000:parseFloat(c)*1000}
+function explainReason(m,s){
+  const bits=[];
+  if(s.task==='code'&&m.code>=88) bits.push(`coding score ${m.code}/100`);
+  if(s.task==='reason'&&m.reason>=88) bits.push(`reasoning score ${m.reason}/100`);
+  if(s.task==='vision'&&m.vision_s>=80) bits.push(`vision ${m.vision_s}/100`);
+  if(s.task==='longctx') bits.push(`context window ${m.ctx}`);
+  if(s.cost==='cheap') bits.push(`cost score ${m.cost_s}/100`);
+  if(s.latency==='fast') bits.push(`speed score ${m.speed}/100`);
+  if(s.host==='oss'&&m.oss) bits.push('open weights');
+  return `${m.notes}<div style="margin-top:6px">${bits.map(b=>`<span class="chip good">${b}</span>`).join(' ')}</div>`;
+}
+
+/* =============== MODELS — RADAR ================ */
+function renderModelsRadar(){
+  const tgt=document.getElementById('mtab-bench');
+  tgt.innerHTML=`
+  <div class="card">
+    <h3>Capability Radar</h3>
+    <p style="color:var(--fg-dim);font-size:13px">Pick up to 4 models to overlay on a 5-axis radar (Code, Reason, Write, Vision, Speed). Cost-Efficiency is shown as a separate bar below.</p>
+    <div id="radarPicks" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px"></div>
+    <svg id="radarSvg" viewBox="0 0 520 460" style="width:100%;max-width:560px;height:auto;display:block"></svg>
+    <div id="radarBars"></div>
+  </div>`;
+  const picksDiv=document.getElementById('radarPicks');
+  let picked=["claude-opus-4-6","claude-haiku-4-5","gpt-5","gemini-2.5-flash"];
+  function paint(){
+    picksDiv.innerHTML='';
+    MODELS.forEach(m=>{
+      const b=document.createElement('button');
+      b.className='chip '+(picked.includes(m.id)?'brand':'');
+      b.style.cursor='pointer';
+      b.textContent=m.name;
+      b.onclick=()=>{
+        if(picked.includes(m.id)) picked=picked.filter(x=>x!==m.id);
+        else if(picked.length<4) picked.push(m.id);
+        paint();
+      };
+      picksDiv.appendChild(b);
+    });
+    drawRadar(picked);
+    drawCostBars(picked);
+  }
+  paint();
+}
+function drawRadar(ids){
+  const axes=[{k:'code',l:'Code'},{k:'reason',l:'Reason'},{k:'write',l:'Write'},{k:'vision_s',l:'Vision'},{k:'speed',l:'Speed'}];
+  const svg=document.getElementById('radarSvg');
+  const cx=260,cy=230,R=170;
+  const colors=['#7c5cff','#22d3ee','#f97316','#34d399'];
+  let html='';
+  // grid
+  for(let r=0.2;r<=1;r+=0.2){
+    let pts='';
+    axes.forEach((_,i)=>{
+      const a=Math.PI*2*(i/axes.length)-Math.PI/2;
+      const x=cx+Math.cos(a)*R*r,y=cy+Math.sin(a)*R*r;
+      pts+=`${x},${y} `;
+    });
+    html+=`<polygon points="${pts}" fill="none" stroke="rgba(255,255,255,.12)"/>`;
+  }
+  axes.forEach((ax,i)=>{
+    const a=Math.PI*2*(i/axes.length)-Math.PI/2;
+    const x=cx+Math.cos(a)*R,y=cy+Math.sin(a)*R;
+    html+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="rgba(255,255,255,.15)"/>`;
+    html+=`<text x="${cx+Math.cos(a)*(R+18)}" y="${cy+Math.sin(a)*(R+18)+4}" text-anchor="middle" font-size="12" fill="currentColor">${ax.l}</text>`;
+  });
+  ids.forEach((id,idx)=>{
+    const m=MODELS.find(x=>x.id===id);if(!m)return;
+    let pts='';
+    axes.forEach((ax,i)=>{
+      const v=(m[ax.k]||0)/100;
+      const a=Math.PI*2*(i/axes.length)-Math.PI/2;
+      const x=cx+Math.cos(a)*R*v,y=cy+Math.sin(a)*R*v;
+      pts+=`${x},${y} `;
+    });
+    html+=`<polygon points="${pts}" fill="${colors[idx]}33" stroke="${colors[idx]}" stroke-width="2"/>`;
+    html+=`<text x="20" y="${20+idx*18}" font-size="12" fill="${colors[idx]}">● ${m.name}</text>`;
+  });
+  svg.innerHTML=html;
+}
+function drawCostBars(ids){
+  const div=document.getElementById('radarBars');
+  div.innerHTML='<h4 style="margin:18px 0 6px;font-size:14px;color:var(--fg-dim)">Cost-efficiency (higher = cheaper)</h4>';
+  ids.forEach(id=>{
+    const m=MODELS.find(x=>x.id===id);if(!m)return;
+    div.insertAdjacentHTML('beforeend',`<div style="display:flex;align-items:center;gap:8px;margin:4px 0">
+      <div style="width:160px;font-size:13px">${m.name}</div>
+      <div style="flex:1;background:var(--bg-3);height:10px;border-radius:5px;overflow:hidden">
+        <div style="width:${m.cost_s}%;background:linear-gradient(90deg,var(--good),var(--accent-2));height:100%"></div>
+      </div>
+      <div style="width:46px;font-size:12px;color:var(--fg-dim);text-align:right">${m.cost_s}</div>
+    </div>`);
+  });
+}
+
+document.querySelectorAll('[data-mtab]').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('[data-mtab]').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    document.querySelectorAll('#models .tabpane').forEach(p=>p.classList.remove('active'));
+    document.getElementById('mtab-'+b.dataset.mtab).classList.add('active');
+  });
+});
+renderModelsCompare();
+renderModelsWizard();
+renderModelsRadar();
+
+/* =================== FRAMEWORKS =================== */
+const FRAMEWORKS=[
+  {name:"LangGraph", by:"LangChain", lang:"Python / TS",
+   strength:"Stateful graphs with explicit nodes & edges; built-in checkpointing & human-in-loop. The most expressive for production-grade orchestration.",
+   weak:"Steeper learning curve. Verbose. Over-engineered for simple flows.",
+   when:"Long-running, branching, recoverable workflows. Customer support agents. Workflows that need pause/resume.",
+   shape:"Graph (DAG with cycles)",
+   code:`from langgraph.graph import StateGraph,END
+g=StateGraph(MyState)
+g.add_node("classify",classify)
+g.add_node("billing",billing_agent)
+g.add_node("tech",tech_agent)
+g.add_conditional_edges("classify", lambda s:s.kind, {"billing":"billing","tech":"tech"})
+g.add_edge("billing",END);g.add_edge("tech",END)
+app=g.compile()`,
+   docs:"https://langchain-ai.github.io/langgraph/"},
+  {name:"CrewAI", by:"crewAI Inc.", lang:"Python",
+   strength:"Role-based abstraction (Agent + Task + Crew). Beginner-friendly. Sequential & hierarchical out of the box.",
+   weak:"Less control over fine-grained state. Harder to debug at scale.",
+   when:"You can describe your team as 'researcher + writer + editor'. Content/research pipelines.",
+   shape:"Sequential / hierarchical",
+   code:`from crewai import Agent,Task,Crew,Process
+researcher=Agent(role="Researcher",goal="...",backstory="...")
+writer    =Agent(role="Writer",goal="...",backstory="...")
+t1=Task(description="Research X",agent=researcher)
+t2=Task(description="Write report",agent=writer,context=[t1])
+Crew([researcher,writer],[t1,t2],process=Process.sequential).kickoff()`,
+   docs:"https://docs.crewai.com/"},
+  {name:"AutoGen / AG2", by:"Microsoft / community fork", lang:"Python",
+   strength:"Conversational multi-agent — agents literally chat with each other. Group chats, code execution, human proxy.",
+   weak:"Conversational abstraction can be wasteful (many tokens). Less structured than graphs.",
+   when:"R&D, simulations, code-execution loops, brainstorming agents.",
+   shape:"Conversation / group chat",
+   code:`from autogen import AssistantAgent,UserProxyAgent
+ass=AssistantAgent("assistant",llm_config={"model":"gpt-5"})
+user=UserProxyAgent("user",code_execution_config={"work_dir":"out"})
+user.initiate_chat(ass,message="Plot AAPL last 5 years.")`,
+   docs:"https://microsoft.github.io/autogen/"},
+  {name:"OpenAI Swarm / Agents SDK", by:"OpenAI", lang:"Python / TS",
+   strength:"Tiny, transparent. Handoffs as first-class primitive. Stateless by design.",
+   weak:"Lightweight by choice — no built-in persistence. You wire your own state.",
+   when:"You want minimal overhead and explicit control. Routing & handoff patterns.",
+   shape:"Handoffs / routing",
+   code:`from agents import Agent,Runner
+triage=Agent("triage",instructions="Route to billing or tech.",
+             handoffs=[billing_agent,tech_agent])
+result=Runner.run_sync(triage,"My charge is wrong.")`,
+   docs:"https://openai.github.io/openai-agents-python/"},
+  {name:"Anthropic Agent SDK / Claude Code", by:"Anthropic", lang:"Python / TS",
+   strength:"Native tool-use loop, MCP-first, Skills, sub-agents (Task tool). Best ergonomics with Claude.",
+   weak:"Claude-only.",
+   when:"Coding agents, ops automation, anything where you want Claude as the engine.",
+   shape:"Tool loop + Task sub-agents",
+   code:`# claude code agent with sub-agents
+Task(description="research",
+     subagent_type="general-purpose",
+     prompt="Find top 3 SEA smart-building competitors, return JSON.")`,
+   docs:"https://docs.claude.com/en/docs/agent-sdk"},
+  {name:"MCP — Model Context Protocol", by:"Anthropic (open spec)", lang:"any",
+   strength:"Standard protocol for tools/resources/prompts. Plug any MCP server into any MCP-aware client.",
+   weak:"Not a framework — it's a protocol. You still need an agent runtime.",
+   when:"You want to share tool servers across teams / clients (Claude, Cursor, Cline, etc.).",
+   shape:"Server (stdio/HTTP/SSE)",
+   code:`from mcp.server.fastmcp import FastMCP
+mcp=FastMCP("hr")
+@mcp.tool()
+def get_employee(id:str)->dict: return db.find(id)
+mcp.run(transport="stdio")`,
+   docs:"https://modelcontextprotocol.io/"},
+  {name:"LlamaIndex Agents", by:"LlamaIndex", lang:"Python / TS",
+   strength:"RAG-native. Best when your agent's job is mostly 'answer from documents'.",
+   weak:"Less suited for non-RAG / open-ended workflows.",
+   when:"Document-heavy assistants, knowledge-base bots.",
+   shape:"Tool agent + retrievers",
+   code:`from llama_index.core.agent import ReActAgent
+agent=ReActAgent.from_tools([rag_tool],llm=llm,verbose=True)
+agent.chat("What's our PTO policy in Thailand?")`,
+   docs:"https://docs.llamaindex.ai/"},
+  {name:"Google A2A protocol", by:"Google (open spec)", lang:"any",
+   strength:"Inter-org agent-to-agent communication standard. Discovery via /.well-known/agent.json.",
+   weak:"Still emerging. Limited tooling.",
+   when:"Multiple companies' agents need to negotiate / collaborate.",
+   shape:"Cross-org messaging",
+   code:`# Agent Card served at /.well-known/agent.json
+{"name":"AltoTech-Procurement",
+ "skills":[{"id":"submit-pr","description":"Submit a PR..."}],
+ "endpoint":"https://api.alto.ai/agent"}`,
+   docs:"https://google-a2a.github.io/"},
+];
+function renderFrameworks(){
+  const tgt=document.getElementById('frameworksContent');
+  tgt.innerHTML=`
+  <div class="card" style="margin-bottom:14px">
+    <h3>Cheat-sheet — when to pick what</h3>
+    <table class="tbl">
+      <tr><th>Goal</th><th>Pick</th></tr>
+      <tr><td>Simple sequential pipeline (researcher → writer)</td><td><b>CrewAI</b></td></tr>
+      <tr><td>Stateful graph with branches & checkpoints</td><td><b>LangGraph</b></td></tr>
+      <tr><td>Routing / handoffs with minimum boilerplate</td><td><b>OpenAI Agents SDK / Swarm</b></td></tr>
+      <tr><td>Coding agent / dev automation</td><td><b>Claude Agent SDK / Claude Code</b></td></tr>
+      <tr><td>Document-heavy Q&A</td><td><b>LlamaIndex Agents</b></td></tr>
+      <tr><td>Conversational simulation, code execution</td><td><b>AutoGen / AG2</b></td></tr>
+      <tr><td>Share tools across many clients</td><td><b>MCP server</b> (any framework)</td></tr>
+      <tr><td>Cross-organization agent workflows</td><td><b>A2A protocol</b></td></tr>
+    </table>
+  </div>
+  <div class="grid cols-2">
+  ${FRAMEWORKS.map(f=>`<div class="card">
+    <h3>${f.name} <span class="chip">${f.lang}</span></h3>
+    <div class="meta">by ${f.by} · shape: ${f.shape}</div>
+    <div class="kv">
+      <b>Strength</b><div>${f.strength}</div>
+      <b>Weakness</b><div>${f.weak}</div>
+      <b>When to use</b><div>${f.when}</div>
+    </div>
+    <pre style="margin-top:10px"><code>${escapeHtml(f.code)}</code></pre>
+    <a href="${f.docs}" target="_blank">📘 docs →</a>
+  </div>`).join('')}
+  </div>`;
+}
+renderFrameworks();
+
+/* =================== AGENT PATTERNS =================== */
+const PATTERNS=[
+  {name:"ReAct (Reason + Act)",  when:"Default agent loop. The model alternates 'thought' and 'action'.",sketch:"think → act → observe → think → ..."},
+  {name:"Reflection",            when:"Improve quality on hard tasks. Generator → Critic → Revise.",sketch:"draft → critique → revise (×N)"},
+  {name:"Plan-and-Execute",      when:"Long, multi-step tasks. Plan first, then execute step-by-step, replan if blocked.",sketch:"plan → for step: act → if fail: replan"},
+  {name:"Router",                when:"Cheap classifier picks specialist. Saves 5-10× cost.",sketch:"router → {billing | tech | sales}"},
+  {name:"Hierarchical (Manager-Workers)",when:"Manager decomposes; workers execute; manager synthesizes.",sketch:"M → W1, W2, W3 → M"},
+  {name:"Parallel Fan-out / Reduce",when:"Embarrassingly parallel subtasks. Reduce step combines.",sketch:"task → (a‖b‖c) → merge"},
+  {name:"Swarm / Handoff",       when:"Stateless agents pass control with full context. Light, decentralized.",sketch:"A —handoff→ B —handoff→ C"},
+  {name:"Tool Use",              when:"Single agent + many tools. Foundation pattern.",sketch:"LLM ↔ tools[]"},
+  {name:"Tool Search",           when:">5 tools. Retrieve top-k tool schemas instead of injecting all.",sketch:"q → vector(tools) → topK → call"},
+  {name:"Self-Consistency",      when:"Pick the majority answer from N samples. Boosts accuracy on math/logic.",sketch:"N samples → vote"},
+  {name:"Tree of Thought",       when:"Branch & evaluate multiple reasoning paths. Hard search problems.",sketch:"BFS over thoughts"},
+  {name:"Critic / Verifier",     when:"Independent agent checks the output. Used in production for safety.",sketch:"actor → critic → (accept|retry)"},
+  {name:"RAG",                   when:"Inject domain knowledge. Retrieve-then-generate.",sketch:"q → retrieve → ctx → generate"},
+  {name:"Code-Act",              when:"Use Python as the action space. Compose tools as functions.",sketch:"think → emit code → exec → observe"},
+  {name:"Memory (short + long)", when:"Scratchpad for run, vector store for cross-session.",sketch:"hot ctx + warm vector"},
+  {name:"Human-in-the-Loop",     when:"Pause for approval at risky steps. Production essential.",sketch:"act → if risky: ask human"},
+  {name:"Constitutional / Guardrails",when:"Filter inputs/outputs against rules. PII, jailbreaks, policy.",sketch:"in → guard → LLM → guard → out"},
+];
+function renderPatterns(){
+  const tgt=document.getElementById('patternsContent');
+  tgt.innerHTML=PATTERNS.map(p=>`
+    <div class="card">
+      <h3>${p.name}</h3>
+      <div class="meta">${p.when}</div>
+      <pre style="font-size:12px"><code>${escapeHtml(p.sketch)}</code></pre>
+    </div>`).join('');
+}
+renderPatterns();
+
+/* =================== PLAYGROUND =================== */
+const pgState={
+  mode:'live',
+  topology:'parallel',
+  agents:3,
+  model:'anthropic|claude-haiku-4-5-20251001',
+  rounds:1,
+  task:'',
+  maxTok:600,
+  roles:'Researcher; Analyst; Writer',
+};
+// real model pricing (USD per 1M tokens)
+const PRICING={
+  'claude-haiku-4-5-20251001':{in:1, out:5},
+  'claude-sonnet-4-5-20250514':{in:3, out:15},
+  'claude-opus-4-5-20250514':{in:15, out:75},
+  'claude-3-5-sonnet-20241022':{in:3, out:15},
+  'claude-3-5-haiku-20241022':{in:0.8, out:4},
+  'gpt-4o-mini':{in:0.15, out:0.60},
+  'gpt-4o':{in:2.5, out:10},
+  'gpt-4-turbo':{in:10, out:30},
+  'o1-mini':{in:1.1, out:4.4},
+};
+function loadKeys(){
+  document.getElementById('anthropicKey').value=localStorage.getItem('agf_anthropic_key')||'';
+  document.getElementById('openaiKey').value=localStorage.getItem('agf_openai_key')||'';
+}
+function clearKeys(){
+  localStorage.removeItem('agf_anthropic_key');
+  localStorage.removeItem('agf_openai_key');
+  document.getElementById('anthropicKey').value='';
+  document.getElementById('openaiKey').value='';
+  logLine('keys cleared from localStorage.');
+}
+function getKey(provider){
+  return localStorage.getItem('agf_'+provider+'_key')||'';
+}
+function bindPg(){
+  document.getElementById('pgAgentCount').addEventListener('input',e=>{pgState.agents=+e.target.value;document.getElementById('pgAgentCountLbl').textContent=e.target.value;buildGraph()});
+  document.getElementById('pgRounds').addEventListener('input',e=>{pgState.rounds=+e.target.value;document.getElementById('pgRoundsLbl').textContent=e.target.value});
+  document.getElementById('pgMaxTok').addEventListener('input',e=>{pgState.maxTok=+e.target.value;document.getElementById('pgMaxTokLbl').textContent=e.target.value});
+  document.getElementById('pgTopology').addEventListener('change',e=>{pgState.topology=e.target.value;buildGraph()});
+  document.getElementById('pgModel').addEventListener('change',e=>{pgState.model=e.target.value});
+  document.getElementById('pgTask').addEventListener('input',e=>{pgState.task=e.target.value});
+  document.getElementById('pgRoles').addEventListener('input',e=>{pgState.roles=e.target.value});
+  document.getElementById('anthropicKey').addEventListener('change',e=>localStorage.setItem('agf_anthropic_key',e.target.value));
+  document.getElementById('openaiKey').addEventListener('change',e=>localStorage.setItem('agf_openai_key',e.target.value));
+  document.getElementById('modeLive').onclick=()=>setMode('live');
+  document.getElementById('modeSim').onclick=()=>setMode('sim');
+  document.getElementById('pgRun').onclick=runRouter;
+  document.getElementById('pgReset').onclick=()=>{document.getElementById('pgLog').textContent='[ready] click Run.';document.getElementById('pgOutputs').innerHTML='';['statLatency','statCost','statQuality','statSteps'].forEach(id=>document.getElementById(id).textContent='—');buildGraph()};
+  loadKeys();
+  setMode('live');
+}
+function setMode(m){
+  pgState.mode=m;
+  document.getElementById('modeLive').style.background = m==='live'?'var(--accent)':'var(--bg-3)';
+  document.getElementById('modeLive').style.color = m==='live'?'white':'var(--fg)';
+  document.getElementById('modeSim').style.background = m==='sim'?'var(--accent)':'var(--bg-3)';
+  document.getElementById('modeSim').style.color = m==='sim'?'white':'var(--fg)';
+  document.getElementById('pgModeLbl').textContent = m==='live'?'🟢 Live':'🧪 Sim';
+  document.getElementById('apiPanel').open = (m==='live');
+  document.getElementById('pgRun').textContent = m==='live'?'⚡ Run live':'▶ Run simulation';
+}
+function runRouter(){
+  return pgState.mode==='live' ? runLive() : runSim();
+}
+let pgGraph={nodes:[],edges:[]};
+function buildGraph(){
+  const svg=document.getElementById('pgSvg');
+  const W=800,H=520;
+  const nodes=[],edges=[];
+  const N=pgState.agents;
+  const t=pgState.topology;
+  const cx=W/2,cy=H/2;
+  function add(id,kind,x,y,label,sub){nodes.push({id,kind,x,y,label,sub})}
+  // build by topology
+  if(t==='single'){
+    add('a0','manager',cx,cy,'Agent','solo');
+  } else if(t==='sequential'){
+    for(let i=0;i<N;i++){
+      add('a'+i,i===0?'manager':(i===N-1?'critic':'worker'),120+(W-240)*(i/(N-1||1)),cy,'Step '+(i+1), i===0?'Plan':(i===N-1?'Verify':'Execute'));
+      if(i>0)edges.push(['a'+(i-1),'a'+i]);
+    }
+  } else if(t==='parallel'){
+    add('m','manager',120,cy,'Manager','fan-out');
+    add('r','critic',W-120,cy,'Reducer','merge');
+    for(let i=0;i<N;i++){
+      const y=80+(H-160)*(i/(N-1||1));
+      add('w'+i,'worker',cx,y,'Worker '+(i+1),'parallel');
+      edges.push(['m','w'+i]);edges.push(['w'+i,'r']);
+    }
+  } else if(t==='hierarchical'){
+    add('m','manager',cx,80,'Manager','plan');
+    add('c','critic',cx,H-60,'Critic','synthesize');
+    for(let i=0;i<N;i++){
+      const x=120+(W-240)*(i/(N-1||1));
+      add('w'+i,'worker',x,cy,'Specialist '+(i+1),'execute');
+      edges.push(['m','w'+i]);edges.push(['w'+i,'c']);
+    }
+  } else if(t==='swarm'){
+    for(let i=0;i<N;i++){
+      const a=Math.PI*2*(i/N)-Math.PI/2;
+      add('a'+i,i===0?'manager':'worker',cx+Math.cos(a)*180,cy+Math.sin(a)*150,'Agent '+(i+1),i===0?'entry':'specialist');
+    }
+    for(let i=0;i<N;i++) for(let j=0;j<N;j++) if(i!==j) edges.push(['a'+i,'a'+j]);
+  } else if(t==='router'){
+    add('r','router',150,cy,'Router','classify');
+    for(let i=0;i<N;i++){
+      const y=80+(H-160)*(i/(N-1||1));
+      add('w'+i,'worker',W-150,y,'Specialist '+(i+1),'execute');
+      edges.push(['r','w'+i]);
+    }
+  } else if(t==='reflection'){
+    add('g','manager',200,cy,'Generator','draft');
+    add('c','critic',W-200,cy,'Critic','review');
+    edges.push(['g','c']);edges.push(['c','g']);
+  }
+  // tool nodes
+  // tool nodes were removed from the live UI; topology graph stays pure agent topology
+  pgGraph={nodes,edges};
+  drawGraph();
+}
+function nodeColor(k){return {manager:'#7c5cff',worker:'#22d3ee',critic:'#34d399',tool:'#f97316',router:'#fbbf24'}[k]||'#a3a3a3'}
+function drawGraph(active){
+  const svg=document.getElementById('pgSvg');
+  let html='';
+  pgGraph.edges.forEach(([a,b])=>{
+    const A=pgGraph.nodes.find(n=>n.id===a),B=pgGraph.nodes.find(n=>n.id===b);
+    if(!A||!B)return;
+    const cls=active && active.from===a && active.to===b ? 'edge live' : 'edge';
+    html+=`<line class="${cls}" x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}"/>`;
+  });
+  pgGraph.nodes.forEach(n=>{
+    html+=`<circle class="node-circle" cx="${n.x}" cy="${n.y}" r="${n.kind==='tool'?14:24}" fill="${nodeColor(n.kind)}"/>`;
+    html+=`<text class="nodelabel" x="${n.x}" y="${n.y+(n.kind==='tool'?-22:5)}">${n.label}</text>`;
+    if(n.sub)html+=`<text class="nodesub" x="${n.x}" y="${n.y+(n.kind==='tool'?-8:22)}">${n.sub}</text>`;
+  });
+  if(active && active.ball){
+    html+=`<circle class="msgball" cx="${active.ball.x}" cy="${active.ball.y}" r="6"/>`;
+  }
+  svg.innerHTML=html;
+}
+function logLine(msg){
+  const l=document.getElementById('pgLog');
+  const t=new Date().toLocaleTimeString();
+  l.textContent+=`\n[${t}] ${msg}`;
+  l.scrollTop=l.scrollHeight;
+}
+async function runSim(){
+  const btn=document.getElementById('pgRun');btn.disabled=true;btn.textContent='Running…';
+  document.getElementById('pgLog').textContent='[sim] starting…';
+  const [provider,modelId]=pgState.model.split('|');
+  const N=pgGraph.nodes.length;
+  // rough latency from model tier
+  const isOpus=modelId.includes('opus'); const isHaiku=modelId.includes('haiku')||modelId.includes('mini');
+  const baseLatencyMs = isOpus?3500:isHaiku?900:2000;
+  const tokensPerStep = pgState.maxTok;
+  const stepsTotal = N + pgState.rounds*Math.max(1,N-1);
+  const inputTokens = stepsTotal*tokensPerStep*0.7;
+  const outputTokens = stepsTotal*tokensPerStep*0.4;
+  const p=PRICING[modelId]||{in:3,out:15};
+  const cost = (inputTokens/1e6)*p.in + (outputTokens/1e6)*p.out;
+  logLine(`[sim] topology=${pgState.topology}, model=${modelId}, agents=${N}`);
+  for(let r=0;r<=pgState.rounds;r++){
+    if(r>0) logLine(`↻ Reflection round ${r}/${pgState.rounds}`);
+    for(const [a,b] of pgGraph.edges){
+      await animateEdge(a,b,baseLatencyMs/8);
+      logLine(`${a} → ${b}: ${r===0?'forward':'critique'} message`);
+    }
+  }
+  const totalLatencyMs = stepsTotal*baseLatencyMs * (pgState.topology==='parallel'?0.5:1);
+  const quality = 70 + Math.min(20, pgState.rounds*5) + (isOpus?8:isHaiku?-5:0);
+  document.getElementById('statLatency').textContent=(totalLatencyMs/1000).toFixed(1)+'s';
+  document.getElementById('statCost').textContent='$'+cost.toFixed(4);
+  document.getElementById('statQuality').textContent=quality.toFixed(0);
+  document.getElementById('statSteps').textContent=stepsTotal;
+  logLine(`✔ sim done. cost≈$${cost.toFixed(4)}, latency≈${(totalLatencyMs/1000).toFixed(1)}s`);
+  btn.disabled=false;btn.textContent='▶ Run simulation';
+}
+
+/* ---------- LIVE API CALLS ---------- */
+async function callClaude(modelId, system, userMsg, maxTokens){
+  const key=getKey('anthropic');
+  if(!key) throw new Error('Missing Anthropic API key. Add it in the panel above.');
+  const t0=performance.now();
+  const r=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'x-api-key':key,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true',
+      'content-type':'application/json',
+    },
+    body:JSON.stringify({
+      model:modelId,
+      max_tokens:maxTokens,
+      system:system,
+      messages:[{role:'user',content:userMsg}],
+    })
+  });
+  if(!r.ok){
+    const err=await r.text();
+    throw new Error(`Anthropic ${r.status}: ${err.slice(0,300)}`);
+  }
+  const j=await r.json();
+  const text=(j.content||[]).map(b=>b.text||'').join('');
+  return {text, in_tokens:j.usage?.input_tokens||0, out_tokens:j.usage?.output_tokens||0, ms:performance.now()-t0};
+}
+async function callOpenAI(modelId, system, userMsg, maxTokens){
+  const key=getKey('openai');
+  if(!key) throw new Error('Missing OpenAI API key. Add it in the panel above.');
+  const isReasoning = modelId.startsWith('o1')||modelId.startsWith('o3');
+  const t0=performance.now();
+  const body={
+    model:modelId,
+    messages: isReasoning
+      ? [{role:'user',content:(system?system+'\n\n':'')+userMsg}]
+      : [{role:'system',content:system},{role:'user',content:userMsg}],
+  };
+  if(isReasoning) body.max_completion_tokens=maxTokens;
+  else body.max_tokens=maxTokens;
+  const r=await fetch('https://api.openai.com/v1/chat/completions',{
+    method:'POST',
+    headers:{
+      'Authorization':'Bearer '+key,
+      'content-type':'application/json',
+    },
+    body:JSON.stringify(body)
+  });
+  if(!r.ok){
+    const err=await r.text();
+    throw new Error(`OpenAI ${r.status}: ${err.slice(0,300)}`);
+  }
+  const j=await r.json();
+  const text=j.choices?.[0]?.message?.content||'';
+  return {text, in_tokens:j.usage?.prompt_tokens||0, out_tokens:j.usage?.completion_tokens||0, ms:performance.now()-t0};
+}
+async function callLLM(system, userMsg){
+  const [provider,modelId]=pgState.model.split('|');
+  if(provider==='anthropic') return await callClaude(modelId, system, userMsg, pgState.maxTok);
+  return await callOpenAI(modelId, system, userMsg, pgState.maxTok);
+}
+function appendOutput(label, text, meta){
+  const div=document.createElement('div');
+  div.className='card';
+  div.style.marginBottom='10px';
+  div.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px"><h3 style="margin:0">${label}</h3><span class="chip">${meta||''}</span></div><div style="white-space:pre-wrap;font-size:13px;margin-top:8px">${escapeHtml(text||'(empty)')}</div>`;
+  document.getElementById('pgOutputs').appendChild(div);
+}
+function getRoles(n){
+  const provided=(pgState.roles||'').split(/[;,\n]+/).map(s=>s.trim()).filter(Boolean);
+  const defaults=['Researcher','Analyst','Critic','Writer','Specialist A','Specialist B','Specialist C'];
+  const out=[];
+  for(let i=0;i<n;i++) out.push(provided[i] || defaults[i%defaults.length]);
+  return out;
+}
+async function runLive(){
+  const btn=document.getElementById('pgRun');btn.disabled=true;btn.textContent='⏳ Running live…';
+  document.getElementById('pgOutputs').innerHTML='';
+  document.getElementById('pgLog').textContent='[live] starting…';
+  const [provider,modelId]=pgState.model.split('|');
+  if(!getKey(provider==='anthropic'?'anthropic':'openai')){
+    logLine(`✗ Missing ${provider} API key. Paste it in the panel above and click Run again.`);
+    btn.disabled=false;btn.textContent='⚡ Run live';return;
+  }
+  const t0=performance.now();
+  let totalIn=0,totalOut=0,steps=0;
+  const N=pgState.agents;
+  const roles=getRoles(N);
+  const task=pgState.task||'(no task)';
+  let finalOutput='';
+
+  const trackUsage=(u,label)=>{
+    totalIn+=u.in_tokens; totalOut+=u.out_tokens; steps++;
+    logLine(`✓ ${label}: ${u.in_tokens}+${u.out_tokens} tokens, ${(u.ms/1000).toFixed(1)}s`);
+  };
+
+  try{
+    if(pgState.topology==='single'){
+      logLine(`→ Single agent: ${roles[0]}`);
+      await animateEdge(pgGraph.nodes[0]?.id, pgGraph.nodes[0]?.id, 200);
+      const u=await callLLM(`You are a ${roles[0]}. Be concise and useful.`, task);
+      trackUsage(u,roles[0]);
+      appendOutput('🤖 '+roles[0], u.text, `${u.in_tokens}+${u.out_tokens} tok · ${(u.ms/1000).toFixed(1)}s`);
+      finalOutput=u.text;
+    }
+    else if(pgState.topology==='sequential'){
+      let prev=task;
+      for(let i=0;i<N;i++){
+        const role=roles[i];
+        const isLast=(i===N-1);
+        logLine(`→ Step ${i+1}: ${role}`);
+        const sys = `You are agent #${i+1} (${role}) in a sequential pipeline of ${N} agents.\n${i===0?'You receive the original task.':'You receive the previous agent output.'}\n${isLast?'Produce the final answer.':'Produce work for the next agent.'}`;
+        const usr = `TASK: ${task}\n\nINPUT FROM PREVIOUS STAGE:\n${prev}\n\nNow do your part as ${role}.`;
+        if(i>0) await animateEdge('a'+(i-1),'a'+i, 600);
+        const u=await callLLM(sys, usr);
+        trackUsage(u,role);
+        appendOutput(`Step ${i+1} · ${role}`, u.text, `${u.in_tokens}+${u.out_tokens} tok · ${(u.ms/1000).toFixed(1)}s`);
+        prev=u.text;
+        if(isLast) finalOutput=u.text;
+      }
+    }
+    else if(pgState.topology==='parallel'){
+      // fan-out N workers in parallel, then a reducer
+      logLine(`→ Fan-out to ${N} workers in parallel`);
+      const workerPromises=[];
+      for(let i=0;i<N;i++){
+        const role=roles[i];
+        animateEdge('m','w'+i, 600);
+        workerPromises.push(
+          callLLM(`You are ${role}. Provide ONE distinct angle on the task — don't repeat what others might say.`,
+                  `TASK: ${task}\n\nGive your unique perspective as ${role}, in 4-6 bullets.`)
+            .then(u=>({u,role,i}))
+        );
+      }
+      const workers=await Promise.all(workerPromises);
+      workers.forEach(w=>{
+        trackUsage(w.u,w.role);
+        appendOutput(`Worker ${w.i+1} · ${w.role}`, w.u.text, `${w.u.in_tokens}+${w.u.out_tokens} tok · ${(w.u.ms/1000).toFixed(1)}s`);
+      });
+      // reducer
+      logLine(`→ Reducer merges ${N} outputs`);
+      for(let i=0;i<N;i++) await animateEdge('w'+i,'r', 300);
+      const merged = workers.map(w=>`### ${w.role}\n${w.u.text}`).join('\n\n');
+      const red=await callLLM('You are a Reducer. Merge multiple perspectives into one coherent, deduplicated answer.',
+        `TASK: ${task}\n\nWORKER OUTPUTS:\n${merged}\n\nNow produce the final merged answer.`);
+      trackUsage(red,'Reducer');
+      appendOutput('🧩 Reducer · final merged', red.text, `${red.in_tokens}+${red.out_tokens} tok · ${(red.ms/1000).toFixed(1)}s`);
+      finalOutput=red.text;
+    }
+    else if(pgState.topology==='hierarchical'){
+      logLine(`→ Manager plans subtasks`);
+      await animateEdge('m','m', 200);
+      const plan=await callLLM(`You are a Manager. Decompose the task into exactly ${N} concrete subtasks (one per specialist). Reply ONLY as JSON: {"subtasks":["...","..."]}`,
+        `TASK: ${task}\n\nSpecialists you can assign: ${roles.join(', ')}.`);
+      trackUsage(plan,'Manager');
+      let subs=[];
+      try{const j=JSON.parse(plan.text.match(/\{[\s\S]*\}/)?.[0]||'{}'); subs=j.subtasks||[]}catch(e){}
+      while(subs.length<N) subs.push('Continue from previous output.');
+      appendOutput('👔 Manager · plan', plan.text, `${plan.in_tokens}+${plan.out_tokens} tok · ${(plan.ms/1000).toFixed(1)}s`);
+      // workers
+      const workerPromises=subs.slice(0,N).map((sub,i)=>{
+        animateEdge('m','w'+i, 500);
+        return callLLM(`You are ${roles[i]}. Execute ONE subtask the manager assigned.`,
+          `OVERALL TASK: ${task}\n\nYOUR SUBTASK: ${sub}`).then(u=>({u,role:roles[i],i,sub}));
+      });
+      const workers=await Promise.all(workerPromises);
+      workers.forEach(w=>{
+        trackUsage(w.u,w.role);
+        appendOutput(`Specialist ${w.i+1} · ${w.role}`, w.u.text, `${w.u.in_tokens}+${w.u.out_tokens} tok · ${(w.u.ms/1000).toFixed(1)}s`);
+      });
+      // critic synthesizes
+      for(let i=0;i<N;i++) await animateEdge('w'+i,'c', 250);
+      const merged = workers.map(w=>`### ${w.role} (subtask: ${w.sub})\n${w.u.text}`).join('\n\n');
+      const crit=await callLLM('You are a Critic. Verify the specialist outputs are consistent, complete, and answer the original task. Then produce the final synthesized answer.',
+        `ORIGINAL TASK: ${task}\n\nSPECIALIST OUTPUTS:\n${merged}\n\nFinal synthesized answer:`);
+      trackUsage(crit,'Critic');
+      appendOutput('✅ Critic · final synthesis', crit.text, `${crit.in_tokens}+${crit.out_tokens} tok · ${(crit.ms/1000).toFixed(1)}s`);
+      finalOutput=crit.text;
+    }
+    else if(pgState.topology==='router'){
+      logLine(`→ Router classifies the task`);
+      await animateEdge('r','r', 200);
+      const route=await callLLM(`You are a Router. Choose ONE specialist (1..${N}) most fit for the task. Reply ONLY as JSON: {"choice":N,"reason":"..."}`,
+        `Specialists: ${roles.map((r,i)=>`${i+1}. ${r}`).join(' · ')}\n\nTASK: ${task}`);
+      trackUsage(route,'Router');
+      let choice=1;try{choice=Math.max(1,Math.min(N,JSON.parse(route.text.match(/\{[\s\S]*\}/)?.[0]||'{}').choice||1))}catch(e){}
+      appendOutput('🔀 Router · routing decision', route.text, `chose #${choice}`);
+      await animateEdge('r','w'+(choice-1), 600);
+      const sp=await callLLM(`You are ${roles[choice-1]} (chosen by the router). Solve the task end-to-end.`,
+        `TASK: ${task}`);
+      trackUsage(sp,roles[choice-1]);
+      appendOutput(`🎯 Specialist ${choice} · ${roles[choice-1]}`, sp.text, `${sp.in_tokens}+${sp.out_tokens} tok · ${(sp.ms/1000).toFixed(1)}s`);
+      finalOutput=sp.text;
+    }
+    else if(pgState.topology==='reflection'){
+      logLine(`→ Generator produces draft`);
+      await animateEdge('g','c', 400);
+      let draft=await callLLM('You are the Generator. Produce a clear, complete answer.', `TASK: ${task}`);
+      trackUsage(draft,'Generator (draft)');
+      appendOutput('✍️ Generator · draft 1', draft.text, `${draft.in_tokens}+${draft.out_tokens} tok · ${(draft.ms/1000).toFixed(1)}s`);
+      let current=draft.text;
+      for(let r=1;r<=Math.max(1,pgState.rounds);r++){
+        logLine(`↻ Round ${r}: Critic reviews`);
+        await animateEdge('c','g', 500);
+        const crit=await callLLM('You are a Critic. List exactly 3 specific weaknesses in the draft. Be ruthless but constructive.',
+          `TASK: ${task}\n\nDRAFT:\n${current}`);
+        trackUsage(crit,`Critic r${r}`);
+        appendOutput(`🔎 Critic · round ${r}`, crit.text, `${crit.in_tokens}+${crit.out_tokens} tok`);
+        await animateEdge('g','c', 500);
+        const rev=await callLLM('You are the Generator. Address every critique and produce an improved version.',
+          `TASK: ${task}\n\nPREVIOUS DRAFT:\n${current}\n\nCRITIQUES TO FIX:\n${crit.text}`);
+        trackUsage(rev,`Generator r${r}`);
+        appendOutput(`✨ Generator · revised v${r+1}`, rev.text, `${rev.in_tokens}+${rev.out_tokens} tok`);
+        current=rev.text;
+      }
+      finalOutput=current;
+    }
+    else if(pgState.topology==='swarm'){
+      // simple sequential handoff with shared context
+      logLine(`→ Swarm: ${N} agents, each can refine and pass on`);
+      let context=task;
+      for(let i=0;i<N;i++){
+        if(i>0) await animateEdge('a'+(i-1),'a'+i, 600);
+        const role=roles[i];
+        const u=await callLLM(`You are ${role} in a swarm. Improve and extend the work-in-progress, then pass it on.`,
+          `TASK: ${task}\n\nCURRENT STATE:\n${context}\n\nYour contribution as ${role}:`);
+        trackUsage(u,role);
+        appendOutput(`Swarm node ${i+1} · ${role}`, u.text, `${u.in_tokens}+${u.out_tokens} tok · ${(u.ms/1000).toFixed(1)}s`);
+        context = `${context}\n\n[${role} added]\n${u.text}`;
+      }
+      finalOutput=context;
+    }
+
+    const elapsed=(performance.now()-t0)/1000;
+    const p=PRICING[modelId]||{in:3,out:15};
+    const cost=(totalIn/1e6)*p.in + (totalOut/1e6)*p.out;
+    document.getElementById('statLatency').textContent=elapsed.toFixed(1)+'s';
+    document.getElementById('statCost').textContent='$'+cost.toFixed(4);
+    document.getElementById('statQuality').textContent=Math.min(99,60+steps*4+pgState.rounds*5).toFixed(0)+' (est.)';
+    document.getElementById('statSteps').textContent=steps;
+    logLine(`✔ live run complete. ${steps} LLM calls, ${totalIn}+${totalOut} tokens, $${cost.toFixed(4)}, ${elapsed.toFixed(1)}s.`);
+  } catch(e){
+    logLine('✗ ERROR: '+e.message);
+    appendOutput('❌ Error', e.message + '\n\nCommon fixes:\n• Verify your API key (no extra spaces)\n• Anthropic browser calls require the dangerous-direct-browser-access header (already included)\n• Check your provider has credit/quota\n• Check the browser console for CORS details', 'failed');
+  }
+  btn.disabled=false;btn.textContent='⚡ Run live';
+}
+function animateEdge(aId,bId,duration){
+  return new Promise(res=>{
+    const A=pgGraph.nodes.find(n=>n.id===aId),B=pgGraph.nodes.find(n=>n.id===bId);
+    if(!A||!B)return res();
+    const start=performance.now();
+    function step(t){
+      const k=Math.min(1,(t-start)/duration);
+      const x=A.x+(B.x-A.x)*k,y=A.y+(B.y-A.y)*k;
+      drawGraph({from:aId,to:bId,ball:{x,y}});
+      if(k<1)requestAnimationFrame(step);else{drawGraph();res()}
+    }
+    requestAnimationFrame(step);
+  });
+}
+bindPg();
+buildGraph();
+
+/* =================== QUIZ =================== */
+const QUIZ=[
+  {q:"What turns a chatbot into an agent?",
+   opts:["Bigger model","A tool-use loop with structured tool definitions","Streaming responses","More system prompt rules"],
+   c:1, e:"It's the loop: the LLM decides to call a tool, the runtime executes it, returns the result, and the LLM continues — that decision-action-observation cycle is the agent."},
+  {q:"You have 12 tools. Best practice?",
+   opts:["Inject all 12 schemas in system prompt","Use tool search / retrieval to load top-k","Pick one and ignore the rest","Switch models"],
+   c:1, e:"With many tools, retrieve the most relevant ones per query. It saves tokens and improves selection accuracy."},
+  {q:"Which is a state-graph framework with checkpointing?",
+   opts:["CrewAI","LangGraph","Swarm","AutoGen"],
+   c:1, e:"LangGraph models agents as a stateful graph (nodes + conditional edges) and supports persistence/HITL."},
+  {q:"What is MCP best described as?",
+   opts:["A vector database","A protocol for tools/resources/prompts","A new LLM","A retrieval algorithm"],
+   c:1, e:"MCP (Model Context Protocol) is an open spec for how clients connect to tool/resource servers — 'USB-C for AI'."},
+  {q:"Reflection pattern is most useful when…",
+   opts:["You need very low latency","Quality matters more than cost","You have no tools","Inputs are short"],
+   c:1, e:"Generator → Critic → Revise loops trade tokens for quality. Don't use them on simple tasks."},
+  {q:"Cheapest way to get good RAG quality is usually…",
+   opts:["Bigger LLM","Better chunking + retrieval","More embeddings","Higher temperature"],
+   c:1, e:"Most RAG failures come from bad retrieval — chunking, hybrid search, and re-ranking beat 'bigger LLM'."},
+  {q:"Which model has the largest context window?",
+   opts:["Claude Opus 4.6","GPT-5","Gemini 2.5 Pro","Llama 4 Scout"],
+   c:3, e:"Llama 4 Scout: 10M tokens. Gemini 2.5 Pro is 2M, GPT-5 is 400k, Claude 200k."},
+  {q:"You need cheap, batch classification of 10M support tickets.",
+   opts:["Claude Opus 4.6","GPT-5","Gemini 2.5 Flash or DeepSeek V3.5","o4-mini-high"],
+   c:2, e:"At that scale, cost dominates. Flash/DeepSeek are 30-100× cheaper than frontier reasoning models."},
+  {q:"In CrewAI, what's the unit of work?",
+   opts:["Node","Task","Edge","Tool"],
+   c:1, e:"CrewAI uses Agent + Task + Crew. Tasks have descriptions, expected outputs, and optional context."},
+  {q:"What's the main risk of an autonomous agent loop?",
+   opts:["Tokens","Hallucination","Runaway cost without budget cap","Slow internet"],
+   c:2, e:"Always set MAX_STEPS and MAX_USD. Loops can runaway — observability + budgets are mandatory."},
+  {q:"Best model for hard math/logic in 2026?",
+   opts:["Claude Haiku 4.5","Gemini 2.5 Flash","o4-mini (high reasoning)","DeepSeek V3.5"],
+   c:2, e:"o4-mini-high is the pure-reasoning specialist. DeepSeek V3.5 and Opus 4.6 are also strong."},
+  {q:"Hierarchical (manager-worker) is best when…",
+   opts:["Tasks are independent and identical","One agent decomposes; specialists execute; manager merges","You only have one model","Latency must be under 200ms"],
+   c:1, e:"Manager-worker is decomposition + delegation + synthesis. Best for complex tasks needing different specialties."},
+  {q:"What is 'handoff' in OpenAI Swarm?",
+   opts:["Tool call","Agent passes control to another agent with shared context","Memory eviction","Streaming chunk"],
+   c:1, e:"Swarm models inter-agent control transfer as first-class. The receiving agent owns the conversation."},
+  {q:"Why use LLM-as-judge for evals?",
+   opts:["It's free","Scales qualitative scoring across many examples","Replaces unit tests","More accurate than humans"],
+   c:1, e:"It scales subjective judgments (helpfulness, faithfulness) — but you must validate the judge on a human-labeled subset."},
+  {q:"AGENTS.md vs CLAUDE.md — which is which?",
+   opts:["AGENTS.md = project memory; CLAUDE.md = behavior policy","AGENTS.md = behavior policy; CLAUDE.md = project memory","They're identical","Both are deprecated"],
+   c:1, e:"In your week 6 setup: CLAUDE.md holds project context (stack, conventions); AGENTS.md holds behavior policies (ask before X, never do Y)."},
+  {q:"You want vision + 1M context + cheap.",
+   opts:["Claude Opus 4.6","Gemini 2.5 Flash","GPT-5","Mistral Large 3"],
+   c:1, e:"Gemini 2.5 Flash hits all three: vision, 1M ctx, very low price."},
+  {q:"Which pattern saves cost by routing to cheap specialists?",
+   opts:["Reflection","Self-Consistency","Router","Tree of Thought"],
+   c:2, e:"A small classifier picks the right specialist — 5–10× cheaper than running the strongest model on everything."},
+  {q:"A2A protocol is for…",
+   opts:["Embedding compression","Cross-organization agent communication","Audio-to-audio","API authentication"],
+   c:1, e:"Google A2A is an open spec letting agents from different orgs discover & talk to each other (e.g., /.well-known/agent.json)."},
+  {q:"Self-Consistency boosts accuracy by…",
+   opts:["Bigger model","Sampling N answers and voting","Caching","Re-ranking docs"],
+   c:1, e:"Sample N reasoning paths at temperature>0, take the majority. Best for math/logic with verifiable answers."},
+  {q:"In a tool-use loop, what stops it?",
+   opts:["max_tokens reached","stop_reason == end_turn","First tool call","Manual interrupt only"],
+   c:1, e:"You loop while stop_reason == 'tool_use'. When the model says 'end_turn', it's done."},
+  {q:"Best practice for tool descriptions?",
+   opts:["Short and cryptic","Detailed like a docstring with examples","Just the name","Same as the function name"],
+   c:1, e:"The model treats the description as the spec. Be explicit about inputs, outputs, and side effects."},
+  {q:"Which is NOT a multi-agent topology?",
+   opts:["Sequential","Parallel fan-out","Hierarchical","Backpropagation"],
+   c:3, e:"Backpropagation is a neural-net training algorithm, not an agent topology."},
+  {q:"Which framework focuses on conversational MAS with code execution?",
+   opts:["LangGraph","CrewAI","AutoGen / AG2","LlamaIndex"],
+   c:2, e:"AutoGen models agents as conversational participants with optional code execution via UserProxy."},
+  {q:"Most important number to monitor on a production agent?",
+   opts:["Tokens per response","Cost per task + success rate","FPS","RAM"],
+   c:1, e:"Cost-per-completed-task and task success rate are the unit economics of an agent product."},
+  {q:"Key reason MCP became popular fast?",
+   opts:["It's faster than HTTP","Standardizes tool exposure across clients (Claude, Cursor, Cline…)","Replaces JSON","Includes a free LLM"],
+   c:1, e:"Build the tool server once, plug into any MCP-aware client. Network effects are massive."},
+];
+let quizState=[];
+function renderQuiz(){
+  quizState=QUIZ.map(()=>({sel:-1,revealed:false}));
+  const tgt=document.getElementById('quizContent');
+  tgt.innerHTML=QUIZ.map((q,i)=>`
+    <div class="quiz-q" data-idx="${i}">
+      <h4>Q${i+1}. ${q.q}</h4>
+      <div class="opts">
+        ${q.opts.map((o,j)=>`<button class="opt" data-opt="${j}">${String.fromCharCode(65+j)}. ${o}</button>`).join('')}
+      </div>
+      <div class="explain"><b>Explanation:</b> ${q.e}</div>
+    </div>`).join('');
+  tgt.querySelectorAll('.quiz-q').forEach(div=>{
+    const i=+div.dataset.idx;
+    div.querySelectorAll('.opt').forEach(btn=>{
+      btn.onclick=()=>{
+        if(quizState[i].revealed)return;
+        const j=+btn.dataset.opt;
+        quizState[i].sel=j;
+        quizState[i].revealed=true;
+        div.querySelectorAll('.opt').forEach((b,k)=>{
+          b.classList.remove('selected','correct','wrong');
+          if(k===QUIZ[i].c)b.classList.add('correct');
+          if(k===j&&j!==QUIZ[i].c)b.classList.add('wrong');
+        });
+        div.classList.add('revealed');
+        updateScore();
+      };
+    });
+  });
+  updateScore();
+}
+function updateScore(){
+  const right=quizState.filter((s,i)=>s.revealed&&s.sel===QUIZ[i].c).length;
+  document.getElementById('quizScore').textContent=`Score: ${right} / ${QUIZ.length}`;
+}
+function resetQuiz(){renderQuiz()}
+function revealAll(){
+  document.querySelectorAll('.quiz-q').forEach((div,i)=>{
+    quizState[i].revealed=true;
+    div.classList.add('revealed');
+    div.querySelectorAll('.opt').forEach((b,k)=>{
+      b.classList.toggle('correct',k===QUIZ[i].c);
+    });
+  });
+}
+renderQuiz();
+
+/* =================== RESOURCES =================== */
+const RES=[
+  {title:"Anthropic — Building effective agents",url:"https://www.anthropic.com/research/building-effective-agents",note:"The single best read on agent patterns. Required."},
+  {title:"Anthropic — Multi-agent research system",url:"https://www.anthropic.com/research/built-multi-agent-research-system",note:"Real-world multi-agent in production at Anthropic."},
+  {title:"OpenAI — Agents SDK",url:"https://openai.github.io/openai-agents-python/",note:"Tiny, transparent. Read the source."},
+  {title:"LangGraph docs",url:"https://langchain-ai.github.io/langgraph/",note:"State graphs, checkpointing, HITL."},
+  {title:"CrewAI docs",url:"https://docs.crewai.com/",note:"Role-based MAS for beginners."},
+  {title:"AutoGen / AG2",url:"https://microsoft.github.io/autogen/",note:"Conversational MAS, code exec."},
+  {title:"Model Context Protocol",url:"https://modelcontextprotocol.io/",note:"The MCP spec + client/server SDKs."},
+  {title:"Google A2A protocol",url:"https://google-a2a.github.io/",note:"Inter-agent / inter-org communication."},
+  {title:"ReAct paper (Yao et al. 2022)",url:"https://arxiv.org/abs/2210.03629",note:"The reasoning+acting paradigm."},
+  {title:"Reflexion paper",url:"https://arxiv.org/abs/2303.11366",note:"Self-reflection for agents."},
+  {title:"Toolformer paper",url:"https://arxiv.org/abs/2302.04761",note:"Self-supervised tool use."},
+  {title:"LMSys Chatbot Arena",url:"https://lmarena.ai/",note:"Live LLM rankings via blind voting."},
+  {title:"Artificial Analysis",url:"https://artificialanalysis.ai/",note:"Independent LLM benchmarks: cost, speed, quality."},
+  {title:"Claude Skills cookbook",url:"https://github.com/anthropics/claude-cookbooks",note:"Code examples for tools, MCP, sub-agents."},
+  {title:"Phoenix / Langfuse",url:"https://langfuse.com/",note:"Tracing & evals for agents in prod."},
+  {title:"AltoTech Agentic Coding Fitness syllabus",url:"https://agentic-coding-fitness.altotech.ai/",note:"Your class, weeks 1-10."},
+];
+function renderResources(){
+  document.getElementById('resourcesContent').innerHTML=RES.map(r=>`
+    <div class="card"><h3><a href="${r.url}" target="_blank">${r.title} ↗</a></h3><div class="meta">${r.note}</div></div>
+  `).join('');
+}
+renderResources();
+</script>
+</body>
+</html>
