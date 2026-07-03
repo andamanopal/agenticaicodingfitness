@@ -169,8 +169,15 @@ def main() -> None:
     print("                       ~linearly with concurrent users (that's the reason to use it)\n")
 
     # ── live measurement of whatever this app is connected to right now ──
-    is_vllm = ":8000" in config.BASE_URL
-    served = "vLLM" if is_vllm else "the connected endpoint (currently Ollama, not vLLM)"
+    # Detect the runtime by PROBING (not by port): Ollama answers the native
+    # /api/tags; vLLM / llama.cpp / other OpenAI servers return 404 there.
+    is_ollama = False
+    try:
+        config._open(config._native_base() + "/tags", timeout=3)
+        is_ollama = True
+    except Exception:
+        is_ollama = False
+    served = "Ollama" if is_ollama else "vLLM / OpenAI-compatible server"
     print("═" * 64)
     if dgxview.is_sim():
         print("SIM mode — representative DGX Spark serving numbers:")
@@ -179,15 +186,18 @@ def main() -> None:
         print("  ◆ 8 concurrent users:   ~310 tok/s aggregate (PagedAttention win)")
     else:
         dgxview.sovereignty_line()
-        print(f"Measuring {served} — model: {config.MODEL}\n")
+        print(f"Measuring the connected endpoint — runtime: {served}, model: {config.MODEL}\n")
         ttft, tps, toks, total = _measure(config.MODEL,
                                           "Explain PagedAttention in 2 sentences.")
         print(f"  ◆ time-to-first-token:  {ttft*1000:.0f} ms")
         print(f"  ◆ single-stream decode: ~{tps:.1f} tok/s  ({toks} tokens, {total:.1f}s total)")
         print("  ◆ network hops to cloud: 0  (served from your hardware)")
-        if not is_vllm:
-            print("\n  ℹ This measured Ollama (your current connection). To measure vLLM,")
-            print("    do Steps 1–4 above and point DGX_TUNNEL_URL at the vLLM :8000 endpoint.")
+        if is_ollama:
+            print("\n  ℹ This is your Ollama endpoint. To measure vLLM instead, point the")
+            print("    🔌 Connection at the vLLM endpoint (e.g. http://<dgx>:8800/v1).")
+        else:
+            print("\n  ✓ This is a vLLM / OpenAI-compatible endpoint — try the concurrency")
+            print("    test (block F) to see aggregate throughput climb under load.")
 
     print("\nTakeaway: vLLM = production serving for MANY users. Stand it up on the DGX,")
     print("call it with the SAME OpenAI code, and watch aggregate throughput scale.")
