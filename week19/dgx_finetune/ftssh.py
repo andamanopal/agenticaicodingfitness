@@ -17,6 +17,33 @@ import os
 import re
 import subprocess
 import sys
+from pathlib import Path
+
+
+def _bootstrap_from_settings() -> None:
+    """Load saved SSH config from .settings.json when it isn't in the environment.
+
+    So running a demo directly in a terminal works the same as via the web app
+    (which sets these env vars in its own process). Secrets are never persisted,
+    so only non-secret SSH fields are restored here.
+    """
+    import json
+    f = Path(__file__).resolve().parent / ".settings.json"
+    if not f.exists():
+        return
+    try:
+        ssh = (json.loads(f.read_text()) or {}).get("ssh") or {}
+    except Exception:
+        return
+    for k, env in {"host": "FT_SSH_HOST", "user": "FT_SSH_USER", "port": "FT_SSH_PORT",
+                   "key": "FT_SSH_KEY", "workdir": "FT_WORKDIR",
+                   "hf_model": "FT_HF_MODEL"}.items():
+        v = ssh.get(k)
+        if v and not os.environ.get(env):
+            os.environ[env] = v
+
+
+_bootstrap_from_settings()
 
 # Validate the workdir against a strict allowlist (no shell metacharacters), so it
 # is safe to interpolate unquoted into remote commands AND ~ still expands.
