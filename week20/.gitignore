@@ -1,0 +1,10 @@
+# Week 19 — generated / runtime artifacts (never commit these)
+**/.sandbox/
+**/.memory/
+**/__pycache__/
+*.pyc
+.venv/
+# saved connection / SSH settings — may contain tokens & creds, never commit
+**/.settings.json
+# source deck photos (NVIDIA slides + call screenshots) — reference only, not for distribution
+reference/
