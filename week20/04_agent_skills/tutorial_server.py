@@ -113,6 +113,9 @@ STEPS = [
      "the same catalog of skills. Get them at github.com/NVIDIA/skills.\n\n"
      "Where this sits in Week 20: Skills are the CONNECTIVE tissue — they let the frontier "
      "agent (the Model) reach your sovereign tools & data (the Harness) without rebuilding it."},
+    {"id":"refs","group":"Go further","kind":"concept",
+     "title":"Appendix · References & real-world applications","level":"all levels",
+     "desc":"Curated references:\n  • The catalog — github.com/NVIDIA/skills\n  • The Skills format (Claude ecosystem origin) — docs.claude.com/en/docs/agents-and-tools/agent-skills\n  • This course's own skill-craft — Week 7 (mcp-and-skills) and the\n    skill-authoring plugin skill.\n  • MCP + A2A companions — modelcontextprotocol.io and Week 17's A2A material.\n\nReal-world applications:\n  • Write once, run on any frontier agent — the same SKILL.md powers Claude Code,\n    internal Nemotron agents, and GPT-based assistants; enterprises version their\n    domain know-how (SOPs, runbooks, style guides) as skills in git.\n  • GPU superpowers without integration work — the cuOpt (routing) and cuDF\n    (dataframes) skills give any agent solver-grade capabilities in one load.\n  • Business-system bridges — skills wrapping telemetry, CMMS and document\n    stores are exactly how AltoTech-style building agents connect (Weeks 15/21\n    do this against a real hotel domain).\n  • Skills + MCP + A2A — package know-how, serve tools, connect agents: the\n    three-way interop stack this course has assembled since Week 7."},
 ]
 STEP_BY_ID = {s["id"]: s for s in STEPS}
 
@@ -248,6 +251,74 @@ async def cleanup() -> dict:
         shutil.rmtree(pyc, ignore_errors=True)
     removed.append("__pycache__")
     return {"messages": [f"removed: {removed}"]}
+
+
+
+# ── 🖥️ DGX console — run commands ON the DGX over SSH (Tailscale) ─────────────
+import dgxsh  # noqa: E402
+
+_dgx_lock = asyncio.Lock()
+
+
+@app.get("/api/dgx/status")
+async def dgx_status() -> dict:
+    return dgxsh.status()
+
+
+class DgxConfig(BaseModel):
+    host: str | None = None
+    user: str | None = None
+    port: str | None = None
+    key: str | None = None
+
+
+@app.post("/api/dgx/config")
+async def dgx_config(req: DgxConfig) -> dict:
+    dgxsh.apply_config(req.model_dump())
+    return dgxsh.status()
+
+
+class DgxRun(BaseModel):
+    command: str
+
+
+@app.post("/api/dgx/run")
+async def dgx_run(req: DgxRun):
+    """Stream one command's output from the DGX, live (600 s cap)."""
+    cmd = (req.command or "").strip()
+
+    async def body():
+        if not cmd:
+            yield "type a command first\n__EXIT__ 1 0\n"
+            return
+        if _dgx_lock.locked():
+            yield "⚠  another DGX command is running — wait for it to finish.\n__EXIT__ 1 0\n"
+            return
+        async with _dgx_lock:
+            yield f"🖥️  {dgxsh.target()} $ {cmd}\n\n"
+            start = time.time()
+            proc = await asyncio.create_subprocess_exec(
+                *dgxsh._ssh_argv(cmd),
+                stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT)
+            try:
+                while True:
+                    try:
+                        line = await asyncio.wait_for(
+                            proc.stdout.readline(),
+                            timeout=max(1, start + 600 - time.time()))
+                    except asyncio.TimeoutError:
+                        proc.kill()
+                        yield f"\n⏱  exceeded 600s — killed.\n__EXIT__ 124 {time.time()-start:.1f}\n"
+                        return
+                    if not line:
+                        break
+                    yield line.decode(errors="replace")
+                await proc.wait()
+                yield f"__EXIT__ {proc.returncode} {time.time()-start:.1f}\n"
+            finally:
+                if proc.returncode is None:
+                    proc.kill()
+    return StreamingResponse(body(), media_type="text/plain")
 
 
 if __name__ == "__main__":

@@ -60,10 +60,14 @@ def _resolve_connection() -> tuple[str, str, str]:
     if explicit:
         return (conn or _infer(explicit)), explicit, (key or "dgx")
     if conn == "tunnel":
-        return "tunnel", os.environ.get("DGX_TUNNEL_URL", ""), (key or os.environ.get("DGX_TUNNEL_KEY", "dgx"))
+        return "tunnel", os.environ.get("DGX_TUNNEL_URL", "http://spark-3b82.tail461566.ts.net:11434/v1"), (key or os.environ.get("DGX_TUNNEL_KEY", "dgx"))
     if conn == "cloud":
         return "cloud", os.environ.get("DGX_CLOUD_URL", "https://ollama.com/v1"), (key or os.environ.get("DGX_CLOUD_KEY", ""))
-    return "local", "http://localhost:11434/v1", (key or "dgx")
+    if conn == "local":
+        return "local", "http://localhost:11434/v1", (key or "dgx")
+    # DEFAULT: the DGX Spark over Tailscale — real calls go to the DGX, not this
+    # laptop. (If the Spark is unreachable, import-time fallback below tries local.)
+    return "tunnel", os.environ.get("DGX_TUNNEL_URL", "http://spark-3b82.tail461566.ts.net:11434/v1"), (key or "dgx")
 
 
 CONN, BASE_URL, API_KEY = _resolve_connection()
@@ -182,9 +186,14 @@ def _open(url: str, timeout: float = 4):
 # Prefer Nemotron open models, then any local model. Auto-detected at import.
 # Matched case-insensitively by ==, startswith, AND substring — so cloud IDs like
 # "nvidia/nvidia-nemotron-nano-9b-v2" (build.nvidia.com) match "nemotron" too.
+# DEEP-role order (empirically verified on the Spark): qwen3.6 MoE (A3B active)
+# is the default workhorse — ~3x the tok/s of nemotron-3-super:120b on a GB10,
+# reasoning-capable, so chapters stay snappy. Super stays one dropdown click
+# away for flagship-quality runs. nemotron-3-nano deliberately LAST — despite
+# the name it is a small REASONING model; terse/intent belongs to classify().
 _PREFERRED = [
-    "nemotron-3-nano", "nemotron3-nano", "nemotron", "nemotron-3-super",
-    "qwen3.6:35b-a3b-q8_0", "qwen3.6", "gemma4:12b", "gemma4", "llama3.1:8b",
+    "qwen3.6:35b-a3b-q8_0", "qwen3.6", "nemotron-3-super", "llama3.3",
+    "gemma4:12b", "gemma4", "qwen3", "llama3.1:8b", "nemotron",
 ]
 
 # ── cost / latency rails (LOCAL tokens are free, but keep demos snappy) ───────
@@ -300,8 +309,14 @@ def pick_model(available: list[str] | None = None) -> str:
     return "nemotron-3-nano:30b-a3b"   # the simulator's default Nemotron model
 
 
-# Resolved once at import so every demo agrees.
+# Resolved once at import so every demo agrees. Default is the DGX over Tailscale;
+# if that default tunnel is unreachable (off the tailnet, Spark asleep) fall back to
+# local Ollama before surrendering to SIM — explicit DGX_CONN/DGX_BASE_URL still win.
 MODE = mode()
+if MODE == "sim" and CONN == "tunnel" \
+        and not os.environ.get("DGX_CONN") and not os.environ.get("DGX_BASE_URL"):
+    CONN, BASE_URL, API_KEY = "local", "http://localhost:11434/v1", "dgx"
+    MODE = mode()
 MODEL = pick_model()
 
 

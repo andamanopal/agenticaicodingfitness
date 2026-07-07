@@ -57,13 +57,13 @@ def main() -> None:
         pick = _route(TASK)
     else:
         names = ", ".join(FLEET)
-        out = view.generate(
-            f"You are a supervisor over specialist agents [{names}]. Reply with ONLY the single "
-            f"specialist name best suited to this task, nothing else.\nTask: {TASK}",
-            max_tokens=20, title="supervisor routes the task")
-        ans = (out.get("answer") or "").strip().lower()
-        pick = next((n for n in FLEET if n in ans), _route(TASK))
-        print(f"\n  → supervisor routed to: {pick} specialist")
+        got = view.classify(
+            f"You are a supervisor over specialist agents [{names}]. Answer with the single "
+            f"specialist name best suited to this task.\nTask: {TASK}",
+            labels=list(FLEET), title="supervisor routes the task")
+        pick = got or _route(TASK)
+        print(f"\n  → supervisor routed to: {pick} specialist"
+              + ("" if got else "   (model gave no name — heuristic fallback)"))
 
     model, role, tools = FLEET[pick]
     print(f"\n  Selected specialist: {pick}  [{model}] — {role}")

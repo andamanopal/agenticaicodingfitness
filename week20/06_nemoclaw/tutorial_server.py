@@ -115,6 +115,9 @@ STEPS = [
      "Where this sits in Week 20: App 1 Nemotron (model) · App 2 NIM (serve) · App 7 OpenShell "
      "(the sandbox it runs in) · App 4 Agent Skills (the capabilities it pulls) · App 6 (THIS) "
      "NemoClaw (build the specialist). A fleet of these = the Week 9/16 multi-agent system."},
+    {"id":"refs","group":"Go further","kind":"concept",
+     "title":"Appendix · References & real-world applications","level":"all levels",
+     "desc":"Curated references:\n  • NemoClaw — nvidia.com/en-us/ai/nemoclaw/ and github.com/NVIDIA/NemoClaw\n  • OpenShell (the safety wrapper it ships with) — developer.nvidia.com/blog/run-autonomous-self-evolving-agents-more-safely-with-nvidia-openshell/\n  • The specialist-fleet pattern — Week 9/10 multi-agent material and Week 20\n    App 12's fleet.\n\nReal-world applications:\n  • Ops-center desks as agents — an energy desk, a maintenance desk, a guest desk:\n    narrow specialists with their own skills, tools and signed policy beat one\n    do-everything agent on both accuracy and auditability.\n  • Composition before fine-tuning — production teams exhaust persona + skills +\n    tools (cheap, reversible, evaluable) before touching weights; App 11's\n    flywheel is the escalation path when evals prove a real gap.\n  • Shippable agent bundles — MSPs and ISVs deliver 'a specialist in a box'\n    (model ref + persona + skills + signed policy) to customer sites, the way\n    they used to ship appliances.\n  • The capstone cast — Energy · Maintenance · Guest in App 12 are NemoClaw\n    specialists; Week 21's building/city operators are their physical-AI kin."},
 ]
 STEP_BY_ID = {s["id"]: s for s in STEPS}
 
@@ -250,6 +253,74 @@ async def cleanup() -> dict:
         shutil.rmtree(pyc, ignore_errors=True)
     removed.append("__pycache__")
     return {"messages": [f"removed: {removed}"]}
+
+
+
+# ── 🖥️ DGX console — run commands ON the DGX over SSH (Tailscale) ─────────────
+import dgxsh  # noqa: E402
+
+_dgx_lock = asyncio.Lock()
+
+
+@app.get("/api/dgx/status")
+async def dgx_status() -> dict:
+    return dgxsh.status()
+
+
+class DgxConfig(BaseModel):
+    host: str | None = None
+    user: str | None = None
+    port: str | None = None
+    key: str | None = None
+
+
+@app.post("/api/dgx/config")
+async def dgx_config(req: DgxConfig) -> dict:
+    dgxsh.apply_config(req.model_dump())
+    return dgxsh.status()
+
+
+class DgxRun(BaseModel):
+    command: str
+
+
+@app.post("/api/dgx/run")
+async def dgx_run(req: DgxRun):
+    """Stream one command's output from the DGX, live (600 s cap)."""
+    cmd = (req.command or "").strip()
+
+    async def body():
+        if not cmd:
+            yield "type a command first\n__EXIT__ 1 0\n"
+            return
+        if _dgx_lock.locked():
+            yield "⚠  another DGX command is running — wait for it to finish.\n__EXIT__ 1 0\n"
+            return
+        async with _dgx_lock:
+            yield f"🖥️  {dgxsh.target()} $ {cmd}\n\n"
+            start = time.time()
+            proc = await asyncio.create_subprocess_exec(
+                *dgxsh._ssh_argv(cmd),
+                stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT)
+            try:
+                while True:
+                    try:
+                        line = await asyncio.wait_for(
+                            proc.stdout.readline(),
+                            timeout=max(1, start + 600 - time.time()))
+                    except asyncio.TimeoutError:
+                        proc.kill()
+                        yield f"\n⏱  exceeded 600s — killed.\n__EXIT__ 124 {time.time()-start:.1f}\n"
+                        return
+                    if not line:
+                        break
+                    yield line.decode(errors="replace")
+                await proc.wait()
+                yield f"__EXIT__ {proc.returncode} {time.time()-start:.1f}\n"
+            finally:
+                if proc.returncode is None:
+                    proc.kill()
+    return StreamingResponse(body(), media_type="text/plain")
 
 
 if __name__ == "__main__":

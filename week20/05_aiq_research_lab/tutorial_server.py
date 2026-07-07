@@ -120,6 +120,9 @@ STEPS = [
      "learned in the Nemotron app. Get it at build.nvidia.com/blueprints.\n\n"
      "Where this sits in Week 20: Nemotron (model) · NIM (serve) · AI-Q (THIS — orchestrate) · "
      "Data Flywheel (improve) · Dynamo (scale) · NeMo Gym (RL) · OpenShell (guard)."},
+    {"id":"refs","group":"Go further","kind":"concept",
+     "title":"Appendix · References & real-world applications","level":"all levels",
+     "desc":"Curated references:\n  • AI-Q blueprint — build.nvidia.com (search: AI-Q research assistant)\n  • NeMo Agent Toolkit (the tool layer) — github.com/NVIDIA/NeMo-Agent-Toolkit —\n    Week 16 of this course teaches it end-to-end.\n  • Deep-research pattern lineage — this course's deep-research skill and the\n    orchestrator-workers pattern (Week 9/11).\n\nReal-world applications:\n  • Private-corpus deep research — due diligence over deal rooms, patent\n    landscaping, pharma literature review, competitive intel: domains where the\n    corpus cannot leave the building, so hosted deep-research products are\n    disqualified and an on-prem AI-Q-style lab wins.\n  • Cost-rational assistants — the Intent Router's cheap-first triage is the\n    production answer to 'our copilot bill exploded'; NVIDIA's ~50% figure is\n    routing math on a mixed workload, and your mileage depends on your mix.\n  • Regulated report generation — plan → research → synthesize with citations,\n    where every claim must trace to an internal source document.\n  • The capstone's brain — App 12 runs this exact router → deep-agent →\n    specialists shape against a hotel; Week 21 gives it a digital-twin body."},
 ]
 STEP_BY_ID = {s["id"]: s for s in STEPS}
 
@@ -255,6 +258,74 @@ async def cleanup() -> dict:
         shutil.rmtree(pyc, ignore_errors=True)
     removed.append("__pycache__")
     return {"messages": [f"removed: {removed}"]}
+
+
+
+# ── 🖥️ DGX console — run commands ON the DGX over SSH (Tailscale) ─────────────
+import dgxsh  # noqa: E402
+
+_dgx_lock = asyncio.Lock()
+
+
+@app.get("/api/dgx/status")
+async def dgx_status() -> dict:
+    return dgxsh.status()
+
+
+class DgxConfig(BaseModel):
+    host: str | None = None
+    user: str | None = None
+    port: str | None = None
+    key: str | None = None
+
+
+@app.post("/api/dgx/config")
+async def dgx_config(req: DgxConfig) -> dict:
+    dgxsh.apply_config(req.model_dump())
+    return dgxsh.status()
+
+
+class DgxRun(BaseModel):
+    command: str
+
+
+@app.post("/api/dgx/run")
+async def dgx_run(req: DgxRun):
+    """Stream one command's output from the DGX, live (600 s cap)."""
+    cmd = (req.command or "").strip()
+
+    async def body():
+        if not cmd:
+            yield "type a command first\n__EXIT__ 1 0\n"
+            return
+        if _dgx_lock.locked():
+            yield "⚠  another DGX command is running — wait for it to finish.\n__EXIT__ 1 0\n"
+            return
+        async with _dgx_lock:
+            yield f"🖥️  {dgxsh.target()} $ {cmd}\n\n"
+            start = time.time()
+            proc = await asyncio.create_subprocess_exec(
+                *dgxsh._ssh_argv(cmd),
+                stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT)
+            try:
+                while True:
+                    try:
+                        line = await asyncio.wait_for(
+                            proc.stdout.readline(),
+                            timeout=max(1, start + 600 - time.time()))
+                    except asyncio.TimeoutError:
+                        proc.kill()
+                        yield f"\n⏱  exceeded 600s — killed.\n__EXIT__ 124 {time.time()-start:.1f}\n"
+                        return
+                    if not line:
+                        break
+                    yield line.decode(errors="replace")
+                await proc.wait()
+                yield f"__EXIT__ {proc.returncode} {time.time()-start:.1f}\n"
+            finally:
+                if proc.returncode is None:
+                    proc.kill()
+    return StreamingResponse(body(), media_type="text/plain")
 
 
 if __name__ == "__main__":

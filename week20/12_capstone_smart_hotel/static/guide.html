@@ -211,7 +211,12 @@
   <select class="model-sel" id="model-sel" onchange="selectModel()" title="model on the DGX — used by every demo"></select>
   <span class="pill clickable" id="pill-mode" onclick="toggleConn()" title="click to change connection"><span class="dot"></span><span id="mode-txt">checking…</span></span>
   <button class="tbtn" onclick="toggleConn()">🔌 Connection</button>
+  <button class="tbtn" onclick="toggleDgx()">🖥️ DGX console</button>
   <button class="tbtn" onclick="cleanFiles()">🧹 Clean sandbox</button>
+  <span style="width:1px;height:22px;background:var(--line);display:inline-block"></span>
+  <a class="tbtn" id="nav-prev" style="text-decoration:none" href="#">◀</a>
+  <span id="nav-pos" style="font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums"></span>
+  <a class="tbtn" id="nav-next" style="text-decoration:none" href="#">▶</a>
 </header>
 <div class="progress"><div id="bar"></div></div>
 <div class="legendbar">
@@ -231,7 +236,7 @@
   <p style="font-size:12.5px;color:var(--dim)">Pick where this app gets its models. It connects live and refreshes — no restart.</p>
   <div class="conn-modes">
     <label><input type="radio" name="cmode" value="local" onchange="connFields()"> 💻 <b>Local</b> — scan this laptop's Ollama</label>
-    <label><input type="radio" name="cmode" value="tunnel" onchange="connFields()"> 🌐 <b>Tunnel</b> — your DGX over ngrok (Ollama / vLLM / llama.cpp)</label>
+    <label><input type="radio" name="cmode" value="tunnel" onchange="connFields()"> 🌐 <b>Tunnel</b> — your DGX over Tailscale / ngrok (Ollama / vLLM / llama.cpp)</label>
     <label><input type="radio" name="cmode" value="cloud" onchange="connFields()"> ☁️ <b>Cloud</b> — NVIDIA build.nvidia.com · Hugging Face · Ollama Cloud · OpenRouter · Claude</label>
   </div>
   <div id="conn-fields"></div>
@@ -355,9 +360,9 @@ function connFields(){
     f.innerHTML=`<div class="cf-row"><label>Ollama URL</label><input id="cf-url" value="http://localhost:11434/v1"></div>
       <p class="cf-hint">Scans this laptop's Ollama (start it with <code>ollama serve</code>).</p>`;
   }else if(mode==="tunnel"){
-    f.innerHTML=`<div class="cf-row"><label>Tunnel URL (include /v1)</label><input id="cf-url" placeholder="https://&lt;id&gt;.ngrok-free.app/v1"></div>
+    f.innerHTML=`<div class="cf-row"><label>Tunnel URL (include /v1)</label><input id="cf-url" value="http://spark-3b82.tail461566.ts.net:11434/v1"></div>
       <div class="cf-row"><label>Basic auth (user:pass, optional — ngrok --basic-auth)</label><input id="cf-auth" placeholder="dgx:agenticai"></div>
-      <p class="cf-hint">Reaches your DGX. Works for Ollama (:11434), vLLM/llama.cpp (:8000/:8080) — all OpenAI-compatible.</p>`;
+      <p class="cf-hint">Prefilled: your DGX Spark on Tailscale (Ollama :11434 — nemotron-3-super:120b, llama3.3:70b …). Works for vLLM/llama.cpp (:8000/:8080) and ngrok URLs too — all OpenAI-compatible.</p>`;
   }else{
     f.innerHTML=`<div class="cf-row"><label>Provider</label><select id="cf-prov" onchange="connProvider()">
         <option value="nvidia_build">NVIDIA build.nvidia.com / NIM cloud</option><option value="huggingface">Hugging Face</option>
@@ -653,6 +658,107 @@ async function boot(){
   sel=STEPS[0].id; renderSide(); renderContent();
 }
 boot();
+</script>
+<script>
+/* ── Week 20 tutorial navigator — prev/next app across ports 8100–8111 ── */
+(function(){
+  const TUTS=[
+    ["Nemotron open models",8100],   ["NIM microservices",8101],
+    ["Dynamo serving",8102],         ["Agent Skills",8103],
+    ["AI-Q research lab",8104],      ["NemoClaw",8105],
+    ["Guardrails + OpenShell",8106], ["NeMo Relay",8107],
+    ["Inference economics",8108],    ["NeMo Gym RL",8109],
+    ["Data Flywheel",8110],          ["Capstone \u2014 smart hotel",8111]];
+  const port=parseInt(location.port||"0",10);
+  const i=TUTS.findIndex(t=>t[1]===port);
+  const prevEl=document.getElementById("nav-prev"),nextEl=document.getElementById("nav-next"),
+        pos=document.getElementById("nav-pos");
+  if(!prevEl||!nextEl||!pos)return;
+  if(i<0){ prevEl.style.display=nextEl.style.display=pos.style.display="none"; return; }
+  const pi=(i+TUTS.length-1)%TUTS.length, ni=(i+1)%TUTS.length;
+  const url=j=>location.protocol+"//"+location.hostname+":"+TUTS[j][1]+"/";
+  const num=j=>String(j+1).padStart(2,"0");
+  prevEl.href=url(pi); prevEl.title="App "+num(pi)+" \u00b7 "+TUTS[pi][0]+"  (Alt+\u2190)";
+  prevEl.textContent="\u25c0 "+num(pi);
+  nextEl.href=url(ni); nextEl.title="App "+num(ni)+" \u00b7 "+TUTS[ni][0]+"  (Alt+\u2192)";
+  nextEl.textContent=num(ni)+" \u25b6";
+  pos.textContent="app "+num(i)+"/12"; pos.title=TUTS[i][0];
+  addEventListener("keydown",e=>{
+    if(!e.altKey||e.ctrlKey||e.metaKey)return;
+    if(e.key==="ArrowLeft"){e.preventDefault();location.href=url(pi);}
+    if(e.key==="ArrowRight"){e.preventDefault();location.href=url(ni);}
+  });
+})();
+</script>
+
+<div class="help-ov" id="dgxov" onclick="if(event.target.id==='dgxov')toggleDgx()">
+ <div class="help-box" style="max-width:900px">
+  <span class="help-x" onclick="toggleDgx()">✕</span>
+  <h3>🖥️ DGX console — run commands ON the DGX (over Tailscale SSH)</h3>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:end;margin:10px 0">
+    <div class="cf-row" style="flex:2;margin:0"><label>host (tailnet)</label>
+      <input id="dgx-host" placeholder="spark-3b82.tail461566.ts.net"></div>
+    <div class="cf-row" style="flex:1;margin:0"><label>user</label>
+      <input id="dgx-user" placeholder="altoaidev"></div>
+    <button class="tbtn" onclick="dgxApply()">apply</button>
+    <span id="dgx-status" style="font-size:12px;color:var(--dim);flex-basis:100%">checking…</span>
+  </div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0">
+    <button class="tbtn" onclick="dgxRun('nvidia-smi')">nvidia-smi</button>
+    <button class="tbtn" onclick="dgxRun('docker ps --format \'table {{.Names}}\\t{{.Image}}\\t{{.Status}}\'')">docker ps</button>
+    <button class="tbtn" onclick="dgxRun('ollama ps; ollama list | head -12')">ollama</button>
+    <button class="tbtn" onclick="dgxRun('free -h; df -h / | tail -1; uptime')">mem·disk·load</button>
+    <button class="tbtn" onclick="dgxRun('tegrastats --interval 1000 | head -3 || nvidia-smi --query-gpu=utilization.gpu,memory.used,temperature.gpu --format=csv')">gpu stats</button>
+  </div>
+  <div style="display:flex;gap:8px;margin:8px 0">
+    <input id="dgx-cmd" placeholder="any shell command — runs on the DGX, streams back here"
+           style="flex:1;font:12px ui-monospace,Menlo,monospace;padding:9px 10px;border-radius:8px;
+                  border:1px solid var(--line);background:var(--panel2);color:var(--txt)"
+           onkeydown="if(event.key==='Enter')dgxRun()">
+    <button class="run" style="padding:8px 16px" onclick="dgxRun()">Run on DGX</button>
+    <button class="tbtn danger" onclick="dgxStop()">stop</button>
+  </div>
+  <pre id="dgx-term" style="background:var(--term);border:1px solid var(--line);border-radius:8px;
+       padding:10px 12px;height:320px;overflow:auto;font:11.5px ui-monospace,Menlo,monospace;
+       color:#cdd6c2;white-space:pre-wrap;margin:0">— output appears here —</pre>
+  <p style="font-size:11.5px;color:var(--dim);margin:8px 0 0">Key-based SSH only (BatchMode) ·
+    grey chapter blocks marked 🖥️ can be pasted here · one command at a time ·
+    600 s cap · <code>stop</code> aborts the stream and kills the remote pipe.</p>
+ </div>
+</div>
+<script>
+function toggleDgx(){const o=document.getElementById('dgxov');o.classList.toggle('show');
+  if(o.classList.contains('show'))dgxStatus();}
+async function dgxStatus(){const el=document.getElementById('dgx-status');
+  el.textContent='checking…';
+  try{const d=await (await fetch('/api/dgx/status')).json();
+    el.innerHTML=d.ok?('<span style="color:var(--green)">●</span> '+d.info.split('\n')[0]+' · '+d.target)
+      :('<span style="color:var(--red)">●</span> unreachable · '+(d.hint||''));
+  }catch(e){el.textContent='status error: '+e;}}
+async function dgxApply(){
+  const body={host:document.getElementById('dgx-host').value,
+              user:document.getElementById('dgx-user').value};
+  const el=document.getElementById('dgx-status');el.textContent='applying…';
+  const d=await (await fetch('/api/dgx/config',{method:'POST',
+    headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();
+  el.innerHTML=d.ok?('<span style="color:var(--green)">●</span> '+d.info.split('\n')[0]+' · '+d.target)
+    :('<span style="color:var(--red)">●</span> unreachable · '+(d.hint||''));}
+let dgxAbort=null;
+async function dgxRun(cmd){
+  cmd=cmd||document.getElementById('dgx-cmd').value;
+  if(!cmd)return;
+  const term=document.getElementById('dgx-term');term.textContent='';
+  dgxAbort=new AbortController();
+  try{
+    const r=await fetch('/api/dgx/run',{method:'POST',signal:dgxAbort.signal,
+      headers:{'Content-Type':'application/json'},body:JSON.stringify({command:cmd})});
+    const rd=r.body.getReader(),dec=new TextDecoder();
+    for(;;){const {done,value}=await rd.read();if(done)break;
+      term.textContent+=dec.decode(value,{stream:true});term.scrollTop=term.scrollHeight;}
+  }catch(e){if(e.name!=='AbortError')term.textContent+='\n[error] '+e;}
+  finally{dgxAbort=null;}}
+function dgxStop(){if(dgxAbort){dgxAbort.abort();
+  document.getElementById('dgx-term').textContent+='\n[stopped]';}}
 </script>
 </body>
 </html>
