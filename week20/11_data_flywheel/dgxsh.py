@@ -7,22 +7,22 @@ ssh-agent are used) and stream stdout/stderr back to the browser live. The grey
 "run on the DGX" blocks in the chapters stop being screenshots.
 
 Config from env (the UI panel can set these at runtime via /api/dgx/config):
-    DGX_SSH_HOST  — default spark-3b82.tail461566.ts.net  (your Spark on Tailscale)
-    DGX_SSH_USER  — remote username (default altoaidev)
+    DGX_SSH_HOST  — default your-spark.your-tailnet.ts.net  (your Spark on Tailscale)
+    DGX_SSH_USER  — remote username (default your-dgx-user)
     DGX_SSH_PORT  — optional
     DGX_SSH_KEY   — optional identity file path
 
 Key-based auth only (BatchMode=yes) — no password prompts can reach a web app.
 First-time setup, once, from a terminal (needs your DGX password):
-    ssh-copy-id <user>@spark-3b82.tail461566.ts.net
+    ssh-copy-id <user>@your-spark.your-tailnet.ts.net
 """
 from __future__ import annotations
 
 import os
 import subprocess
 
-DEFAULT_HOST = "spark-3b82.tail461566.ts.net"
-DEFAULT_USER = "altoaidev"
+DEFAULT_HOST = "your-spark.your-tailnet.ts.net"
+DEFAULT_USER = "your-dgx-user"
 
 
 def target() -> str:

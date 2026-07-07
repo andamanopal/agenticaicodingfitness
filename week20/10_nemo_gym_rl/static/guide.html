@@ -360,7 +360,7 @@ function connFields(){
     f.innerHTML=`<div class="cf-row"><label>Ollama URL</label><input id="cf-url" value="http://localhost:11434/v1"></div>
       <p class="cf-hint">Scans this laptop's Ollama (start it with <code>ollama serve</code>).</p>`;
   }else if(mode==="tunnel"){
-    f.innerHTML=`<div class="cf-row"><label>Tunnel URL (include /v1)</label><input id="cf-url" value="http://spark-3b82.tail461566.ts.net:11434/v1"></div>
+    f.innerHTML=`<div class="cf-row"><label>Tunnel URL (include /v1)</label><input id="cf-url" value="http://your-spark.your-tailnet.ts.net:11434/v1"></div>
       <div class="cf-row"><label>Basic auth (user:pass, optional — ngrok --basic-auth)</label><input id="cf-auth" placeholder="dgx:agenticai"></div>
       <p class="cf-hint">Prefilled: your DGX Spark on Tailscale (Ollama :11434 — nemotron-3-super:120b, llama3.3:70b …). Works for vLLM/llama.cpp (:8000/:8080) and ngrok URLs too — all OpenAI-compatible.</p>`;
   }else{
@@ -685,9 +685,9 @@ boot();
   <h3>🖥️ DGX console — run commands ON the DGX (over Tailscale SSH)</h3>
   <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:end;margin:10px 0">
     <div class="cf-row" style="flex:2;margin:0"><label>host (tailnet)</label>
-      <input id="dgx-host" placeholder="spark-3b82.tail461566.ts.net"></div>
+      <input id="dgx-host" placeholder="your-spark.your-tailnet.ts.net"></div>
     <div class="cf-row" style="flex:1;margin:0"><label>user</label>
-      <input id="dgx-user" placeholder="altoaidev"></div>
+      <input id="dgx-user" placeholder="your-dgx-user"></div>
     <button class="tbtn" onclick="dgxApply()">apply</button>
     <span id="dgx-status" style="font-size:12px;color:var(--dim);flex-basis:100%">checking…</span>
   </div>
