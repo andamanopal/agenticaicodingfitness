@@ -60,14 +60,14 @@ def _resolve_connection() -> tuple[str, str, str]:
     if explicit:
         return (conn or _infer(explicit)), explicit, (key or "dgx")
     if conn == "tunnel":
-        return "tunnel", os.environ.get("DGX_TUNNEL_URL", "http://spark-3b82.tail461566.ts.net:11434/v1"), (key or os.environ.get("DGX_TUNNEL_KEY", "dgx"))
+        return "tunnel", os.environ.get("DGX_TUNNEL_URL", "http://your-spark.your-tailnet.ts.net:11434/v1"), (key or os.environ.get("DGX_TUNNEL_KEY", "dgx"))
     if conn == "cloud":
         return "cloud", os.environ.get("DGX_CLOUD_URL", "https://ollama.com/v1"), (key or os.environ.get("DGX_CLOUD_KEY", ""))
     if conn == "local":
         return "local", "http://localhost:11434/v1", (key or "dgx")
     # DEFAULT: the DGX Spark over Tailscale — real calls go to the DGX, not this
     # laptop. (If the Spark is unreachable, import-time fallback below tries local.)
-    return "tunnel", os.environ.get("DGX_TUNNEL_URL", "http://spark-3b82.tail461566.ts.net:11434/v1"), (key or "dgx")
+    return "tunnel", os.environ.get("DGX_TUNNEL_URL", "http://your-spark.your-tailnet.ts.net:11434/v1"), (key or "dgx")
 
 
 CONN, BASE_URL, API_KEY = _resolve_connection()
