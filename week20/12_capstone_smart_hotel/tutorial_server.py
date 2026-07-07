@@ -125,6 +125,9 @@ STEPS = [
      "  • feed curated traces into a real NeMo Customizer/Gym run.\n\n"
      "The harness stays identical — swap the SIM brain for the endpoint and it is production-shaped: "
      "autonomous, self-improving, and sovereign — nothing leaves the box."},
+    {"id":"refs","group":"Go further","kind":"concept",
+     "title":"Appendix · References & real-world applications","level":"all levels",
+     "desc":"Curated references:\n  • Everything this app combines — the Sources section of week20/README.md, plus\n    each app's own appendix (01–11).\n  • The continuation — week21/ gives this fleet a BODY: a digital twin of the\n    same hotel (Capstone I) and a city around it (Capstone II).\n  • The lineage — Weeks 11 (patterns), 14/15 (graph memory), 17 (A2A), 18\n    (self-evolving, sovereign edge), 19 (DGX).\n\nReal-world applications:\n  • Hotel & building AI operations — the fictional AltoTech Grand Bangkok mirrors\n    a real product category: autonomous energy/comfort optimization for hotels\n    and commercial buildings (AltoTech's actual domain), where agent fleets\n    watch telemetry, dispatch work and answer staff.\n  • Commercial building copilots — Willow, JCI OpenBlue and Siemens Building X\n    assistants are the market's versions of the morning-brief + triage patterns\n    shown here.\n  • Data-center ops — the same fleet shape (energy desk + maintenance desk +\n    guarded actions + flywheel) runs AI factories; NVIDIA's DSX blueprint makes\n    the twin the facility's operating system.\n  • The generalization test — swap the SOP corpus, the telemetry schema and the\n    policy file, and the identical harness runs a hospital, campus or plant —\n    that is the Agent = Model + Harness thesis, cashed out."},
 ]
 STEP_BY_ID = {s["id"]: s for s in STEPS}
 
@@ -260,6 +263,74 @@ async def cleanup() -> dict:
         shutil.rmtree(pyc, ignore_errors=True)
     removed.append("__pycache__")
     return {"messages": [f"removed: {removed}"]}
+
+
+
+# ── 🖥️ DGX console — run commands ON the DGX over SSH (Tailscale) ─────────────
+import dgxsh  # noqa: E402
+
+_dgx_lock = asyncio.Lock()
+
+
+@app.get("/api/dgx/status")
+async def dgx_status() -> dict:
+    return dgxsh.status()
+
+
+class DgxConfig(BaseModel):
+    host: str | None = None
+    user: str | None = None
+    port: str | None = None
+    key: str | None = None
+
+
+@app.post("/api/dgx/config")
+async def dgx_config(req: DgxConfig) -> dict:
+    dgxsh.apply_config(req.model_dump())
+    return dgxsh.status()
+
+
+class DgxRun(BaseModel):
+    command: str
+
+
+@app.post("/api/dgx/run")
+async def dgx_run(req: DgxRun):
+    """Stream one command's output from the DGX, live (600 s cap)."""
+    cmd = (req.command or "").strip()
+
+    async def body():
+        if not cmd:
+            yield "type a command first\n__EXIT__ 1 0\n"
+            return
+        if _dgx_lock.locked():
+            yield "⚠  another DGX command is running — wait for it to finish.\n__EXIT__ 1 0\n"
+            return
+        async with _dgx_lock:
+            yield f"🖥️  {dgxsh.target()} $ {cmd}\n\n"
+            start = time.time()
+            proc = await asyncio.create_subprocess_exec(
+                *dgxsh._ssh_argv(cmd),
+                stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT)
+            try:
+                while True:
+                    try:
+                        line = await asyncio.wait_for(
+                            proc.stdout.readline(),
+                            timeout=max(1, start + 600 - time.time()))
+                    except asyncio.TimeoutError:
+                        proc.kill()
+                        yield f"\n⏱  exceeded 600s — killed.\n__EXIT__ 124 {time.time()-start:.1f}\n"
+                        return
+                    if not line:
+                        break
+                    yield line.decode(errors="replace")
+                await proc.wait()
+                yield f"__EXIT__ {proc.returncode} {time.time()-start:.1f}\n"
+            finally:
+                if proc.returncode is None:
+                    proc.kill()
+    return StreamingResponse(body(), media_type="text/plain")
 
 
 if __name__ == "__main__":

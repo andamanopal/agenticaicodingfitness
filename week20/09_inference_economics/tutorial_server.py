@@ -119,6 +119,9 @@ STEPS = [
      "Flywheel (improve) · App 3 Dynamo (scale — the perf/$ & per-MW engine) · App 10 NeMo Gym "
      "(RL + eval — the correctness engine) · App 7 OpenShell (guard). This app is the lens that "
      "connects Dynamo's performance to Gym's evaluation."},
+    {"id":"refs","group":"Go further","kind":"concept",
+     "title":"Appendix · References & real-world applications","level":"all levels",
+     "desc":"Curated references:\n  • Independent per-token benchmarks — artificialanalysis.ai (price + speed +\n    quality across providers, updated continuously)\n  • NVIDIA on tokens/megawatt & AI factories — blogs.nvidia.com (AI factory\n    series; the DSX blueprint prices data centers in tokens per MW)\n  • Goodput lineage — this course's Week 10/15 eval material (LLM-judge +\n    golden sets make 'successful task' measurable).\n\nReal-world applications:\n  • Capacity planning — AI data centers are now sized in tokens/second/MW;\n    that lens decides GPU purchases, power contracts, and whether an always-on\n    agent fleet is viable at all.\n  • The cheap-model trap — a model at a third of the per-token price that needs\n    two retries and a judge pass costs MORE per successful task: goodput math\n    catches what sticker price hides.\n  • Per-tenant budgets — SaaS copilots meter tokens per customer with circuit\n    breakers (Week 10's cost governance) to keep one tenant from eating the\n    margin.\n  • Make vs buy — the on-prem $/M-token you computed in Ch 3 vs cloud sticker\n    price, at your utilization, is the whole sovereign-hardware business case."},
 ]
 STEP_BY_ID = {s["id"]: s for s in STEPS}
 
@@ -254,6 +257,74 @@ async def cleanup() -> dict:
         shutil.rmtree(pyc, ignore_errors=True)
     removed.append("__pycache__")
     return {"messages": [f"removed: {removed}"]}
+
+
+
+# ── 🖥️ DGX console — run commands ON the DGX over SSH (Tailscale) ─────────────
+import dgxsh  # noqa: E402
+
+_dgx_lock = asyncio.Lock()
+
+
+@app.get("/api/dgx/status")
+async def dgx_status() -> dict:
+    return dgxsh.status()
+
+
+class DgxConfig(BaseModel):
+    host: str | None = None
+    user: str | None = None
+    port: str | None = None
+    key: str | None = None
+
+
+@app.post("/api/dgx/config")
+async def dgx_config(req: DgxConfig) -> dict:
+    dgxsh.apply_config(req.model_dump())
+    return dgxsh.status()
+
+
+class DgxRun(BaseModel):
+    command: str
+
+
+@app.post("/api/dgx/run")
+async def dgx_run(req: DgxRun):
+    """Stream one command's output from the DGX, live (600 s cap)."""
+    cmd = (req.command or "").strip()
+
+    async def body():
+        if not cmd:
+            yield "type a command first\n__EXIT__ 1 0\n"
+            return
+        if _dgx_lock.locked():
+            yield "⚠  another DGX command is running — wait for it to finish.\n__EXIT__ 1 0\n"
+            return
+        async with _dgx_lock:
+            yield f"🖥️  {dgxsh.target()} $ {cmd}\n\n"
+            start = time.time()
+            proc = await asyncio.create_subprocess_exec(
+                *dgxsh._ssh_argv(cmd),
+                stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT)
+            try:
+                while True:
+                    try:
+                        line = await asyncio.wait_for(
+                            proc.stdout.readline(),
+                            timeout=max(1, start + 600 - time.time()))
+                    except asyncio.TimeoutError:
+                        proc.kill()
+                        yield f"\n⏱  exceeded 600s — killed.\n__EXIT__ 124 {time.time()-start:.1f}\n"
+                        return
+                    if not line:
+                        break
+                    yield line.decode(errors="replace")
+                await proc.wait()
+                yield f"__EXIT__ {proc.returncode} {time.time()-start:.1f}\n"
+            finally:
+                if proc.returncode is None:
+                    proc.kill()
+    return StreamingResponse(body(), media_type="text/plain")
 
 
 if __name__ == "__main__":

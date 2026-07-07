@@ -119,6 +119,9 @@ STEPS = [
      "Where this sits in Week 20: App 1 Nemotron (model) · App 2 NIM (serve) · App 11 Data Flywheel "
      "(improve) · App 3 Dynamo (scale) · App 10 NeMo Gym (RL) · App 7 OpenShell (guard) · "
      "App 5 (THIS) NeMo Relay (observe & optimize)."},
+    {"id":"refs","group":"Go further","kind":"concept",
+     "title":"Appendix · References & real-world applications","level":"all levels",
+     "desc":"Curated references:\n  • Arize Phoenix (the trace UI this app teaches) — github.com/Arize-ai/phoenix\n  • OpenTelemetry GenAI semantic conventions — opentelemetry.io/docs/specs/semconv/gen-ai/\n  • LangSmith (the same layer, LangChain-flavored) — Week 10 teaches it.\n  • This course's observability spine — Week 10 (tracing/HITL) and App 09\n    (economics needs Relay's numbers).\n\nReal-world applications:\n  • Cost-per-conversation dashboards — support-copilot teams live in these:\n    which intents are expensive, which model tier serves them, where retries burn\n    money.\n  • Right-sizing in production — routing cheap requests to small models at equal\n    outcome (proven by evals, not vibes) is routinely the largest single saving\n    in mature deployments.\n  • Incident forensics — 'why did the agent do THAT' is answerable in minutes\n    from a span tree, and unanswerable without one.\n  • Flywheel feedstock — App 11 trains on exactly the traces Relay captures;\n    observability is where self-improvement starts."},
 ]
 STEP_BY_ID = {s["id"]: s for s in STEPS}
 
@@ -254,6 +257,74 @@ async def cleanup() -> dict:
         shutil.rmtree(pyc, ignore_errors=True)
     removed.append("__pycache__")
     return {"messages": [f"removed: {removed}"]}
+
+
+
+# ── 🖥️ DGX console — run commands ON the DGX over SSH (Tailscale) ─────────────
+import dgxsh  # noqa: E402
+
+_dgx_lock = asyncio.Lock()
+
+
+@app.get("/api/dgx/status")
+async def dgx_status() -> dict:
+    return dgxsh.status()
+
+
+class DgxConfig(BaseModel):
+    host: str | None = None
+    user: str | None = None
+    port: str | None = None
+    key: str | None = None
+
+
+@app.post("/api/dgx/config")
+async def dgx_config(req: DgxConfig) -> dict:
+    dgxsh.apply_config(req.model_dump())
+    return dgxsh.status()
+
+
+class DgxRun(BaseModel):
+    command: str
+
+
+@app.post("/api/dgx/run")
+async def dgx_run(req: DgxRun):
+    """Stream one command's output from the DGX, live (600 s cap)."""
+    cmd = (req.command or "").strip()
+
+    async def body():
+        if not cmd:
+            yield "type a command first\n__EXIT__ 1 0\n"
+            return
+        if _dgx_lock.locked():
+            yield "⚠  another DGX command is running — wait for it to finish.\n__EXIT__ 1 0\n"
+            return
+        async with _dgx_lock:
+            yield f"🖥️  {dgxsh.target()} $ {cmd}\n\n"
+            start = time.time()
+            proc = await asyncio.create_subprocess_exec(
+                *dgxsh._ssh_argv(cmd),
+                stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT)
+            try:
+                while True:
+                    try:
+                        line = await asyncio.wait_for(
+                            proc.stdout.readline(),
+                            timeout=max(1, start + 600 - time.time()))
+                    except asyncio.TimeoutError:
+                        proc.kill()
+                        yield f"\n⏱  exceeded 600s — killed.\n__EXIT__ 124 {time.time()-start:.1f}\n"
+                        return
+                    if not line:
+                        break
+                    yield line.decode(errors="replace")
+                await proc.wait()
+                yield f"__EXIT__ {proc.returncode} {time.time()-start:.1f}\n"
+            finally:
+                if proc.returncode is None:
+                    proc.kill()
+    return StreamingResponse(body(), media_type="text/plain")
 
 
 if __name__ == "__main__":

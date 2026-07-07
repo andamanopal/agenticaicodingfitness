@@ -101,6 +101,9 @@ STEPS = [
      "Where this sits in Week 20: App 1 Nemotron (model) · App 2 NIM (serve) · "
      "App 11 Data Flywheel (improve) · App 3 (THIS) Dynamo (scale) · App 10 NeMo Gym (RL) · "
      "App 7 OpenShell (guard)."},
+    {"id":"refs","group":"Go further","kind":"concept",
+     "title":"Appendix · References & real-world applications","level":"all levels",
+     "desc":"Curated references:\n  • NVIDIA Dynamo — developer.nvidia.com/dynamo\n  • Disaggregated serving design docs — docs.dynamo.nvidia.com/dynamo/design-docs/disaggregated-serving\n  • The research lineage — DistServe (arxiv.org/abs/2401.09670) and Splitwise\n    (arxiv.org/abs/2311.18677) pioneered prefill/decode disaggregation; Dynamo\n    productizes it.\n  • Open source — github.com/ai-dynamo/dynamo\n\nReal-world applications:\n  • Frontier-scale serving — the prefill/decode split and KV-aware routing are how\n    large inference providers keep per-token cost survivable at millions of\n    concurrent requests; NVIDIA named launch partners across major AI labs at\n    GTC 2025.\n  • Agent workloads specifically — a fleet re-sending a 4k-token system prompt\n    every turn is the best case for cache-aware routing: the prefix computes once.\n  • AI-factory capacity planning — the SLO Planner pattern (declare TTFT/ITL,\n    autoscale pools) is the operational model behind the DSX blueprint's\n    'twin as operating system' story (Week 21 App 1).\n  • Honest scope — a single-model, low-QPS internal tool does not need Dynamo;\n    one NIM or vLLM is the right size until the fleet grows."},
 ]
 STEP_BY_ID = {s["id"]: s for s in STEPS}
 
@@ -236,6 +239,74 @@ async def cleanup() -> dict:
         shutil.rmtree(pyc, ignore_errors=True)
     removed.append("__pycache__")
     return {"messages": [f"removed: {removed}"]}
+
+
+
+# ── 🖥️ DGX console — run commands ON the DGX over SSH (Tailscale) ─────────────
+import dgxsh  # noqa: E402
+
+_dgx_lock = asyncio.Lock()
+
+
+@app.get("/api/dgx/status")
+async def dgx_status() -> dict:
+    return dgxsh.status()
+
+
+class DgxConfig(BaseModel):
+    host: str | None = None
+    user: str | None = None
+    port: str | None = None
+    key: str | None = None
+
+
+@app.post("/api/dgx/config")
+async def dgx_config(req: DgxConfig) -> dict:
+    dgxsh.apply_config(req.model_dump())
+    return dgxsh.status()
+
+
+class DgxRun(BaseModel):
+    command: str
+
+
+@app.post("/api/dgx/run")
+async def dgx_run(req: DgxRun):
+    """Stream one command's output from the DGX, live (600 s cap)."""
+    cmd = (req.command or "").strip()
+
+    async def body():
+        if not cmd:
+            yield "type a command first\n__EXIT__ 1 0\n"
+            return
+        if _dgx_lock.locked():
+            yield "⚠  another DGX command is running — wait for it to finish.\n__EXIT__ 1 0\n"
+            return
+        async with _dgx_lock:
+            yield f"🖥️  {dgxsh.target()} $ {cmd}\n\n"
+            start = time.time()
+            proc = await asyncio.create_subprocess_exec(
+                *dgxsh._ssh_argv(cmd),
+                stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT)
+            try:
+                while True:
+                    try:
+                        line = await asyncio.wait_for(
+                            proc.stdout.readline(),
+                            timeout=max(1, start + 600 - time.time()))
+                    except asyncio.TimeoutError:
+                        proc.kill()
+                        yield f"\n⏱  exceeded 600s — killed.\n__EXIT__ 124 {time.time()-start:.1f}\n"
+                        return
+                    if not line:
+                        break
+                    yield line.decode(errors="replace")
+                await proc.wait()
+                yield f"__EXIT__ {proc.returncode} {time.time()-start:.1f}\n"
+            finally:
+                if proc.returncode is None:
+                    proc.kill()
+    return StreamingResponse(body(), media_type="text/plain")
 
 
 if __name__ == "__main__":

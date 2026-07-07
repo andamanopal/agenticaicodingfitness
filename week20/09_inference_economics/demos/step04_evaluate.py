@@ -49,11 +49,11 @@ def main() -> None:
     live_verdict = None
     if not view.is_sim():
         task, answer, expected, _ = GOLDEN[0]
-        out = view.generate(
+        got = view.classify(
             f"You are a strict grader. Task: {task}\nAnswer given: {answer}\n"
-            f"Reply with exactly PASS or FAIL and nothing else.",
-            max_tokens=8, title="LLM-as-judge scoring one golden case")
-        live_verdict = "PASS" in (out.get("answer") or "").upper()
+            f"Grade the answer: PASS or FAIL.",
+            labels=["PASS", "FAIL"], title="LLM-as-judge scoring one golden case")
+        live_verdict = got == "pass"
         print()
 
     print(f"  {'task':<40}{'verdict':>9}")

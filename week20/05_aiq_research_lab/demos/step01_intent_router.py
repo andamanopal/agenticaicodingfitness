@@ -53,13 +53,18 @@ def main() -> None:
             print(f"  → route: {route.upper():7s} → {arrow}\n")
         print("  ◆ ~2 of 3 queries stay shallow · Nano is ~9x cheaper than the deep agent · $0")
     else:
-        for q, _route, _why in QUERIES:
-            view.generate(
-                "You are the AI-Q Intent Router. Reply with ONE word only — 'shallow' for a "
-                "simple single-source lookup, 'deep' for a multi-step, multi-source research "
+        hits = 0
+        for q, route, _why in QUERIES:
+            got = view.classify(
+                "You are the AI-Q Intent Router. Classify this query: answer 'shallow' for a "
+                "simple single-source lookup, or 'deep' for a multi-step, multi-source research "
                 f"question that needs a plan. Query: {q}",
-                max_tokens=8, title=f"routing: {q[:48]}…")
-            print("")
+                labels=["shallow", "deep"], title=f"routing: {q[:48]}…")
+            mark = "✓" if got == route else ("✗" if got else "—")
+            hits += got == route
+            print(f"  {mark} expected {route.upper()}, model said {str(got or 'no answer').upper()}\n")
+        print(f"  ◆ router accuracy on this pair: {hits}/{len(QUERIES)} — in production the "
+              f"NAT Optimizer tunes this prompt against a golden set (Week 10/15).")
 
     print("\nTakeaway: routing before reasoning is the cost lever. Cheap Nano triages;")
     print("only genuinely hard questions escalate to the expensive Deep Agent. Next: the plan.")

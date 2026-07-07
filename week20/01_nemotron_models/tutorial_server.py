@@ -116,6 +116,9 @@ STEPS = [
      "  Data Flywheel + NeMo Gym (self-improve), OpenShell/NemoClaw (safe autonomy).\n\n"
      "You now have the open, reasoning, 1M-context model family that the rest of the\n"
      "stack turns into long-running, self-evolving, sovereign agents."},
+    {"id":"refs","group":"Go further","kind":"concept",
+     "title":"Appendix · References & real-world applications","level":"all levels",
+     "desc":"Curated references:\n  • Nemotron family hub — nvidia.com/en-us/ai-data-science/foundation-models/nemotron/\n  • Nemotron 3 debut (open weights announcement) — nvidianews.nvidia.com/news/nvidia-debuts-nemotron-3-family-of-open-models\n  • Nemotron 3 Nano tech deep-dive — developer.nvidia.com/blog/nvidia-nemotron-3-nano-omni-powers-multimodal-agent-reasoning-in-a-single-efficient-open-model/\n  • Open weights on Hugging Face — huggingface.co/nvidia\n  • Try hosted before you buy hardware — build.nvidia.com\n\nReal-world applications:\n  • Regulated on-prem assistants — banks, hospitals and defense pick open-weight\n    models precisely because weights + inference stay inside the compliance wall;\n    Nemotron's RAG/Safety variants slot in as graders and filters.\n  • Sovereign national AI — government AI-factory programs (see NVIDIA's sovereign\n    AI initiatives) build local-language assistants on open Nemotron bases.\n  • Cheap-first routing — Nano-class models do intent triage in production\n    cascades (the App 5 router; Week 11's 3-tier cost pattern), escalating to\n    Super/frontier only when needed — often the single biggest cost lever.\n  • Long-document agents — the 1M context targets contract review, codebase-wide\n    reasoning, and multi-day agent transcripts without RAG gymnastics."},
 ]
 STEP_BY_ID = {s["id"]: s for s in STEPS}
 
@@ -251,6 +254,74 @@ async def cleanup() -> dict:
         shutil.rmtree(pyc, ignore_errors=True)
     removed.append("__pycache__")
     return {"messages": [f"removed: {removed}"]}
+
+
+
+# ── 🖥️ DGX console — run commands ON the DGX over SSH (Tailscale) ─────────────
+import dgxsh  # noqa: E402
+
+_dgx_lock = asyncio.Lock()
+
+
+@app.get("/api/dgx/status")
+async def dgx_status() -> dict:
+    return dgxsh.status()
+
+
+class DgxConfig(BaseModel):
+    host: str | None = None
+    user: str | None = None
+    port: str | None = None
+    key: str | None = None
+
+
+@app.post("/api/dgx/config")
+async def dgx_config(req: DgxConfig) -> dict:
+    dgxsh.apply_config(req.model_dump())
+    return dgxsh.status()
+
+
+class DgxRun(BaseModel):
+    command: str
+
+
+@app.post("/api/dgx/run")
+async def dgx_run(req: DgxRun):
+    """Stream one command's output from the DGX, live (600 s cap)."""
+    cmd = (req.command or "").strip()
+
+    async def body():
+        if not cmd:
+            yield "type a command first\n__EXIT__ 1 0\n"
+            return
+        if _dgx_lock.locked():
+            yield "⚠  another DGX command is running — wait for it to finish.\n__EXIT__ 1 0\n"
+            return
+        async with _dgx_lock:
+            yield f"🖥️  {dgxsh.target()} $ {cmd}\n\n"
+            start = time.time()
+            proc = await asyncio.create_subprocess_exec(
+                *dgxsh._ssh_argv(cmd),
+                stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT)
+            try:
+                while True:
+                    try:
+                        line = await asyncio.wait_for(
+                            proc.stdout.readline(),
+                            timeout=max(1, start + 600 - time.time()))
+                    except asyncio.TimeoutError:
+                        proc.kill()
+                        yield f"\n⏱  exceeded 600s — killed.\n__EXIT__ 124 {time.time()-start:.1f}\n"
+                        return
+                    if not line:
+                        break
+                    yield line.decode(errors="replace")
+                await proc.wait()
+                yield f"__EXIT__ {proc.returncode} {time.time()-start:.1f}\n"
+            finally:
+                if proc.returncode is None:
+                    proc.kill()
+    return StreamingResponse(body(), media_type="text/plain")
 
 
 if __name__ == "__main__":
