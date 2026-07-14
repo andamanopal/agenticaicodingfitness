@@ -1,0 +1,257 @@
+{
+  "version": 4,
+  "robot_id": "my_awesome_follower_arm",
+  "camera_signature": {
+    "index": 0,
+    "width": 480,
+    "height": 640,
+    "rotation_ccw_degrees": 90
+  },
+  "intrinsics": {
+    "width": 480,
+    "height": 640,
+    "K": [
+      [
+        361.37916392,
+        0.0,
+        211.0405118
+      ],
+      [
+        0.0,
+        360.36370612,
+        330.52769329
+      ],
+      [
+        0.0,
+        0.0,
+        1.0
+      ]
+    ],
+    "distortion": [
+      0.09606365,
+      -0.13952804,
+      0.01065127,
+      -0.00382629,
+      0.05528971
+    ],
+    "rms_pixels": 0.4828,
+    "samples": 10,
+    "checkerboard_inner_corners": [
+      8,
+      6
+    ],
+    "square_size_meters": 0.009
+  },
+  "workspace": {
+    "minimum": [
+      0.1,
+      -0.2,
+      0.004
+    ],
+    "maximum": [
+      0.34,
+      0.2,
+      0.12
+    ],
+    "table_minimum": [
+      -0.08,
+      -0.38
+    ],
+    "table_maximum": [
+      0.6,
+      0.38
+    ],
+    "destinations": {
+      "left side": [
+        0.18,
+        0.16
+      ],
+      "center": [
+        0.24,
+        0.0
+      ],
+      "right side": [
+        0.18,
+        -0.16
+      ]
+    },
+    "gripper_open_percent": 70.0,
+    "gripper_closed_percent": 8.0,
+    "base_frame_registration_confirmed": false,
+    "kinematic_model_confirmed": false
+  },
+  "viewpoints": {
+    "survey_center": {
+      "joint_positions_degrees": {
+        "shoulder_pan": -5.62637,
+        "shoulder_lift": 20.83516,
+        "elbow_flex": -11.95604,
+        "wrist_flex": 83.6044,
+        "wrist_roll": -89.45055,
+        "gripper": 1.46138
+      },
+      "T_base_camera_cv": [
+        [
+          0.04567709,
+          -0.99344975,
+          -0.10474346,
+          0.14639836
+        ],
+        [
+          -0.87279469,
+          0.01131764,
+          -0.48795629,
+          -0.05188805
+        ],
+        [
+          0.4859455,
+          0.11370796,
+          -0.86656071,
+          0.09822446
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "board_pose_base": {
+        "origin_meters": [
+          0.12,
+          -0.08,
+          0.0
+        ],
+        "yaw_degrees": 0.0
+      },
+      "reprojection_rmse_pixels": 0.596,
+      "recorded_at_utc": "2026-07-14T10:31:52.363137+00:00"
+    },
+    "survey_left": {
+      "joint_positions_degrees": {
+        "shoulder_pan": -10.1978,
+        "shoulder_lift": 20.83516,
+        "elbow_flex": -11.95604,
+        "wrist_flex": 83.6044,
+        "wrist_roll": -89.45055,
+        "gripper": 1.46138
+      },
+      "T_base_camera_cv": [
+        [
+          0.11712153,
+          -0.99120136,
+          -0.06166366,
+          0.12112543
+        ],
+        [
+          -0.86961275,
+          -0.07237051,
+          -0.48840165,
+          -0.05423714
+        ],
+        [
+          0.47964175,
+          0.11082585,
+          -0.87043749,
+          0.09982063
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "board_pose_base": {
+        "origin_meters": [
+          0.12,
+          -0.08,
+          0.0
+        ],
+        "yaw_degrees": 0.0
+      },
+      "reprojection_rmse_pixels": 0.4888,
+      "recorded_at_utc": "2026-07-14T10:31:58.950406+00:00"
+    },
+    "survey_right": {
+      "joint_positions_degrees": {
+        "shoulder_pan": 2.63736,
+        "shoulder_lift": 21.89011,
+        "elbow_flex": -11.95604,
+        "wrist_flex": 83.51648,
+        "wrist_roll": -89.45055,
+        "gripper": 1.46138
+      },
+      "T_base_camera_cv": [
+        [
+          -0.08145882,
+          -0.97988398,
+          -0.18218631,
+          0.19193481
+        ],
+        [
+          -0.8518297,
+          0.16334874,
+          -0.49769805,
+          -0.05322148
+        ],
+        [
+          0.51744625,
+          0.11464981,
+          -0.84800047,
+          0.08931458
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "board_pose_base": {
+        "origin_meters": [
+          0.12,
+          -0.08,
+          0.0
+        ],
+        "yaw_degrees": 0.0
+      },
+      "reprojection_rmse_pixels": 0.3318,
+      "recorded_at_utc": "2026-07-14T10:31:48.762174+00:00"
+    }
+  },
+  "created_at_utc": "2026-07-14T09:58:06.250268+00:00",
+  "updated_at_utc": "2026-07-14T10:31:58.963138+00:00",
+  "kinematic_validation": {
+    "status": "review",
+    "checks": {
+      "viewpoints_are_distinct": false,
+      "viewpoint_rotation_is_observable": false,
+      "fixed_camera_translation_is_consistent": false,
+      "fixed_camera_rotation_is_consistent": true,
+      "camera_mount_offset_is_plausible": true
+    },
+    "failed_checks": [
+      "viewpoints_are_distinct",
+      "viewpoint_rotation_is_observable",
+      "fixed_camera_translation_is_consistent"
+    ],
+    "camera_baseline_meters": 0.0716,
+    "joint_spread_degrees": 12.88,
+    "gripper_rotation_spread_degrees": 12.87,
+    "hand_eye_translation_spread_meters": 0.0875,
+    "hand_eye_rotation_spread_degrees": 2.57,
+    "maximum_camera_mount_offset_meters": 0.1734
+  },
+  "travel_pose": {
+    "joint_positions_degrees": {
+      "shoulder_pan": -23.03297,
+      "shoulder_lift": -22.15385,
+      "elbow_flex": 33.58242,
+      "wrist_flex": 35.6044,
+      "wrist_roll": -9.89011,
+      "gripper": 1.25261
+    },
+    "recorded_at_utc": "2026-07-14T10:07:44.297573+00:00"
+  }
+}

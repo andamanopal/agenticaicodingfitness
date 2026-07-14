@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>SO-101 camera calibration target</title>
+  <style>
+    @page { size: A4 portrait; margin: 6mm; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, sans-serif; color: #111; }
+    .instructions { max-width: 198mm; margin: 0 auto 4mm; font-size: 11pt; line-height: 1.35; }
+    .instructions h1 { margin: 0 0 2mm; font-size: 16pt; }
+    .target-wrap { position: relative; width: 198mm; margin: 0 auto; }
+    .target {
+      display: grid;
+      grid-template-columns: repeat(9, 22mm);
+      grid-template-rows: repeat(7, 22mm);
+      width: 198mm;
+      height: 154mm;
+      border: 0.25mm solid #000;
+    }
+    .cell { width: 22mm; height: 22mm; background: #fff; }
+    .cell.black { background: #000; }
+    .origin {
+      position: absolute;
+      left: 5mm;
+      top: 5mm;
+      width: 9mm;
+      height: 9mm;
+      border-radius: 50%;
+      background: #e00024;
+      border: 0.5mm solid #fff;
+    }
+    .axis { display: flex; justify-content: space-between; margin-top: 3mm; font-size: 9pt; }
+    .scale-check { width: 100mm; border-top: 0.5mm solid #111; text-align: center; margin: 5mm auto 0; font-size: 9pt; }
+    @media print {
+      .instructions { font-size: 9pt; }
+      .instructions h1 { font-size: 13pt; }
+    }
+  </style>
+</head>
+<body>
+  <section class="instructions">
+    <h1>SO-101 wrist-camera target</h1>
+    <div>Print in color at <strong>100% / Actual size</strong>. Do not use “Fit to page.” Each square must measure exactly 22 mm. Keep the red origin marker visible in every capture.</div>
+  </section>
+  <div class="target-wrap">
+    <div id="target" class="target" aria-label="8 by 6 inner-corner checkerboard"></div>
+    <div class="origin" aria-label="Red board origin marker"></div>
+    <div class="axis"><span>Origin beside first inner corner · +Y down the page</span><span>+X →</span></div>
+  </div>
+  <div class="scale-check">This line must measure exactly 100 mm</div>
+  <script>
+    const target = document.getElementById("target");
+    for (let row = 0; row < 7; row += 1) {
+      for (let column = 0; column < 9; column += 1) {
+        const cell = document.createElement("span");
+        cell.className = `cell${(row + column) % 2 ? " black" : ""}`;
+        target.appendChild(cell);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentic Robotics Workshop — Participant Field Guide</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+  @page { size: A4; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --accent: #55C7FF;
+    --accent-dark: #8AD8FF;
+    --brown-dark: #F1F5F9;
+    --brown-muted: #9CA8B7;
+    --parchment: #151A21;
+    --parchment-light: #11161C;
+    --border: #2A3440;
+    --white: #0B0E12;
+    --bg-code: #070A0E;
+    --green: #55D6A8;
+    --purple: #B59CFF;
+    --warning: #FFBE67;
+    --danger: #FF7E8A;
+  }
+
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--brown-dark); font-size: 10px; line-height: 1.5;
+    background: #05070A;
+  }
+  @media print {
+    html, body { background: var(--white); margin: 0 !important; padding: 0 !important; height: auto; }
+    .page { box-shadow: none; margin: 0; padding: 20mm 22mm; width: 100%; height: 297mm; min-height: 0; max-height: 297mm; overflow: hidden; }
+    .page:first-child { margin-top: 0; padding-top: 20mm; }
+  }
+
+  .page {
+    width: 210mm; height: 297mm; padding: 20mm 22mm; position: relative;
+    overflow: hidden; page-break-after: always; background: var(--white);
+    margin: 20px auto; box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  }
+  .page:last-child { page-break-after: avoid; }
+
+  .cover {
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    text-align: center; background:
+      radial-gradient(circle at 50% 38%, rgba(85,199,255,0.12), transparent 36%),
+      linear-gradient(145deg, #111820 0%, #090C10 58%, #080A0D 100%);
+  }
+  .cover-ornament { width: 60px; height: 2px; background: var(--accent); margin: 0 auto 32px; box-shadow: 0 0 16px rgba(85,199,255,0.45); }
+  .cover-logo { font-size: 48px; line-height: 1; font-weight: 700; color: var(--brown-dark); letter-spacing: 1px; margin-bottom: 9px; }
+  .cover-byline { font-size: 13px; color: var(--accent-dark); letter-spacing: 0.8px; margin-bottom: 48px; }
+  .cover-title { font-size: 27px; line-height: 1.2; font-weight: 650; color: var(--brown-dark); margin-bottom: 12px; }
+  .cover-subtitle { font-size: 12px; color: var(--brown-muted); margin-bottom: 58px; max-width: 380px; }
+  .cover-meta { font-size: 10px; color: var(--brown-muted); line-height: 1.8; }
+  .cover-meta strong { color: var(--brown-dark); font-weight: 600; }
+  .cover-border { position: absolute; top: 12mm; left: 12mm; right: 12mm; bottom: 12mm; border: 1px solid var(--border); pointer-events: none; }
+  .cover-corner { position: absolute; width: 18px; height: 18px; border-color: var(--accent); border-style: solid; }
+  .cover-corner.tl { top: 10mm; left: 10mm; border-width: 2px 0 0 2px; }
+  .cover-corner.tr { top: 10mm; right: 10mm; border-width: 2px 2px 0 0; }
+  .cover-corner.bl { bottom: 10mm; left: 10mm; border-width: 0 0 2px 2px; }
+  .cover-corner.br { bottom: 10mm; right: 10mm; border-width: 0 2px 2px 0; }
+
+  .page-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1.5px solid var(--accent); margin-bottom: 20px; }
+  .page-header-logo { font-size: 13px; font-weight: 650; color: var(--brown-dark); }
+  .page-header-section { font-size: 9px; color: var(--brown-muted); letter-spacing: 0.5px; }
+  .section-number { font-size: 10px; font-weight: 650; color: var(--accent); letter-spacing: 0.5px; margin-bottom: 4px; }
+  .section-title { font-size: 24px; line-height: 1.25; font-weight: 700; color: var(--brown-dark); margin-bottom: 4px; }
+  .section-divider { width: 40px; height: 2px; background: var(--accent); margin-bottom: 16px; }
+  .section-intro { font-size: 11px; color: var(--brown-muted); line-height: 1.6; margin-bottom: 18px; max-width: 520px; }
+
+  h3 { font-size: 13px; font-weight: 650; color: var(--brown-dark); margin-bottom: 6px; margin-top: 14px; }
+  p { font-size: 10px; line-height: 1.55; color: var(--brown-dark); margin-bottom: 8px; }
+  a { color: var(--accent-dark); text-decoration: none; border-bottom: 1px solid rgba(138,216,255,0.35); }
+  .text-muted { color: var(--brown-muted); }
+  .text-small { font-size: 9px; }
+  .text-accent { color: var(--accent-dark); font-weight: 600; }
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 8.8px; background: var(--bg-code); padding: 1px 4px; border-radius: 3px; color: #D7EAF7; }
+
+  .card { background: var(--parchment-light); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; }
+  .card-accent { border-left: 3px solid var(--accent); }
+  .card-green { border-left: 3px solid var(--green); }
+  .card-purple { border-left: 3px solid var(--purple); }
+  .card-title { font-weight: 650; font-size: 10.5px; color: var(--brown-dark); margin-bottom: 3px; }
+  .card-body { font-size: 9.5px; color: var(--brown-muted); line-height: 1.5; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 9.3px; margin-bottom: 12px; }
+  th { background: var(--parchment); color: var(--brown-muted); font-weight: 650; text-transform: uppercase; letter-spacing: 1px; font-size: 8px; padding: 7px 10px; text-align: left; border-bottom: 1.5px solid var(--border); }
+  td { padding: 7px 10px; border-bottom: 1px solid var(--border); color: var(--brown-dark); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 8px; font-weight: 650; letter-spacing: 0.35px; white-space: nowrap; }
+  .badge-accent { background: rgba(85,199,255,0.13); color: var(--accent-dark); }
+  .badge-green { background: rgba(85,214,168,0.12); color: var(--green); }
+  .badge-blue { background: rgba(85,199,255,0.13); color: var(--accent-dark); }
+  .badge-purple { background: rgba(181,156,255,0.12); color: var(--purple); }
+  .badge-warning { background: rgba(255,190,103,0.12); color: var(--warning); }
+
+  .diagram { background: var(--parchment-light); border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-bottom: 14px; position: relative; }
+  .diagram-title { font-size: 8px; font-weight: 650; color: var(--brown-muted); letter-spacing: 0.5px; margin-bottom: 14px; text-align: center; }
+  .flow-container { width: 100%; overflow: visible; }
+  .flow-container svg { width: 100%; height: auto; }
+
+  .page-footer { position: absolute; bottom: 18mm; left: 22mm; right: 22mm; display: flex; justify-content: space-between; align-items: center; font-size: 8px; color: var(--brown-muted); padding-top: 8px; border-top: 1px solid var(--border); }
+  .pipeline { display: flex; align-items: center; gap: 0; margin: 10px 0; }
+  .pipeline-step { flex: 1; text-align: center; padding: 8px 4px; background: var(--parchment); border: 1px solid var(--border); font-size: 8.5px; font-weight: 500; position: relative; }
+  .pipeline-step:first-child { border-radius: 6px 0 0 6px; }
+  .pipeline-step:last-child { border-radius: 0 6px 6px 0; }
+  .pipeline-step-num { font-size: 7px; font-weight: 700; color: var(--accent); display: block; margin-bottom: 1px; }
+  .pipeline-arrow { width: 18px; text-align: center; color: var(--accent); font-size: 12px; flex-shrink: 0; }
+  .split-panel { display: grid; grid-template-columns: 1fr 1px 1fr; gap: 16px; }
+  .split-divider { background: var(--border); width: 1px; }
+
+  .icon-circle { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .icon-accent { background: rgba(85,199,255,0.13); color: var(--accent-dark); }
+  .icon-green { background: rgba(85,214,168,0.12); color: var(--green); }
+  .icon-blue { background: rgba(85,199,255,0.13); color: var(--accent-dark); }
+  .icon-purple { background: rgba(181,156,255,0.12); color: var(--purple); }
+  .feature-item { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px; }
+  .feature-item-content { flex: 1; }
+  .feature-item-title { font-weight: 650; font-size: 10px; color: var(--brown-dark); margin-bottom: 1px; }
+  .feature-item-desc { font-size: 9px; color: var(--brown-muted); line-height: 1.45; }
+  .kv-row { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 9.3px; }
+  .kv-row:last-child { border-bottom: none; }
+  .kv-key { color: var(--brown-muted); font-weight: 500; }
+  .kv-value { color: var(--brown-dark); font-weight: 600; text-align: right; }
+
+  .code-block { background: var(--bg-code); border: 1px solid var(--border); border-radius: 8px; margin: 8px 0 12px; overflow: hidden; }
+  .code-label { display: flex; justify-content: space-between; align-items: center; padding: 7px 10px; background: #0F141A; border-bottom: 1px solid var(--border); color: var(--brown-muted); font-size: 8px; font-weight: 600; letter-spacing: 0.3px; }
+  pre { padding: 10px 12px; white-space: pre-wrap; overflow-wrap: anywhere; color: #D7EAF7; font-family: 'SF Mono', Menlo, Consolas, monospace; font-size: 8.2px; line-height: 1.45; }
+  .note { border-left: 3px solid var(--warning); background: rgba(255,190,103,0.07); color: var(--brown-muted); border-radius: 0 7px 7px 0; padding: 9px 12px; margin: 8px 0 12px; font-size: 9.2px; line-height: 1.5; }
+  .success-note { border-left-color: var(--green); background: rgba(85,214,168,0.07); }
+  .danger-note { border-left-color: var(--danger); background: rgba(255,126,138,0.07); }
+  .checklist { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 7px 14px; margin: 8px 0 12px; }
+  .checklist li { color: var(--brown-muted); font-size: 9.2px; padding-left: 17px; position: relative; }
+  .checklist li::before { content: '✓'; position: absolute; left: 0; color: var(--green); font-weight: 700; }
+  .mini-label { font-size: 7.5px; color: var(--accent-dark); font-weight: 650; letter-spacing: 0.3px; margin-bottom: 3px; }
+  .mt-4 { margin-top: 4px; } .mt-8 { margin-top: 8px; } .mt-12 { margin-top: 12px; } .mt-16 { margin-top: 16px; }
+  .mb-4 { margin-bottom: 4px; } .mb-8 { margin-bottom: 8px; } .mb-12 { margin-bottom: 12px; }
+</style>
+</head>
+<body>
+
+<!-- Page 1: Cover -->
+<div class="page cover">
+  <div class="cover-border"></div><div class="cover-corner tl"></div><div class="cover-corner tr"></div><div class="cover-corner bl"></div><div class="cover-corner br"></div>
+  <div class="cover-ornament"></div>
+  <div class="cover-logo">AGENTIC AI</div>
+  <div class="cover-byline">Fitness Workshop · Embodied Intelligence Track</div>
+  <div class="cover-title">Agentic Robotics Workshop</div>
+  <div class="cover-subtitle">A participant field guide from first MuJoCo run to semantic perception, safe tool use, and a physical SO-ARM101.</div>
+  <div class="cover-meta">
+    <strong>Version</strong> 1.0 · MuJoCo-first edition<br>
+    <strong>Date</strong> July 2026<br>
+    <strong>Platform</strong> SO-ARM101 · Python · MuJoCo<br>
+    <strong>Format</strong> Workshop guide and technical reference
+  </div>
+</div>
+
+<!-- Page 2: Theory roadmap -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">AGENTIC AI FITNESS</div><div class="page-header-section">Theory Roadmap</div></div>
+  <div class="section-number">Section 01</div><div class="section-title">Understand the System Before Running It</div><div class="section-divider"></div>
+  <div class="section-intro">We begin with the complete mental model. Every later script corresponds to one layer in this map, so participants know why a file exists before they execute it.</div>
+
+  <div class="diagram">
+    <div class="diagram-title">From Physics to an Agent That Can Act</div>
+    <svg viewBox="0 0 640 176" xmlns="http://www.w3.org/2000/svg" style="font-family:'Inter',sans-serif">
+      <defs><marker id="a2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0 0L8 3L0 6" fill="none" stroke="#55C7FF" stroke-width="1.2"/></marker></defs>
+      <rect x="18" y="54" width="98" height="64" rx="8" fill="#151A21" stroke="#2A3440"/><text x="67" y="76" text-anchor="middle" font-size="8.5" fill="#F1F5F9" font-weight="600">ROBOT</text><text x="67" y="94" text-anchor="middle" font-size="7" fill="#9CA8B7">joints · gripper</text><text x="67" y="108" text-anchor="middle" font-size="7" fill="#9CA8B7">wrist camera</text>
+      <line x1="117" y1="86" x2="139" y2="86" stroke="#55C7FF" marker-end="url(#a2)"/>
+      <rect x="142" y="54" width="98" height="64" rx="8" fill="#151A21" stroke="#2A3440"/><text x="191" y="76" text-anchor="middle" font-size="8.5" fill="#F1F5F9" font-weight="600">SIMULATION</text><text x="191" y="94" text-anchor="middle" font-size="7" fill="#9CA8B7">state · control</text><text x="191" y="108" text-anchor="middle" font-size="7" fill="#9CA8B7">contact physics</text>
+      <line x1="241" y1="86" x2="263" y2="86" stroke="#55C7FF" marker-end="url(#a2)"/>
+      <rect x="266" y="54" width="108" height="64" rx="8" fill="#12202A" stroke="#55C7FF"/><text x="320" y="76" text-anchor="middle" font-size="8.5" fill="#8AD8FF" font-weight="600">PERCEPTION</text><text x="320" y="94" text-anchor="middle" font-size="7" fill="#9CA8B7">multi-view RGB</text><text x="320" y="108" text-anchor="middle" font-size="7" fill="#9CA8B7">geometry · labels</text>
+      <line x1="375" y1="86" x2="397" y2="86" stroke="#55C7FF" marker-end="url(#a2)"/>
+      <rect x="400" y="54" width="98" height="64" rx="8" fill="#151A21" stroke="#2A3440"/><text x="449" y="76" text-anchor="middle" font-size="8.5" fill="#F1F5F9" font-weight="600">PLANNING</text><text x="449" y="94" text-anchor="middle" font-size="7" fill="#9CA8B7">grasp · IK</text><text x="449" y="108" text-anchor="middle" font-size="7" fill="#9CA8B7">preflight checks</text>
+      <line x1="499" y1="86" x2="521" y2="86" stroke="#55C7FF" marker-end="url(#a2)"/>
+      <rect x="524" y="54" width="98" height="64" rx="8" fill="#14231E" stroke="#55D6A8"/><text x="573" y="76" text-anchor="middle" font-size="8.5" fill="#55D6A8" font-weight="600">AGENT</text><text x="573" y="94" text-anchor="middle" font-size="7" fill="#9CA8B7">tools · approval</text><text x="573" y="108" text-anchor="middle" font-size="7" fill="#9CA8B7">verification</text>
+      <text x="320" y="28" text-anchor="middle" font-size="8" fill="#9CA8B7">Each layer has a different source of truth, update rate, and failure mode.</text>
+      <text x="320" y="154" text-anchor="middle" font-size="7" fill="#9CA8B7">The runbook later executes these layers in the same left-to-right order.</text>
+    </svg>
+  </div>
+
+  <h3>What Crosses Each Boundary</h3>
+  <table><thead><tr><th>Layer</th><th>Accepts</th><th>Produces</th><th>Stops when</th></tr></thead><tbody>
+    <tr><td><strong>Simulation</strong></td><td>Actuator targets</td><td>Joint state, contacts, camera frames</td><td>A limit, instability, or collision appears</td></tr>
+    <tr><td><strong>Perception</strong></td><td>RGB, calibrated camera pose, and table frame</td><td>Objects expressed in the robot base frame</td><td>Coverage or multi-view agreement is insufficient</td></tr>
+    <tr><td><strong>Planning</strong></td><td>Scene memory and task contract</td><td>Grasp, waypoints, and preflight result</td><td>The target is unreachable or clearance is unsafe</td></tr>
+    <tr><td><strong>Agent</strong></td><td>Human intent and tool evidence</td><td>The next validated tool call</td><td>Evidence is missing or intent is ambiguous</td></tr>
+  </tbody></table>
+  <div class="note success-note"><strong>Pipeline rule:</strong> every layer consumes checked output from the layer before it. The LLM may choose the next tool, but it cannot invent the missing evidence.</div>
+  <div class="page-footer"><span>Agentic Robotics Workshop — Participant Field Guide</span><span>Page 2</span></div>
+</div>
+
+<!-- Page 3: Robotics universe -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">AGENTIC AI FITNESS</div><div class="page-header-section">Robotics Universe</div></div>
+  <div class="section-number">Section 02</div><div class="section-title">Where the Intelligence Lives</div><div class="section-divider"></div>
+  <div class="section-intro">A useful robot is a stack of models and controllers operating at different time scales. No single AI model replaces the entire stack.</div>
+
+  <div class="diagram">
+    <div class="diagram-title">Embodied Intelligence Stack</div>
+    <svg viewBox="0 0 640 206" xmlns="http://www.w3.org/2000/svg" style="font-family:'Inter',sans-serif">
+      <defs><marker id="a3" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0 0L8 3L0 6" fill="none" stroke="#55C7FF" stroke-width="1.2"/></marker></defs>
+      <rect x="35" y="12" width="570" height="34" rx="7" fill="#12202A" stroke="#55C7FF"/><text x="320" y="27" text-anchor="middle" font-size="9" fill="#8AD8FF" font-weight="600">LANGUAGE AGENT · seconds</text><text x="320" y="39" text-anchor="middle" font-size="7" fill="#9CA8B7">intent · task decomposition · tool selection · clarification</text>
+      <line x1="320" y1="46" x2="320" y2="59" stroke="#55C7FF" marker-end="url(#a3)"/>
+      <rect x="35" y="62" width="570" height="34" rx="7" fill="#151A21" stroke="#2A3440"/><text x="320" y="77" text-anchor="middle" font-size="9" fill="#F1F5F9" font-weight="600">TASK &amp; MOTION PLANNING · 100 ms–seconds</text><text x="320" y="89" text-anchor="middle" font-size="7" fill="#9CA8B7">scene graph · grasp candidates · IK · collision validation</text>
+      <line x1="320" y1="96" x2="320" y2="109" stroke="#55C7FF" marker-end="url(#a3)"/>
+      <rect x="35" y="112" width="570" height="34" rx="7" fill="#151A21" stroke="#2A3440"/><text x="320" y="127" text-anchor="middle" font-size="9" fill="#F1F5F9" font-weight="600">CONTROL · milliseconds</text><text x="320" y="139" text-anchor="middle" font-size="7" fill="#9CA8B7">position targets · servo feedback · dynamics · contact</text>
+      <line x1="320" y1="146" x2="320" y2="159" stroke="#55C7FF" marker-end="url(#a3)"/>
+      <rect x="35" y="162" width="570" height="34" rx="7" fill="#14231E" stroke="#55D6A8"/><text x="320" y="177" text-anchor="middle" font-size="9" fill="#55D6A8" font-weight="600">PHYSICAL WORLD</text><text x="320" y="189" text-anchor="middle" font-size="7" fill="#9CA8B7">mass · friction · backlash · occlusion · uncertainty</text>
+    </svg>
+  </div>
+
+  <div class="grid-3">
+    <div class="card"><div class="card-title">Classical Robotics</div><div class="card-body">Kinematics, geometry, planning, and feedback give precision and interpretable constraints.</div></div>
+    <div class="card"><div class="card-title">Learned Perception</div><div class="card-body">Depth and semantic models generalize from pixels where hand-written rules become brittle.</div></div>
+    <div class="card"><div class="card-title">Agentic AI</div><div class="card-body">The agent connects a human goal to the right observation, skill, validation, and recovery steps.</div></div>
+  </div>
+  <h3>Three Questions to Ask at Every Layer</h3>
+  <div class="grid-3 mt-8"><div class="card card-accent"><div class="card-title">What does it know?</div><div class="card-body">Inputs, coordinate frames, scene memory, and confidence.</div></div><div class="card card-accent"><div class="card-title">What can it command?</div><div class="card-body">Tools, trajectories, controls, or physical authority.</div></div><div class="card card-accent"><div class="card-title">How is it checked?</div><div class="card-body">Simulation, safety limits, sensors, and post-action verification.</div></div></div>
+  <div class="page-footer"><span>Agentic Robotics Workshop — Participant Field Guide</span><span>Page 3</span></div>
+</div>
+
+<!-- Page 4: MuJoCo -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">AGENTIC AI FITNESS</div><div class="page-header-section">MuJoCo Fundamentals</div></div>
+  <div class="section-number">Section 03</div><div class="section-title">Inside the Simulation Loop</div><div class="section-divider"></div>
+  <div class="section-intro">MuJoCo separates a compiled world definition from its changing state. Your controller writes targets; the physics engine determines what actually happens.</div>
+
+  <div class="diagram">
+    <div class="diagram-title">Model, State, Control, and Physics</div>
+    <svg viewBox="0 0 640 165" xmlns="http://www.w3.org/2000/svg" style="font-family:'Inter',sans-serif">
+      <defs><marker id="a4" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0 0L8 3L0 6" fill="none" stroke="#55C7FF" stroke-width="1.2"/></marker></defs>
+      <rect x="20" y="54" width="118" height="52" rx="8" fill="#151A21" stroke="#2A3440"/><text x="79" y="74" text-anchor="middle" font-size="9" fill="#F1F5F9" font-weight="600">MJCF / MjModel</text><text x="79" y="90" text-anchor="middle" font-size="7" fill="#9CA8B7">joints · geoms · actuators</text>
+      <line x1="139" y1="80" x2="181" y2="80" stroke="#55C7FF" marker-end="url(#a4)"/><text x="160" y="70" text-anchor="middle" font-size="6.5" fill="#9CA8B7">creates</text>
+      <rect x="184" y="37" width="128" height="86" rx="8" fill="#12202A" stroke="#55C7FF"/><text x="248" y="58" text-anchor="middle" font-size="9" fill="#8AD8FF" font-weight="600">MjData</text><text x="248" y="75" text-anchor="middle" font-size="7" fill="#9CA8B7">qpos · qvel · ctrl</text><text x="248" y="89" text-anchor="middle" font-size="7" fill="#9CA8B7">contacts · camera poses</text><text x="248" y="103" text-anchor="middle" font-size="7" fill="#9CA8B7">simulation time</text>
+      <line x1="313" y1="80" x2="355" y2="80" stroke="#55C7FF" marker-end="url(#a4)"/>
+      <rect x="358" y="54" width="112" height="52" rx="8" fill="#151A21" stroke="#2A3440"/><text x="414" y="74" text-anchor="middle" font-size="9" fill="#F1F5F9" font-weight="600">mj_step</text><text x="414" y="90" text-anchor="middle" font-size="7" fill="#9CA8B7">integrate dynamics</text>
+      <line x1="471" y1="80" x2="513" y2="80" stroke="#55C7FF" marker-end="url(#a4)"/>
+      <rect x="516" y="54" width="104" height="52" rx="8" fill="#14231E" stroke="#55D6A8"/><text x="568" y="74" text-anchor="middle" font-size="9" fill="#55D6A8" font-weight="600">New State</text><text x="568" y="90" text-anchor="middle" font-size="7" fill="#9CA8B7">render · inspect</text>
+      <path d="M568 115 C568 150 248 150 248 130" fill="none" stroke="#657386" stroke-dasharray="4 4" marker-end="url(#a4)"/><text x="410" y="151" text-anchor="middle" font-size="7" fill="#9CA8B7">next timestep</text>
+    </svg>
+  </div>
+
+  <div class="code-block"><div class="code-label"><span>Minimal mental model</span><span class="badge badge-purple">Concept</span></div><pre>model = load_the_robot_and_scene()
+data = create_mutable_state(model)
+
+while running:
+    data.ctrl[:] = desired_joint_targets
+    advance_physics(model, data)
+    render_or_measure(data)</pre></div>
+
+  <div class="grid-2">
+    <div><div class="kv-row"><span class="kv-key">qpos</span><span class="kv-value">positions</span></div><div class="kv-row"><span class="kv-key">qvel</span><span class="kv-value">velocities</span></div><div class="kv-row"><span class="kv-key">ctrl</span><span class="kv-value">actuator targets</span></div></div>
+    <div><div class="kv-row"><span class="kv-key">body.xpos</span><span class="kv-value">world position</span></div><div class="kv-row"><span class="kv-key">site_xpos</span><span class="kv-value">end-effector site</span></div><div class="kv-row"><span class="kv-key">timestep</span><span class="kv-value">0.005 s</span></div></div>
+  </div>
+  <div class="note">The shared scene places the SO-ARM101 at the near edge of a compact standing desk, with a visible clamp, room walls, and floor. The tabletop stays at <code>z = 0</code>. MuJoCo truth is evaluator-only; the estimated-perception path must not read object body positions directly.</div>
+  <div class="page-footer"><span>Agentic Robotics Workshop — Participant Field Guide</span><span>Page 4</span></div>
+</div>
+
+<!-- Page 5: Anatomy -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">AGENTIC AI FITNESS</div><div class="page-header-section">SO-ARM101 Anatomy</div></div>
+  <div class="section-number">Section 04</div><div class="section-title">Joints, Servos, and the Gripper</div><div class="section-divider"></div>
+  <div class="section-intro">The simulated follower exposes six position actuators: five shape the arm pose and the sixth opens or closes the moving jaw.</div>
+
+  <div class="diagram">
+    <div class="diagram-title">SO-101 Kinematic Chain</div>
+    <svg viewBox="0 0 640 176" xmlns="http://www.w3.org/2000/svg" style="font-family:'Inter',sans-serif">
+      <path d="M74 143 L135 115 L225 84 L334 107 L442 63 L536 80" fill="none" stroke="#657386" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="42" y="140" width="62" height="16" rx="4" fill="#151A21" stroke="#2A3440"/><text x="73" y="151" text-anchor="middle" font-size="7" fill="#9CA8B7">BASE</text>
+      <g fill="#12202A" stroke="#55C7FF" stroke-width="2"><circle cx="135" cy="115" r="13"/><circle cx="225" cy="84" r="13"/><circle cx="334" cy="107" r="13"/><circle cx="442" cy="63" r="13"/><circle cx="536" cy="80" r="13"/></g>
+      <g font-size="7.4" fill="#F1F5F9" font-weight="600" text-anchor="middle"><text x="135" y="119">J1</text><text x="225" y="88">J2</text><text x="334" y="111">J3</text><text x="442" y="67">J4</text><text x="536" y="84">J5</text></g>
+      <g font-size="7" fill="#9CA8B7" text-anchor="middle"><text x="135" y="142">shoulder pan</text><text x="225" y="58">shoulder lift</text><text x="334" y="135">elbow flex</text><text x="442" y="38">wrist flex</text><text x="536" y="108">wrist roll</text></g>
+      <path d="M548 72 L590 55 M548 88 L590 105" stroke="#55D6A8" stroke-width="5" stroke-linecap="round"/><text x="592" y="82" font-size="8" fill="#55D6A8" font-weight="600">J6 gripper</text>
+      <rect x="35" y="8" width="180" height="26" rx="6" fill="#151A21" stroke="#2A3440"/><text x="125" y="24" text-anchor="middle" font-size="7.5" fill="#9CA8B7">5 arm DOF + 1 gripper DOF</text>
+    </svg>
+  </div>
+
+  <table><thead><tr><th>Joint</th><th>Positive / Negative</th><th>Purpose</th></tr></thead><tbody>
+    <tr><td>Shoulder pan</td><td><code>Q</code> / <code>A</code></td><td>Rotate around the table.</td></tr>
+    <tr><td>Shoulder lift</td><td><code>W</code> / <code>S</code></td><td>Raise or lower the upper arm.</td></tr>
+    <tr><td>Elbow flex</td><td><code>E</code> / <code>D</code></td><td>Change reach and arm folding.</td></tr>
+    <tr><td>Wrist flex</td><td><code>R</code> / <code>F</code></td><td>Set the approach angle.</td></tr>
+    <tr><td>Wrist roll</td><td><code>T</code> / <code>G</code></td><td>Rotate the jaws around the approach axis.</td></tr>
+    <tr><td>Gripper</td><td><code>Y</code> / <code>H</code></td><td>Open or close the moving jaw.</td></tr>
+  </tbody></table>
+  <div class="note success-note">Hold a control key for continuous motion; release it to freeze that target. The upper-right picture-in-picture is the synchronized portrait wrist camera, rotated 90° counter-clockwise to match its mount, and the dedicated window has no conflicting MuJoCo letter shortcuts.</div>
+  <div class="page-footer"><span>Agentic Robotics Workshop — Participant Field Guide</span><span>Page 5</span></div>
+</div>
+
+<!-- Page 6: Coordinate frames -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">AGENTIC AI FITNESS</div><div class="page-header-section">Coordinate Frames</div></div>
+  <div class="section-number">Section 05</div><div class="section-title">Everything Lives in a Frame</div><div class="section-divider"></div>
+  <div class="section-intro">A position means nothing until you say “relative to what.” Every joint, camera, and object reports numbers in some frame, and a rigid transform is the dictionary that rewrites one frame’s numbers in another. Get the direction of that dictionary wrong and the arm reaches the mirror image of where you meant.</div>
+
+  <div class="diagram">
+    <div class="diagram-title">The Frames in This Workshop and the Transforms Between Them</div>
+    <svg viewBox="0 0 640 212" xmlns="http://www.w3.org/2000/svg" style="font-family:'Inter',sans-serif">
+      <defs>
+        <marker id="fa" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0 0L8 3L0 6" fill="none" stroke="#55C7FF" stroke-width="1.2"/></marker>
+        <marker id="fag" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0 0L8 3L0 6" fill="none" stroke="#55D6A8" stroke-width="1.2"/></marker>
+      </defs>
+      <text x="320" y="22" text-anchor="middle" font-size="8" fill="#9CA8B7">Compose the chain and the object’s pose lands in the base frame—where the arm acts.</text>
+      <text x="156" y="72" text-anchor="middle" font-size="6.5" fill="#8AD8FF" font-weight="600">T_base_gripper</text><text x="156" y="86" text-anchor="middle" font-size="5.6" fill="#9CA8B7">forward kinematics</text>
+      <text x="320" y="72" text-anchor="middle" font-size="6.5" fill="#8AD8FF" font-weight="600">T_gripper_camera</text><text x="320" y="86" text-anchor="middle" font-size="5.6" fill="#9CA8B7">hand-eye · fixed</text>
+      <text x="485" y="72" text-anchor="middle" font-size="6.5" fill="#8AD8FF" font-weight="600">T_camera_object</text><text x="485" y="86" text-anchor="middle" font-size="5.6" fill="#9CA8B7">observed</text>
+      <rect x="16" y="98" width="118" height="60" rx="8" fill="#14231E" stroke="#55D6A8"/><text x="75" y="124" text-anchor="middle" font-size="8.5" fill="#55D6A8" font-weight="600">BASE</text><text x="75" y="139" text-anchor="middle" font-size="6.8" fill="#9CA8B7">world reference</text><text x="75" y="151" text-anchor="middle" font-size="6.8" fill="#9CA8B7">+X fwd · +Y left</text>
+      <rect x="180" y="98" width="118" height="60" rx="8" fill="#12202A" stroke="#55C7FF"/><text x="239" y="124" text-anchor="middle" font-size="8.5" fill="#8AD8FF" font-weight="600">GRIPPER SITE</text><text x="239" y="142" text-anchor="middle" font-size="6.8" fill="#9CA8B7">end of the 5-joint arm</text>
+      <rect x="344" y="98" width="118" height="60" rx="8" fill="#12202A" stroke="#55C7FF"/><text x="403" y="124" text-anchor="middle" font-size="8.5" fill="#8AD8FF" font-weight="600">WRIST CAMERA</text><text x="403" y="142" text-anchor="middle" font-size="6.8" fill="#9CA8B7">fixed offset from gripper</text>
+      <rect x="508" y="98" width="116" height="60" rx="8" fill="#191724" stroke="#B59CFF"/><text x="566" y="124" text-anchor="middle" font-size="8.5" fill="#B59CFF" font-weight="600">OBJECT</text><text x="566" y="142" text-anchor="middle" font-size="6.8" fill="#9CA8B7">on the table · z = 0</text>
+      <line x1="134" y1="128" x2="178" y2="128" stroke="#55C7FF" marker-end="url(#fa)"/>
+      <line x1="298" y1="128" x2="342" y2="128" stroke="#55C7FF" marker-end="url(#fa)"/>
+      <line x1="462" y1="128" x2="506" y2="128" stroke="#55C7FF" marker-end="url(#fa)"/>
+      <path d="M75 158 C75 208 566 208 566 160" fill="none" stroke="#55D6A8" stroke-dasharray="5 4" marker-end="url(#fag)"/>
+      <text x="320" y="180" text-anchor="middle" font-size="7" fill="#55D6A8" font-weight="600">T_base_object — what perception recovers, then the arm acts on</text>
+    </svg>
+  </div>
+
+  <h3>A Pose Is Position + Orientation, Packed into One 4×4</h3>
+  <div class="code-block"><div class="code-label"><span>The rigid transform</span><span class="badge badge-purple">Concept</span></div><pre>T_a_b = | R (3×3)   t (3×1) |    R = orientation of frame b, seen from a
+        | 0  0  0      1    |    t = origin of frame b, seen from a
+
+p_a      = T_a_b · p_b          # rewrite a point from frame b into frame a
+T_a_c    = T_a_b · T_b_c        # chain: a←b and b←c compose into a←c
+T_b_a    = inverse(T_a_b)       # flip the arrow’s direction</pre></div>
+
+  <table><thead><tr><th>You read…</th><th>As…</th></tr></thead><tbody>
+    <tr><td><code>T_base_camera</code></td><td>The camera’s pose expressed <em>in the base frame</em> — subscripts read right-to-left: base ← camera.</td></tr>
+    <tr><td><code>T_a_b · p_b</code></td><td>A point known in frame b, converted into frame a.</td></tr>
+    <tr><td><code>inverse(T_a_b)</code></td><td>The same relationship read the other way, <code>T_b_a</code>. Direction is not optional.</td></tr>
+  </tbody></table>
+  <div class="note">Every later stage meets in the <strong>base frame</strong>: IK targets, reconstructed objects, and placement destinations are all expressed there. That is why physical calibration (Runbook C) has one core job—pin down <code>T_base_camera</code>—and why the multi-pose check verifies a single fixed <code>T_gripper_camera</code>. Once those are known, the chain above turns camera pixels into base-frame geometry the arm can reach.</div>
+  <div class="page-footer"><span>Agentic Robotics Workshop — Participant Field Guide</span><span>Page 6</span></div>
+</div>
+
+<!-- Page 7: Kinematics -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">AGENTIC AI FITNESS</div><div class="page-header-section">Kinematics</div></div>
+  <div class="section-number">Section 06</div><div class="section-title">From a Point in Space to Joint Angles</div><div class="section-divider"></div>
+  <div class="section-intro">Forward kinematics maps one joint configuration to one gripper pose. Inverse kinematics searches backward from a desired pose and may find multiple configurations, one configuration, or no reachable configuration.</div>
+
+  <div class="diagram">
+    <div class="diagram-title">One Forward Answer, Multiple Inverse Answers</div>
+    <svg viewBox="0 0 640 215" xmlns="http://www.w3.org/2000/svg" style="font-family:'Inter',sans-serif">
+      <rect x="12" y="12" width="296" height="188" rx="10" fill="#151A21" stroke="#2A3440"/>
+      <text x="30" y="36" font-size="9" fill="#8AD8FF" font-weight="600">FORWARD KINEMATICS · q → x</text>
+      <text x="30" y="53" font-size="7" fill="#9CA8B7">Known joint angles determine exactly one hand pose.</text>
+      <line x1="48" y1="168" x2="275" y2="168" stroke="#2A3440"/>
+      <line x1="63" y1="164" x2="148" y2="92" stroke="#55C7FF" stroke-width="8" stroke-linecap="round"/>
+      <line x1="148" y1="92" x2="254" y2="72" stroke="#55C7FF" stroke-width="8" stroke-linecap="round"/>
+      <circle cx="63" cy="164" r="9" fill="#0B1015" stroke="#55C7FF" stroke-width="3"/>
+      <circle cx="148" cy="92" r="8" fill="#0B1015" stroke="#55C7FF" stroke-width="3"/>
+      <circle cx="254" cy="72" r="7" fill="#55D6A8"/>
+      <text x="78" y="148" font-size="7" fill="#F1F5F9">q₁</text><text x="157" y="85" font-size="7" fill="#F1F5F9">q₂</text>
+      <text x="254" y="57" text-anchor="middle" font-size="7" fill="#55D6A8">x = f(q)</text>
+      <text x="160" y="190" text-anchor="middle" font-size="8" fill="#F1F5F9">same q → same pose</text>
+
+      <rect x="332" y="12" width="296" height="188" rx="10" fill="#151A21" stroke="#2A3440"/>
+      <text x="350" y="36" font-size="9" fill="#B59CFF" font-weight="600">INVERSE KINEMATICS · x* → q?</text>
+      <text x="350" y="53" font-size="7" fill="#9CA8B7">Different joint branches can reach the same target.</text>
+      <line x1="366" y1="168" x2="610" y2="168" stroke="#2A3440"/>
+      <polyline points="382,164 470,76 582,105" fill="none" stroke="#55C7FF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      <polyline points="382,164 487,151 582,105" fill="none" stroke="#B59CFF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="8 5"/>
+      <circle cx="382" cy="164" r="9" fill="#0B1015" stroke="#9CA8B7" stroke-width="3"/>
+      <circle cx="470" cy="76" r="7" fill="#0B1015" stroke="#55C7FF" stroke-width="3"/>
+      <circle cx="487" cy="151" r="7" fill="#0B1015" stroke="#B59CFF" stroke-width="3"/>
+      <circle cx="582" cy="105" r="9" fill="#55D6A8"/>
+      <line x1="570" y1="105" x2="594" y2="105" stroke="#55D6A8"/><line x1="582" y1="93" x2="582" y2="117" stroke="#55D6A8"/>
+      <text x="470" y="66" text-anchor="middle" font-size="7" fill="#55C7FF">qᴬ · elbow up</text>
+      <text x="488" y="170" text-anchor="middle" font-size="7" fill="#B59CFF">qᴮ · elbow down</text>
+      <text x="582" y="83" text-anchor="middle" font-size="7" fill="#55D6A8">same x*</text>
+      <text x="480" y="190" text-anchor="middle" font-size="8" fill="#F1F5F9">zero, one, or many valid q</text>
+    </svg>
+  </div>
+
+  <h3>How This Repository Chooses One</h3>
+  <table><thead><tr><th>Step</th><th>Library and function</th><th>What it contributes</th></tr></thead><tbody>
+    <tr><td><strong>1 · Seed</strong></td><td><code>solve_ik(..., q_init=seed)</code></td><td>Three starting postures explore different local IK branches.</td></tr>
+    <tr><td><strong>2 · Observe</strong></td><td><code>mujoco.mj_kinematics</code><br><code>mujoco.mj_comPos</code></td><td>Forward kinematics reveals the current gripper pose and target error.</td></tr>
+    <tr><td><strong>3 · Correct</strong></td><td><code>mujoco.mj_jacSite</code><br><code>numpy.linalg.solve</code></td><td>The Jacobian and damped solve produce <code>Δq</code>; <code>numpy.clip</code> enforces joint limits.</td></tr>
+    <tr><td><strong>4 · Select</strong></td><td><code>min(solutions, key=lambda result: result[1])</code></td><td>Smallest position error wins; results above 30 mm or with an invalid wrist are rejected.</td></tr>
+  </tbody></table>
+  <div class="note"><strong>What are we using?</strong> No dedicated IK package. Our custom <code>solve_ik()</code> combines MuJoCo’s kinematics and Jacobians with NumPy linear algebra. It is seed-dependent and does not globally optimize travel, collisions, manipulability, or clearance.</div>
+  <div class="page-footer"><span>Agentic Robotics Workshop — Participant Field Guide</span><span>Page 7</span></div>
+</div>
+
+<!-- Page 8: Record replay -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">AGENTIC AI FITNESS</div><div class="page-header-section">Skills</div></div>
+  <div class="section-number">Section 07</div><div class="section-title">Record, Replay, Reuse</div><div class="section-divider"></div>
+  <div class="section-intro">A trajectory is the simplest robot skill: preserve the starting physics state, then feed the same actuator targets back at the same timestep.</div>
+
+  <div class="diagram">
+    <div class="diagram-title">Deterministic Skill Lifecycle</div>
+    <svg viewBox="0 0 640 150" xmlns="http://www.w3.org/2000/svg" style="font-family:'Inter',sans-serif">
+      <defs><marker id="a7" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0 0L8 3L0 6" fill="none" stroke="#55C7FF" stroke-width="1.2"/></marker></defs>
+      <rect x="18" y="42" width="130" height="64" rx="8" fill="#151A21" stroke="#2A3440"/><text x="83" y="64" text-anchor="middle" font-size="9" fill="#F1F5F9" font-weight="600">Human teleoperation</text><text x="83" y="81" text-anchor="middle" font-size="7" fill="#9CA8B7">keyboard or leader arm</text>
+      <line x1="149" y1="74" x2="190" y2="74" stroke="#55C7FF" marker-end="url(#a7)"/>
+      <rect x="193" y="25" width="142" height="98" rx="8" fill="#12202A" stroke="#55C7FF"/><text x="264" y="48" text-anchor="middle" font-size="9" fill="#8AD8FF" font-weight="600">Skill JSON</text><text x="264" y="67" text-anchor="middle" font-size="7" fill="#9CA8B7">initial qpos · qvel · ctrl</text><text x="264" y="83" text-anchor="middle" font-size="7" fill="#9CA8B7">solver warm-start</text><text x="264" y="99" text-anchor="middle" font-size="7" fill="#9CA8B7">control frame per step</text>
+      <line x1="336" y1="74" x2="377" y2="74" stroke="#55C7FF" marker-end="url(#a7)"/>
+      <rect x="380" y="42" width="108" height="64" rx="8" fill="#151A21" stroke="#2A3440"/><text x="434" y="64" text-anchor="middle" font-size="9" fill="#F1F5F9" font-weight="600">Replay</text><text x="434" y="81" text-anchor="middle" font-size="7" fill="#9CA8B7">step-by-step controls</text>
+      <line x1="489" y1="74" x2="530" y2="74" stroke="#55C7FF" marker-end="url(#a7)"/>
+      <rect x="533" y="42" width="89" height="64" rx="8" fill="#14231E" stroke="#55D6A8"/><text x="577" y="64" text-anchor="middle" font-size="9" fill="#55D6A8" font-weight="600">Verify</text><text x="577" y="81" text-anchor="middle" font-size="7" fill="#9CA8B7">same outcome?</text>
+    </svg>
+  </div>
+
+  <div class="code-block"><div class="code-label"><span>Record and replay</span><span class="badge badge-green">Run</span></div><pre>cd 02_record_replay
+python record.py pick_marker
+# SPACE starts recording; SPACE again saves and exits
+
+mjpython replay.py trajectories/pick_marker.json --loop</pre></div>
+
+  <div class="grid-2"><div class="card"><div class="card-title">Strength</div><div class="card-body">Simple, inspectable, deterministic, and directly transferable when the scene is unchanged.</div></div><div class="card"><div class="card-title">Limitation</div><div class="card-body">A fixed trajectory does not adapt when an object moves. Parametric IK skills address that limitation.</div></div></div>
+  <div class="note">The recorder uses the same dual-view window, so the live wrist-camera inset remains visible while control frames are captured.</div>
+  <div class="note"><strong>Why store solver warm-start?</strong> Contact solvers reuse the previous acceleration estimate. Tiny differences can grow into different contact outcomes during long replays.</div>
+  <div class="page-footer"><span>Agentic Robotics Workshop — Participant Field Guide</span><span>Page 8</span></div>
+</div>
+
+<!-- Page 9: Task contract theory -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">AGENTIC AI FITNESS</div><div class="page-header-section">Task Contract</div></div>
+  <div class="section-number">Section 08</div><div class="section-title">Turn Language into a Spatial Contract</div><div class="section-divider"></div>
+  <div class="section-intro">A semantic request must become an inspectable contract: one grounded object ID, one destination region, one validated motion plan, and one observable success condition.</div>
+
+  <div class="card card-accent"><div class="mini-label">EXAMPLE HUMAN REQUEST</div><div class="card-title" style="font-size:14px;line-height:1.4">“Pick up the marker and place it on the right side of the table.”</div><div class="card-body">The prompt specifies meaning, not coordinates. Perception grounds “marker”; geometry defines “right side.”</div></div>
+
+  <div class="diagram">
+    <div class="diagram-title">Hidden World Versus Robot Belief</div>
+    <svg viewBox="0 0 640 192" xmlns="http://www.w3.org/2000/svg" style="font-family:'Inter',sans-serif">
+      <rect x="18" y="18" width="270" height="150" rx="10" fill="#151A21" stroke="#2A3440"/><text x="38" y="40" font-size="8" fill="#9CA8B7" font-weight="600">HIDDEN MUJOCO WORLD</text><rect x="45" y="65" width="216" height="73" rx="6" fill="#0B0E12" stroke="#2A3440"/><ellipse cx="106" cy="102" rx="34" ry="8" fill="#55C7FF" opacity="0.6"/><rect x="152" y="89" width="46" height="24" rx="4" fill="#B59CFF" opacity="0.7"/><circle cx="229" cy="103" r="13" fill="#55D6A8" opacity="0.75"/><text x="153" y="153" text-anchor="middle" font-size="7" fill="#9CA8B7">truth used only for evaluation</text>
+      <rect x="352" y="18" width="270" height="150" rx="10" fill="#12202A" stroke="#55C7FF"/><text x="372" y="40" font-size="8" fill="#8AD8FF" font-weight="600">ESTIMATED SCENE</text><rect x="380" y="61" width="214" height="82" rx="6" fill="#0B0E12" stroke="#2A3440"/><rect x="397" y="76" width="69" height="51" rx="4" fill="none" stroke="#55C7FF" stroke-dasharray="3 3"/><text x="431" y="97" text-anchor="middle" font-size="7" fill="#F1F5F9">object_3</text><text x="431" y="112" text-anchor="middle" font-size="6.5" fill="#9CA8B7">“marker”</text><rect x="478" y="76" width="96" height="51" rx="4" fill="none" stroke="#657386"/><text x="526" y="97" text-anchor="middle" font-size="7" fill="#F1F5F9">right_side</text><text x="526" y="112" text-anchor="middle" font-size="6.5" fill="#9CA8B7">free region</text><text x="487" y="155" text-anchor="middle" font-size="7" fill="#9CA8B7">agent plans from this belief</text>
+      <line x1="289" y1="92" x2="351" y2="92" stroke="#55C7FF" stroke-dasharray="4 4"/><text x="320" y="82" text-anchor="middle" font-size="6.5" fill="#9CA8B7">RGB sensor</text>
+    </svg>
+  </div>
+
+  <h3>Supported Object Contract</h3>
+  <div class="grid-3"><div class="card"><div class="card-title">Good first objects</div><div class="card-body">Thick marker, eraser, sponge, or small cardboard package.</div></div><div class="card"><div class="card-title">Physical envelope</div><div class="card-body">Lightweight, opaque, separated, stable, and reachable from above.</div></div><div class="card"><div class="card-title">Initially exclude</div><div class="card-body">Glass, cables, flat paper, fragile items, liquids, and reflective metal.</div></div></div>
+  <div class="page-footer"><span>Agentic Robotics Workshop — Participant Field Guide</span><span>Page 9</span></div>
+</div>
+
+<!-- Page 10: Camera model -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">AGENTIC AI FITNESS</div><div class="page-header-section">Camera Model</div></div>
+  <div class="section-number">Section 09</div><div class="section-title">How a Camera Turns 3D into Pixels</div><div class="section-divider"></div>
+  <div class="section-intro">The wrist camera is the only sensor. To use its pixels as geometry you need two things—how it projects the world onto the sensor (intrinsics) and where it sits (extrinsics)—and you must accept one hard limit: a single photograph carries no absolute scale.</div>
+
+  <div class="diagram">
+    <div class="diagram-title">Projection, and the Depth It Throws Away</div>
+    <svg viewBox="0 0 640 208" xmlns="http://www.w3.org/2000/svg" style="font-family:'Inter',sans-serif">
+      <rect x="12" y="14" width="300" height="182" rx="10" fill="#151A21" stroke="#2A3440"/>
+      <text x="30" y="34" font-size="8.5" fill="#8AD8FF" font-weight="600">PROJECTION · 3D → pixels</text>
+      <circle cx="70" cy="120" r="5" fill="#55C7FF"/><text x="70" y="140" text-anchor="middle" font-size="6.5" fill="#9CA8B7">optical center</text>
+      <line x1="120" y1="72" x2="120" y2="168" stroke="#8AD8FF" stroke-width="2"/><text x="120" y="64" text-anchor="middle" font-size="6.5" fill="#8AD8FF">image plane</text>
+      <circle cx="270" cy="60" r="6" fill="#55D6A8"/><text x="270" y="50" text-anchor="middle" font-size="6.5" fill="#55D6A8">P = (X,Y,Z)</text>
+      <line x1="270" y1="60" x2="70" y2="120" stroke="#657386" stroke-dasharray="3 3"/>
+      <circle cx="120" cy="105" r="3.5" fill="#FFBE67"/><text x="126" y="100" font-size="6.5" fill="#FFBE67">pixel (u,v)</text>
+      <text x="30" y="184" font-size="6.8" fill="#9CA8B7">K encodes focal length f and principal point (cx,cy).</text>
+      <rect x="332" y="14" width="296" height="182" rx="10" fill="#151A21" stroke="#2A3440"/>
+      <text x="350" y="34" font-size="8.5" fill="#B59CFF" font-weight="600">THE SCALE IT THROWS AWAY</text>
+      <circle cx="360" cy="150" r="5" fill="#55C7FF"/><text x="360" y="168" text-anchor="middle" font-size="6.5" fill="#9CA8B7">one center, one ray</text>
+      <line x1="360" y1="150" x2="616" y2="54" stroke="#657386" stroke-dasharray="3 3"/>
+      <rect x="431" y="112" width="20" height="20" rx="3" fill="#55D6A8" opacity="0.85" transform="rotate(-20 441 122)"/><text x="441" y="150" text-anchor="middle" font-size="6" fill="#9CA8B7">small · near</text>
+      <rect x="540" y="66" width="34" height="34" rx="4" fill="#B59CFF" opacity="0.7" transform="rotate(-20 557 83)"/><text x="562" y="120" text-anchor="middle" font-size="6" fill="#9CA8B7">big · far</text>
+      <text x="480" y="186" text-anchor="middle" font-size="6.8" fill="#F1F5F9">Same ray → same pixel. The photo cannot say which.</text>
+    </svg>
+  </div>
+
+  <h3>Two Sets of Numbers Make a Camera a Sensor</h3>
+  <table><thead><tr><th>Piece</th><th>Symbol</th><th>What it fixes</th></tr></thead><tbody>
+    <tr><td><strong>Intrinsics</strong></td><td><code>K</code> = fx, fy, cx, cy (+ distortion)</td><td>How a 3D ray maps to a pixel—focal length and image center; distortion undoes lens curvature.</td></tr>
+    <tr><td><strong>Extrinsics</strong></td><td><code>T_base_camera</code></td><td>Where the camera sits in the base frame—a rigid transform, exactly as on the frames page.</td></tr>
+  </tbody></table>
+
+  <div class="code-block"><div class="code-label"><span>The projection</span><span class="badge badge-blue">Concept</span></div><pre>pixel (u,v)  ←  K · [ R | t ] · P_world       intrinsics × extrinsics × 3D point
+                     └ extrinsics ┘
+# calibration solves K (intrinsics, ≤ 2 px RMS) and T_base_camera (pose, ≤ 1.5 px RMSE)</pre></div>
+
+  <h3>Why One Photo Cannot Give Metric Depth</h3>
+  <p>A pixel names a <em>ray</em>, not a point. Everything along that ray—a pea up close, a beach ball far away—lands on the same pixel. So one RGB image fixes <em>direction</em> but never <em>distance</em>: monocular depth is relative, not metric, on its own.</p>
+  <div class="note">The workshop recovers real meters with three anchors: (1) the known table plane at <code>z = 0</code> gives an absolute reference the learned depth is affine-fit to; (2) Depth Anything V2 supplies the dense relative depth to fit; (3) the three overlapping survey views triangulate, and only points ≥ 2 views agree on survive. This is also why calibration quality is scored in <strong>reprojection error</strong>—a wrong <code>K</code> or pose warps every downstream coordinate.</div>
+  <div class="page-footer"><span>Agentic Robotics Workshop — Participant Field Guide</span><span>Page 10</span></div>
+</div>
+
+<!-- Page 11: Active perception -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">AGENTIC AI FITNESS</div><div class="page-header-section">Active Perception</div></div>
+  <div class="section-number">Section 10</div><div class="section-title">Move the Camera to Understand</div><div class="section-divider"></div>
+  <div class="section-intro">A wrist camera cannot continuously see the whole table. The animated scan moves through three survey poses and stores calibrated RGB, camera geometry, and joint state—the same evidence available on the physical arm.</div>
+
+  <div class="diagram">
+    <div class="diagram-title">Multi-View Wrist Scan</div>
+    <svg viewBox="0 0 640 224" xmlns="http://www.w3.org/2000/svg" style="font-family:'Inter',sans-serif">
+      <rect x="70" y="125" width="500" height="72" rx="8" fill="#151A21" stroke="#2A3440"/><text x="320" y="190" text-anchor="middle" font-size="7" fill="#9CA8B7">reachable tabletop</text>
+      <ellipse cx="220" cy="159" rx="42" ry="10" fill="#55C7FF" opacity="0.48"/><rect x="313" y="145" width="56" height="28" rx="4" fill="#B59CFF" opacity="0.58"/><circle cx="440" cy="160" r="17" fill="#55D6A8" opacity="0.6"/>
+      <g fill="#12202A" stroke="#55C7FF"><rect x="77" y="22" width="102" height="42" rx="7"/><rect x="269" y="10" width="102" height="42" rx="7"/><rect x="461" y="22" width="102" height="42" rx="7"/></g>
+      <g font-size="8" fill="#8AD8FF" font-weight="600" text-anchor="middle"><text x="128" y="40">survey_left</text><text x="320" y="28">survey_center</text><text x="512" y="40">survey_right</text></g>
+      <g stroke="#55C7FF" stroke-width="1" stroke-dasharray="4 4" opacity="0.8"><path d="M128 64L200 126L325 126Z" fill="#55C7FF" fill-opacity="0.04"/><path d="M320 52L238 126L402 126Z" fill="#55C7FF" fill-opacity="0.04"/><path d="M512 64L440 126L315 126Z" fill="#55C7FF" fill-opacity="0.04"/></g>
+      <text x="320" y="215" text-anchor="middle" font-size="7" fill="#9CA8B7">overlap creates parallax and cross-view consistency</text>
+    </svg>
+  </div>
+
+  <div class="code-block"><div class="code-label"><span>Scan contract</span><span class="badge badge-green">Runnable API</span></div><pre>scan = scan_workspace(viewpoints=[
+    "survey_left", "survey_center", "survey_right"
+])
+
+# Each frame stores RGB, intrinsics, T_base_camera_cv,
+# joints, time, viewpoint, and the RGB-only contract.</pre></div>
+
+  <div class="grid-2"><div class="card"><div class="card-title">Why stop before capture?</div><div class="card-body">Settling prevents motion blur and ensures the recorded camera pose matches the pixels.</div></div><div class="card"><div class="card-title">Why fixed wrist roll?</div><div class="card-body">The horizon stays stable; camera translation supplies parallax while the arm changes the viewing direction.</div></div></div>
+  <div class="note danger-note"><strong>Scene lock:</strong> after scanning, nobody moves an object until execution completes. Captures publish atomically, so cancelling preserves the last valid scan. Never rotate a PNG without its intrinsics and camera pose.</div>
+  <div class="page-footer"><span>Agentic Robotics Workshop — Participant Field Guide</span><span>Page 11</span></div>
+</div>
+
+<!-- Page 12: Reconstruction -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">AGENTIC AI FITNESS</div><div class="page-header-section">Metric Reconstruction</div></div>
+  <div class="section-number">Section 11</div><div class="section-title">From Pixels to Metric Geometry</div><div class="section-divider"></div>
+  <div class="section-intro">The wrist camera supplies RGB only. Depth Anything V2 predicts a metric depth image for each view; calibrated table geometry corrects its scale, and camera poses merge cross-view-consistent points in the robot base frame. On hardware, every capture recomputes camera pose from the measured joints and fixed wrist-camera transform; the empty image is table-plane-warped onto the occupied view before subtraction. MuJoCo depth and hidden object coordinates stay unavailable.</div>
+
+  <div class="pipeline">
+    <div class="pipeline-step"><span class="pipeline-step-num">01</span>RGB Views</div><div class="pipeline-arrow">›</div>
+    <div class="pipeline-step"><span class="pipeline-step-num">02</span>Masks</div><div class="pipeline-arrow">›</div>
+    <div class="pipeline-step"><span class="pipeline-step-num">03</span>Learned Depth</div><div class="pipeline-arrow">›</div>
+    <div class="pipeline-step"><span class="pipeline-step-num">04</span>Align + Fuse</div><div class="pipeline-arrow">›</div>
+    <div class="pipeline-step"><span class="pipeline-step-num">05</span>Objects</div>
+  </div>
+
+  <div class="diagram">
+    <div class="diagram-title">One Non-Privileged Geometry Path</div>
+    <svg viewBox="0 0 640 170" xmlns="http://www.w3.org/2000/svg" style="font-family:'Inter',sans-serif">
+      <rect x="18" y="18" width="178" height="104" rx="8" fill="#14231E" stroke="#55D6A8"/><text x="107" y="40" text-anchor="middle" font-size="8.5" fill="#55D6A8" font-weight="600">EMPTY RGB REFERENCE</text><text x="107" y="61" text-anchor="middle" font-size="7" fill="#9CA8B7">foreground separation</text><text x="107" y="78" text-anchor="middle" font-size="7" fill="#9CA8B7">known z = 0 table</text><text x="107" y="103" text-anchor="middle" font-size="6.5" fill="#F1F5F9">metric anchor</text>
+      <text x="214" y="74" text-anchor="middle" font-size="18" fill="#55C7FF">›</text>
+      <rect x="231" y="18" width="178" height="104" rx="8" fill="#12202A" stroke="#55C7FF"/><text x="320" y="40" text-anchor="middle" font-size="8.5" fill="#8AD8FF" font-weight="600">METRIC DEPTH PER VIEW</text><text x="320" y="61" text-anchor="middle" font-size="7" fill="#9CA8B7">Depth Anything V2 Small</text><text x="320" y="78" text-anchor="middle" font-size="7" fill="#9CA8B7">affine table correction</text><text x="320" y="103" text-anchor="middle" font-size="6.5" fill="#F1F5F9">predicted—not sensed</text>
+      <text x="427" y="74" text-anchor="middle" font-size="18" fill="#55C7FF">›</text>
+      <rect x="444" y="18" width="178" height="104" rx="8" fill="#191724" stroke="#B59CFF"/><text x="533" y="40" text-anchor="middle" font-size="8.5" fill="#B59CFF" font-weight="600">3D CONSISTENCY + FUSION</text><text x="533" y="61" text-anchor="middle" font-size="7" fill="#9CA8B7">transform into base frame</text><text x="533" y="78" text-anchor="middle" font-size="7" fill="#9CA8B7">require ≥ 2 agreeing views</text><text x="533" y="103" text-anchor="middle" font-size="6.5" fill="#F1F5F9">average metric voxels</text>
+      <text x="320" y="153" text-anchor="middle" font-size="7" fill="#9CA8B7">SceneGeometry: fused cloud · footprint · yaw · confidence · diagnostics</text>
+    </svg>
+  </div>
+
+  <table><thead><tr><th>Algorithm</th><th>Role</th><th>Failure it addresses</th></tr></thead><tbody>
+    <tr><td>RGB background subtraction</td><td>Object and occluder masks</td><td>No object-specific detector is needed.</td></tr>
+    <tr><td>Depth Anything V2 metric</td><td>Dense depth per RGB frame</td><td>Adds surface structure without a depth sensor.</td></tr>
+    <tr><td>Table-plane affine fit</td><td>Scale + offset correction</td><td>Anchors learned depth to robot-frame meters.</td></tr>
+    <tr><td>Back-project + cross-check</td><td>Fuse points supported by ≥ 2 views</td><td>Rejects view-specific depth hallucinations.</td></tr>
+  </tbody></table>
+  <div class="note">Scene memory exposes raw depth, aligned metric depth, per-pixel view support, the fused height map, and fitted footprints. Require table RMSE ≤ 20 mm and inspect retention before planning. The views are robot-centric: <code>+X</code> is forward and <code>+Y</code> is left.</div>
+  <div class="page-footer"><span>Agentic Robotics Workshop — Participant Field Guide</span><span>Page 12</span></div>
+</div>
+
+<!-- Page 13: Semantics -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">AGENTIC AI FITNESS</div><div class="page-header-section">Semantic Scene</div></div>
+  <div class="section-number">Section 12</div><div class="section-title">Give Geometry Meaning</div><div class="section-divider"></div>
+  <div class="section-intro">Geometry discovers anonymous objects. A vision-capable model can describe selected crops and connect phrases such as “pen” or “writing tool” to stable object IDs. If the selected model cannot read images, give the complete ordered labels in chat; the portal stores them in the same semantic scene. Use <code>--manual-labels</code> for the offline CLI path.</div>
+
+  <div class="diagram">
+    <div class="diagram-title">Geometry-First Semantic Fusion</div>
+    <svg viewBox="0 0 640 177" xmlns="http://www.w3.org/2000/svg" style="font-family:'Inter',sans-serif">
+      <defs><marker id="a11" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0 0L8 3L0 6" fill="none" stroke="#55C7FF" stroke-width="1.2"/></marker></defs>
+      <rect x="17" y="49" width="112" height="68" rx="8" fill="#151A21" stroke="#2A3440"/><text x="73" y="70" text-anchor="middle" font-size="8.5" fill="#F1F5F9" font-weight="600">3D cluster</text><text x="73" y="89" text-anchor="middle" font-size="7" fill="#9CA8B7">object_3</text><text x="73" y="103" text-anchor="middle" font-size="7" fill="#9CA8B7">pose + extent</text>
+      <line x1="130" y1="83" x2="166" y2="83" stroke="#55C7FF" marker-end="url(#a11)"/>
+      <rect x="169" y="37" width="130" height="92" rx="8" fill="#151A21" stroke="#2A3440"/><text x="234" y="58" text-anchor="middle" font-size="8.5" fill="#F1F5F9" font-weight="600">Best image crops</text><rect x="190" y="70" width="40" height="36" rx="3" fill="#0B0E12" stroke="#55C7FF"/><rect x="239" y="70" width="40" height="36" rx="3" fill="#0B0E12" stroke="#657386"/><line x1="197" y1="88" x2="223" y2="88" stroke="#55C7FF" stroke-width="4"/><line x1="246" y1="88" x2="272" y2="88" stroke="#55C7FF" stroke-width="4"/>
+      <line x1="300" y1="83" x2="336" y2="83" stroke="#55C7FF" marker-end="url(#a11)"/>
+      <rect x="339" y="37" width="132" height="92" rx="8" fill="#191724" stroke="#B59CFF"/><text x="405" y="58" text-anchor="middle" font-size="8.5" fill="#B59CFF" font-weight="600">OpenRouter</text><text x="405" y="76" text-anchor="middle" font-size="6.8" fill="#F1F5F9">openrouter/free</text><text x="405" y="94" text-anchor="middle" font-size="7" fill="#9CA8B7">labels · aliases · evidence</text><text x="405" y="113" text-anchor="middle" font-size="6.5" fill="#F1F5F9">never metric coordinates</text>
+      <line x1="472" y1="83" x2="508" y2="83" stroke="#55C7FF" marker-end="url(#a11)"/>
+      <rect x="511" y="37" width="112" height="92" rx="8" fill="#12202A" stroke="#55C7FF"/><text x="567" y="58" text-anchor="middle" font-size="8.5" fill="#8AD8FF" font-weight="600">Scene object</text><text x="567" y="79" text-anchor="middle" font-size="7" fill="#F1F5F9">“marker”</text><text x="567" y="95" text-anchor="middle" font-size="7" fill="#9CA8B7">alias: “pen”</text><text x="567" y="111" text-anchor="middle" font-size="7" fill="#9CA8B7">at object_3 pose</text>
+      <text x="320" y="160" text-anchor="middle" font-size="7" fill="#9CA8B7">Semantics and geometry keep separate confidence scores and evidence.</text>
+    </svg>
+  </div>
+
+  <div class="code-block"><div class="code-label"><span>Semantic scene record</span><span class="badge badge-blue">Inspect</span></div><pre>{
+  "id": "object_3",
+  "label": "whiteboard marker",
+  "aliases": ["marker", "pen", "writing tool"],
+  "position": [0.248, -0.09, 0.017],
+  "dimensions": [0.115, 0.016, 0.035],
+  "geometry_confidence": 0.69,
+  "semantic_confidence": 1.0,
+  "evidence_views": ["survey_center", "survey_right"]
+}</pre></div>
+
+  <div class="grid-2"><div class="card"><div class="card-title">Geometry computes</div><div class="card-body">XYZ, dimensions, yaw, table relations, reachability, free space, and collision volumes.</div></div><div class="card"><div class="card-title">The hosted model contributes</div><div class="card-body">Labels, aliases, attributes, language grounding, and uncertainty-aware clarification. It does not control the arm.</div></div></div>
+  <div class="note"><strong>Hosted-mode boundary:</strong> object-crop images and prompt text are sent to the configured provider only for automatic naming. A non-vision model returns the ordered object IDs; reply, for example, “First, second, and third are box, eraser, and pen.” The agent may store only labels explicitly present in that reply. Choose <code>--manual-labels</code> when you need an offline, private, or reproducible CLI exercise.</div>
+  <div class="page-footer"><span>Agentic Robotics Workshop — Participant Field Guide</span><span>Page 13</span></div>
+</div>
+
+<!-- Page 14: Grasp planning -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">AGENTIC AI FITNESS</div><div class="page-header-section">Grasp Planning</div></div>
+  <div class="section-number">Section 13</div><div class="section-title">Plan a Grasp for an Unseen Object</div><div class="section-divider"></div>
+  <div class="section-intro">The primary planner is analytic and top-down. It reasons about the reconstructed footprint, the real jaw geometry, table clearance, and what the five-joint arm can reach.</div>
+
+  <div class="diagram">
+    <div class="diagram-title">Top-Down Jaw Candidate</div>
+    <svg viewBox="0 0 640 225" xmlns="http://www.w3.org/2000/svg" style="font-family:'Inter',sans-serif">
+      <rect x="30" y="18" width="580" height="180" rx="10" fill="#0B0E12" stroke="#2A3440"/><text x="50" y="39" font-size="7.5" fill="#9CA8B7" font-weight="600">TABLE-ALIGNED HEIGHT MAP</text>
+      <g transform="rotate(-18 320 108)"><rect x="225" y="84" width="190" height="48" rx="24" fill="#55C7FF" opacity="0.5" stroke="#8AD8FF"/><line x1="320" y1="65" x2="320" y2="151" stroke="#55D6A8" stroke-width="2" stroke-dasharray="4 3"/><line x1="215" y1="108" x2="425" y2="108" stroke="#B59CFF" stroke-width="1" stroke-dasharray="4 3"/></g>
+      <rect x="284" y="47" width="24" height="68" rx="5" fill="#151A21" stroke="#55D6A8" stroke-width="2"/><rect x="332" y="101" width="24" height="68" rx="5" fill="#151A21" stroke="#55D6A8" stroke-width="2"/><path d="M309 84L331 104" stroke="#55D6A8" stroke-width="2"/><circle cx="320" cy="108" r="5" fill="#55D6A8"/>
+      <text x="465" y="83" font-size="7.5" fill="#55D6A8" font-weight="600">jaw closing axis</text><line x1="450" y1="86" x2="356" y2="106" stroke="#55D6A8"/>
+      <text x="100" y="152" font-size="7.5" fill="#B59CFF" font-weight="600">object long axis</text><line x1="188" y1="149" x2="235" y2="125" stroke="#B59CFF"/>
+      <text x="320" y="216" text-anchor="middle" font-size="7" fill="#9CA8B7">The baseline uses one footprint-center candidate; multi-candidate search is an extension.</text>
+    </svg>
+  </div>
+
+  <div class="pipeline"><div class="pipeline-step"><span class="pipeline-step-num">01</span>Footprint</div><div class="pipeline-arrow">›</div><div class="pipeline-step"><span class="pipeline-step-num">02</span>Top-Down Grasp</div><div class="pipeline-arrow">›</div><div class="pipeline-step"><span class="pipeline-step-num">03</span>Jaw Width</div><div class="pipeline-arrow">›</div><div class="pipeline-step"><span class="pipeline-step-num">04</span>IK</div><div class="pipeline-arrow">›</div><div class="pipeline-step"><span class="pipeline-step-num">05</span>Preflight</div></div>
+
+  <div class="grid-2"><div><div class="kv-row"><span class="kv-key">Center</span><span class="kv-value">multi-view footprint center</span></div><div class="kv-row"><span class="kv-key">Jaw yaw</span><span class="kv-value">perpendicular to long axis</span></div><div class="kv-row"><span class="kv-key">Width</span><span class="kv-value">must fit the gripper</span></div></div><div><div class="kv-row"><span class="kv-key">Confidence</span><span class="kv-value">geometry + semantic gates</span></div><div class="kv-row"><span class="kv-key">IK residual</span><span class="kv-value">waypoint reachability</span></div><div class="kv-row"><span class="kv-key">Clearance</span><span class="kv-value">destination neighbors</span></div></div></div>
+  <div class="note">Failure is a valid planner result. If no candidate satisfies width, clearance, and reachability, rescan or refuse rather than inventing a grasp.</div>
+  <div class="page-footer"><span>Agentic Robotics Workshop — Participant Field Guide</span><span>Page 14</span></div>
+</div>
+
+<!-- Page 15: Motion -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">AGENTIC AI FITNESS</div><div class="page-header-section">Motion &amp; Execution</div></div>
+  <div class="section-number">Section 14</div><div class="section-title">Open-Loop Motion, Closed-Loop Task</div><div class="section-divider"></div>
+  <div class="section-intro">The scene is scanned once, the full motion is validated, and the arm executes without visual correction. Afterwards it returns to observe and verify.</div>
+
+  <div class="diagram">
+    <div class="diagram-title">Structured Pick-and-Place State Machine</div>
+    <svg viewBox="0 0 640 205" xmlns="http://www.w3.org/2000/svg" style="font-family:'Inter',sans-serif">
+      <defs><marker id="a13" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0 0L8 3L0 6" fill="none" stroke="#55C7FF" stroke-width="1.2"/></marker></defs>
+      <g fill="#151A21" stroke="#2A3440"><rect x="18" y="28" width="94" height="42" rx="7"/><rect x="143" y="28" width="94" height="42" rx="7"/><rect x="268" y="28" width="94" height="42" rx="7"/><rect x="393" y="28" width="94" height="42" rx="7"/><rect x="518" y="28" width="104" height="42" rx="7"/><rect x="18" y="119" width="94" height="42" rx="7"/><rect x="143" y="119" width="94" height="42" rx="7"/><rect x="268" y="119" width="94" height="42" rx="7"/><rect x="393" y="119" width="94" height="42" rx="7"/></g>
+      <rect x="518" y="119" width="104" height="42" rx="7" fill="#14231E" stroke="#55D6A8"/>
+      <g font-size="8" fill="#F1F5F9" font-weight="600" text-anchor="middle"><text x="65" y="53">Tuck</text><text x="190" y="53">Pan</text><text x="315" y="53">Hover</text><text x="440" y="53">Descend</text><text x="570" y="53">Grip &amp; lift</text><text x="65" y="144">Carry</text><text x="190" y="144">Place hover</text><text x="315" y="144">Lower</text><text x="440" y="144">Release</text><text x="570" y="144" fill="#55D6A8">Verify</text></g>
+      <g stroke="#55C7FF" marker-end="url(#a13)"><line x1="113" y1="49" x2="141" y2="49"/><line x1="238" y1="49" x2="266" y2="49"/><line x1="363" y1="49" x2="391" y2="49"/><line x1="488" y1="49" x2="516" y2="49"/><path d="M570 71L570 94L65 94L65 117" fill="none"/><line x1="113" y1="140" x2="141" y2="140"/><line x1="238" y1="140" x2="266" y2="140"/><line x1="363" y1="140" x2="391" y2="140"/><line x1="488" y1="140" x2="516" y2="140"/></g>
+      <text x="320" y="191" text-anchor="middle" font-size="7" fill="#9CA8B7">The tuck-and-turn posture keeps the gripper above and inside the object ring during pan motion.</text>
+    </svg>
+  </div>
+
+  <div class="code-block"><div class="code-label"><span>Execution discipline</span><span class="badge badge-purple">Concept</span></div><pre>scene = observe_and_freeze()
+plan = create_motion(scene, task)
+assert simulate(plan).safe
+
+execute_open_loop(plan)       # joint servos still use feedback
+result = observe_again()
+verify_expected_change(scene, result)</pre></div>
+
+  <div class="grid-2"><div class="card"><div class="card-title">Kinematic preflight</div><div class="card-body">Checks IK, wrist limits, width, confidence, and destination clearance—not swept collisions or grasp physics.</div></div><div class="card"><div class="card-title">Execution world</div><div class="card-body">Only the canonical scene matching the frozen scan may receive controls; truth remains evaluator-only.</div></div></div>
+  <div class="note danger-note">Never interpret “simulation succeeded” as permission to execute physically. Hardware requires separate speed, workspace, calibration, and human-approval gates.</div>
+  <div class="page-footer"><span>Agentic Robotics Workshop — Participant Field Guide</span><span>Page 15</span></div>
+</div>
+
+<!-- Page 16: Agent -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">AGENTIC AI FITNESS</div><div class="page-header-section">Agentic Loop</div></div>
+  <div class="section-number">Section 15</div><div class="section-title">The Language Model as Tool-Using Brain</div><div class="section-divider"></div>
+  <div class="section-intro">In hosted mode, OpenRouter’s <code>openrouter/free</code> route translates human language into observations and validated robot skills. It orchestrates structured tools but never receives direct actuator authority.</div>
+
+  <div class="diagram">
+    <div class="diagram-title">Human Intent to Physical Outcome</div>
+    <svg viewBox="0 0 640 232" xmlns="http://www.w3.org/2000/svg" style="font-family:'Inter',sans-serif">
+      <defs><marker id="a14" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0 0L8 3L0 6" fill="none" stroke="#55C7FF" stroke-width="1.2"/></marker></defs>
+      <rect x="18" y="18" width="604" height="38" rx="7" fill="#151A21" stroke="#2A3440"/><text x="320" y="42" text-anchor="middle" font-size="9" fill="#F1F5F9" font-weight="600">“Move the writing tool to the right side.”</text>
+      <line x1="320" y1="57" x2="320" y2="76" stroke="#55C7FF" marker-end="url(#a14)"/>
+      <rect x="205" y="79" width="230" height="52" rx="9" fill="#191724" stroke="#B59CFF"/><text x="320" y="100" text-anchor="middle" font-size="9" fill="#B59CFF" font-weight="600">OpenRouter-routed agent</text><text x="320" y="117" text-anchor="middle" font-size="7" fill="#9CA8B7">reason · call tool · inspect result · decide</text>
+      <g fill="#12202A" stroke="#55C7FF"><rect x="20" y="161" width="104" height="44" rx="7"/><rect x="143" y="161" width="104" height="44" rx="7"/><rect x="266" y="161" width="104" height="44" rx="7"/><rect x="389" y="161" width="104" height="44" rx="7"/><rect x="512" y="161" width="108" height="44" rx="7"/></g>
+      <g font-size="7.5" fill="#8AD8FF" font-weight="600" text-anchor="middle"><text x="72" y="187">scan_workspace</text><text x="195" y="187">find_objects</text><text x="318" y="187">plan + simulate</text><text x="441" y="187">execute_plan</text><text x="566" y="187">verify_plan</text></g>
+      <g stroke="#55C7FF"><line x1="250" y1="132" x2="72" y2="159"/><line x1="285" y1="132" x2="195" y2="159"/><line x1="320" y1="132" x2="318" y2="159"/><line x1="355" y1="132" x2="441" y2="159"/><line x1="390" y1="132" x2="566" y2="159"/></g>
+      <text x="320" y="226" text-anchor="middle" font-size="7" fill="#9CA8B7">Every tool returns structured evidence; execution is never the first call.</text>
+    </svg>
+  </div>
+
+  <table><thead><tr><th>Tool</th><th>Returns</th><th>Agent decision</th></tr></thead><tbody>
+    <tr><td><code>scan_workspace</code></td><td>Scene ID and observation quality</td><td>Continue or inspect again</td></tr>
+    <tr><td><code>find_objects</code></td><td>Matching IDs and evidence</td><td>Select, clarify, or report missing</td></tr>
+    <tr><td><code>simulate_plan</code></td><td>IK, width, confidence, and clearance checks</td><td>Continue, revise, or refuse</td></tr>
+    <tr><td><code>verify_plan</code></td><td>Source, destination, and appearance evidence</td><td>Finish or require a fresh scan</td></tr>
+  </tbody></table>
+  <div class="note success-note"><strong>Responsibility boundary:</strong> the LLM selects validated tools; deterministic code owns geometry, control, collision checks, and safety. Uncertainty triggers another observation or a question—not a fabricated coordinate.</div>
+  <div class="page-footer"><span>Agentic Robotics Workshop — Participant Field Guide</span><span>Page 16</span></div>
+</div>
+
+<!-- Page 17: Agent internals -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">AGENTIC AI FITNESS</div><div class="page-header-section">Inside the Agent</div></div>
+  <div class="section-number">Section 16</div><div class="section-title">Tools, Schemas, and the Coordinate Firewall</div><div class="section-divider"></div>
+  <div class="section-intro">The previous section said the model “picks validated tools” and never touches the actuators. This is the machinery that makes that literally true: a typed tool schema, structured-output validation, and a firewall that keeps raw coordinates out of the language model’s hands entirely.</div>
+
+  <div class="diagram">
+    <div class="diagram-title">One Agent Turn — and Where Coordinates Are Allowed to Live</div>
+    <svg viewBox="0 0 640 232" xmlns="http://www.w3.org/2000/svg" style="font-family:'Inter',sans-serif">
+      <defs><marker id="fc" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0 0L8 3L0 6" fill="none" stroke="#55C7FF" stroke-width="1.2"/></marker></defs>
+      <rect x="60" y="14" width="520" height="32" rx="7" fill="#151A21" stroke="#2A3440"/><text x="320" y="30" text-anchor="middle" font-size="8" fill="#F1F5F9" font-weight="600">SYSTEM PROMPT · TOOL SCHEMAS · SCENE EVIDENCE SO FAR</text><text x="320" y="41" text-anchor="middle" font-size="6.5" fill="#9CA8B7">what the model may call, and what it has already observed</text>
+      <line x1="320" y1="46" x2="320" y2="60" stroke="#55C7FF" marker-end="url(#fc)"/>
+      <rect x="205" y="62" width="230" height="44" rx="9" fill="#191724" stroke="#B59CFF"/><text x="320" y="82" text-anchor="middle" font-size="9" fill="#B59CFF" font-weight="600">LANGUAGE MODEL</text><text x="320" y="98" text-anchor="middle" font-size="6.8" fill="#9CA8B7">chooses one tool · fills typed arguments</text>
+      <line x1="320" y1="106" x2="320" y2="120" stroke="#55C7FF" marker-end="url(#fc)"/><text x="398" y="117" font-size="6.5" fill="#FFBE67">schema validation ✓ / ✗</text>
+      <rect x="60" y="122" width="520" height="42" rx="8" fill="#12202A" stroke="#55C7FF"/><text x="320" y="140" text-anchor="middle" font-size="9" fill="#8AD8FF" font-weight="600">DETERMINISTIC TOOLS</text><text x="320" y="156" text-anchor="middle" font-size="6.7" fill="#9CA8B7">perception · planning · IK · collision · control · safety — the only code that computes coordinates</text>
+      <path d="M580 143 C616 143 616 84 437 84" fill="none" stroke="#657386" stroke-dasharray="4 4" marker-end="url(#fc)"/><text x="612" y="116" text-anchor="middle" font-size="6" fill="#9CA8B7">structured result</text>
+      <rect x="60" y="180" width="520" height="44" rx="8" fill="#0B0E12" stroke="#2A3440"/>
+      <text x="76" y="199" font-size="7" fill="#55D6A8" font-weight="700">ALLOWED ›</text><text x="146" y="199" font-size="7.2" fill="#D7EAF7" font-family="'SF Mono',Menlo,monospace">plan(target_id="object_3", destination="right side")</text>
+      <text x="76" y="216" font-size="7" fill="#FF7E8A" font-weight="700">NEVER  ›</text><text x="146" y="216" font-size="7.2" fill="#D7EAF7" font-family="'SF Mono',Menlo,monospace">plan(x=0.24, y=-0.09, z=0.02) — no such parameter exists</text>
+    </svg>
+  </div>
+
+  <h3>The Model Emits a Typed Tool Call, Not Prose</h3>
+  <p>Each turn the model outputs one structured tool call—a name plus arguments—checked against a schema before anything runs. Wrong shape, unknown field, or bad type: rejected, and it tries again. The schema is the contract; free-form text never reaches the robot.</p>
+
+  <div class="code-block"><div class="code-label"><span>Symbolic in, geometry out</span><span class="badge badge-purple">Concept</span></div><pre>find_objects(query="writing tool")     → ["object_3"]      # ids, not coordinates
+plan(target_id="object_3",
+     destination="right side")         → validated plan     # symbolic in, geometry out
+# No manipulation tool accepts an XYZ from the model—so there is nowhere to put one.</pre></div>
+
+  <table><thead><tr><th>The language model owns</th><th>Deterministic code owns</th></tr></thead><tbody>
+    <tr><td>Interpreting intent, choosing the next tool, filling symbolic arguments, asking to clarify, proposing labels.</td><td>Every coordinate, IK, collision check, confidence gate, the schema validator, and all actuator commands.</td></tr>
+  </tbody></table>
+  <div class="note">This is the concrete enforcement of two earlier rules: the roadmap’s “the LLM may choose the next tool, but it cannot invent the missing evidence,” and the agentic loop’s responsibility boundary. Because the manipulation tools accept only symbolic references—an <code>object_id</code> that <code>find_objects</code> actually returned, a named destination—a hallucinated number has no parameter to enter. The firewall is <strong>structural</strong>, not a matter of the model behaving.</div>
+  <div class="page-footer"><span>Agentic Robotics Workshop — Participant Field Guide</span><span>Page 17</span></div>
+</div>
+
+<!-- Page 18: Evaluation -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">AGENTIC AI FITNESS</div><div class="page-header-section">Evaluation &amp; Debugging</div></div>
+  <div class="section-number">Section 17</div><div class="section-title">Find the Layer That Failed</div><div class="section-divider"></div>
+  <div class="section-intro">Three evaluation modes progressively replace truth with estimates. Comparing them isolates reconstruction, semantic grounding, grasp planning, and control failures.</div>
+
+  <table><thead><tr><th>Mode</th><th>Geometry</th><th>Target identity</th><th>Question answered</th></tr></thead><tbody>
+    <tr><td><span class="badge badge-green">A · Oracle</span></td><td>MuJoCo truth</td><td>MuJoCo truth</td><td>Can the grasp and controller work at all?</td></tr>
+    <tr><td><span class="badge badge-blue">B · Reconstructed</span></td><td>RGB-derived metric depth</td><td>MuJoCo truth</td><td>Did geometry become accurate enough?</td></tr>
+    <tr><td><span class="badge badge-purple">C · Semantic</span></td><td>RGB estimate</td><td>VLM-grounded ID</td><td>Did the complete agent select and act correctly?</td></tr>
+  </tbody></table>
+
+  <div class="diagram">
+    <div class="diagram-title">Manipulation-Relevant Metrics</div>
+    <svg viewBox="0 0 640 174" xmlns="http://www.w3.org/2000/svg" style="font-family:'Inter',sans-serif">
+      <line x1="150" y1="20" x2="150" y2="150" stroke="#2A3440"/><g font-size="7.5" fill="#9CA8B7"><text x="18" y="42">centroid error</text><text x="18" y="73">height / footprint</text><text x="18" y="104">grasp success</text><text x="18" y="135">verification</text></g>
+      <g fill="#151A21"><rect x="150" y="28" width="410" height="18" rx="4"/><rect x="150" y="59" width="410" height="18" rx="4"/><rect x="150" y="90" width="410" height="18" rx="4"/><rect x="150" y="121" width="410" height="18" rx="4"/></g>
+      <rect x="150" y="28" width="300" height="18" rx="4" fill="#55C7FF" opacity="0.72"/><rect x="150" y="59" width="252" height="18" rx="4" fill="#55C7FF" opacity="0.72"/><rect x="150" y="90" width="369" height="18" rx="4" fill="#55D6A8" opacity="0.75"/><rect x="150" y="121" width="389" height="18" rx="4" fill="#55D6A8" opacity="0.75"/>
+      <g font-size="7" fill="#F1F5F9"><text x="458" y="41">lower is better</text><text x="410" y="72">lower is better</text><text x="527" y="103">target ≥ 90%</text><text x="547" y="134">detect failure</text></g>
+      <text x="150" y="165" font-size="6.7" fill="#9CA8B7">Illustrative bars—the evaluator records real values per seed and backend.</text>
+    </svg>
+  </div>
+
+  <h3>Failure Triage</h3>
+  <div class="grid-2"><div class="card"><div class="card-title">A fails</div><div class="card-body">Inspect IK, grasp geometry, controls, contact parameters, or object physics.</div></div><div class="card"><div class="card-title">A passes, B fails</div><div class="card-body">Inspect masks, camera calibration, pose agreement, voxel resolution, clustering, or uncertainty margins.</div></div><div class="card"><div class="card-title">B passes, C fails</div><div class="card-body">Inspect crops, aliases, prompt grounding, ambiguous references, and schema validation.</div></div><div class="card"><div class="card-title">Execution passes, verify fails</div><div class="card-body">Inspect post-scan association and expected-versus-observed state comparison.</div></div></div>
+  <div class="page-footer"><span>Agentic Robotics Workshop — Participant Field Guide</span><span>Page 18</span></div>
+</div>
+
+<!-- Page 19: Real robot -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">AGENTIC AI FITNESS</div><div class="page-header-section">Sim to Real</div></div>
+  <div class="section-number">Section 18</div><div class="section-title">Earn the Right to Touch Hardware</div><div class="section-divider"></div>
+  <div class="section-intro">The physical SO-ARM101 is not a different project. It is a new set of adapters behind the same observation, planning, execution, and verification contracts.</div>
+
+  <div class="diagram">
+    <div class="diagram-title">One Agent Contract, Two Execution Environments</div>
+    <svg viewBox="0 0 640 205" xmlns="http://www.w3.org/2000/svg" style="font-family:'Inter',sans-serif">
+      <rect x="190" y="15" width="260" height="45" rx="8" fill="#12202A" stroke="#55C7FF"/><text x="320" y="34" text-anchor="middle" font-size="9" fill="#8AD8FF" font-weight="600">Validated task plan</text><text x="320" y="49" text-anchor="middle" font-size="7" fill="#9CA8B7">same scene and tool schemas</text>
+      <path d="M320 61L320 84M320 84L152 84L152 105M320 84L488 84L488 105" fill="none" stroke="#55C7FF"/>
+      <rect x="35" y="108" width="234" height="68" rx="9" fill="#151A21" stroke="#2A3440"/><text x="152" y="130" text-anchor="middle" font-size="9" fill="#F1F5F9" font-weight="600">MuJoCo adapter</text><text x="152" y="148" text-anchor="middle" font-size="7" fill="#9CA8B7">renderer · MjData · simulated controls</text><text x="152" y="163" text-anchor="middle" font-size="7" fill="#55D6A8">required first</text>
+      <rect x="371" y="108" width="234" height="68" rx="9" fill="#191724" stroke="#B59CFF"/><text x="488" y="130" text-anchor="middle" font-size="9" fill="#B59CFF" font-weight="600">Hardware adapter</text><text x="488" y="148" text-anchor="middle" font-size="7" fill="#9CA8B7">wrist camera · servo state · commands</text><text x="488" y="163" text-anchor="middle" font-size="7" fill="#FFBE67">enabled after acceptance gates</text>
+      <text x="320" y="197" text-anchor="middle" font-size="7" fill="#9CA8B7">Physical camera poses are measured; the robot model supplies checked kinematics, not sensor truth.</text>
+    </svg>
+  </div>
+
+  <h3>Before Hardware: Acceptance Checklist</h3>
+  <ul class="checklist">
+    <li>No truth leakage in estimated mode</li><li>At least 50 randomized episodes</li>
+    <li>Supported tasks succeed ≥ 90%</li><li>Exact demo succeeds 20 times</li>
+    <li>Zero forbidden collisions</li><li>Failures detected by verification</li>
+    <li>Every run is replayable</li><li>Plan requires human approval</li>
+  </ul>
+  <div class="note"><strong>Physical gate:</strong> the dashboard requires a camera-specific profile, registered base/table coordinates, three distinct measured survey poses, calibrated limits, manual joint-sign confirmation, a passing multi-pose kinematic check, and a separately approved exact plan. Joint-sequence completion is still unverified until a new observation checks the object.</div>
+
+  <h3>Physical Safety Rules</h3>
+  <div class="grid-3"><div class="card"><div class="card-title">Control the workspace</div><div class="card-body">Light objects only. No faces, fingers, liquids, valuables, sharp items, or spectators inside reach.</div></div><div class="card"><div class="card-title">Control authority</div><div class="card-body">Low speed, bounded workspace, accessible stop, one operator, and one approved plan at a time.</div></div><div class="card"><div class="card-title">Expect mismatch</div><div class="card-body">Calibration, friction, backlash, and camera mounting make sim-to-real an experiment—not a copy operation.</div></div></div>
+  <div class="note danger-note"><strong>Emergency principle:</strong> a human stop always overrides the agent. The language model never owns unrestricted actuator access.</div>
+  <div class="page-footer"><span>Agentic Robotics Workshop — Participant Field Guide</span><span>Page 19</span></div>
+</div>
+
+<!-- Page 20: Reality gap -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">AGENTIC AI FITNESS</div><div class="page-header-section">The Reality Gap</div></div>
+  <div class="section-number">Section 19</div><div class="section-title">Where Simulation Stops and Reality Begins</div><div class="section-divider"></div>
+  <div class="section-intro">A passing simulation proves the plan is geometrically valid in a perfectly known world. Hardware is neither perfectly known nor perfectly obedient. This page names the gaps a green simulation cannot see—so you expect them instead of discovering them mid-motion.</div>
+
+  <div class="diagram">
+    <div class="diagram-title">Motion Runs Open-Loop — Unmodeled Effects Accumulate</div>
+    <svg viewBox="0 0 640 168" xmlns="http://www.w3.org/2000/svg" style="font-family:'Inter',sans-serif">
+      <line x1="30" y1="18" x2="52" y2="18" stroke="#8AD8FF" stroke-width="1.4" stroke-dasharray="4 3"/><text x="57" y="21" font-size="6" fill="#9CA8B7">planned target (open-loop command)</text>
+      <line x1="270" y1="18" x2="292" y2="18" stroke="#FFBE67" stroke-width="1.6"/><text x="297" y="21" font-size="6" fill="#9CA8B7">actual path on real hardware</text>
+      <rect x="12" y="54" width="66" height="32" rx="7" fill="#12202A" stroke="#55C7FF"/><text x="45" y="74" text-anchor="middle" font-size="8" fill="#8AD8FF" font-weight="600">PLAN</text>
+      <rect x="562" y="54" width="66" height="32" rx="7" fill="#14231E" stroke="#55D6A8"/><text x="595" y="74" text-anchor="middle" font-size="8" fill="#55D6A8" font-weight="600">VERIFY</text>
+      <line x1="78" y1="70" x2="562" y2="70" stroke="#8AD8FF" stroke-width="1.4" stroke-dasharray="4 3"/>
+      <polyline points="78,70 175,86 265,56 355,88 445,58 545,80 562,70" fill="none" stroke="#FFBE67" stroke-width="1.8"/>
+      <g fill="#FFBE67"><circle cx="175" cy="86" r="2.6"/><circle cx="265" cy="56" r="2.6"/><circle cx="355" cy="88" r="2.6"/><circle cx="445" cy="58" r="2.6"/></g>
+      <g font-size="6" fill="#9CA8B7" text-anchor="middle"><text x="175" y="120">backlash + friction</text><text x="265" y="120">gravity sag</text><text x="355" y="120">calibration offset</text><text x="445" y="120">grasp slip</text></g>
+      <text x="320" y="150" text-anchor="middle" font-size="6.8" fill="#9CA8B7">No visual correction during motion—only the after-the-fact scan reveals where the arm truly ended.</text>
+    </svg>
+  </div>
+
+  <table><thead><tr><th>Gap source</th><th>Why the simulator can’t see it</th><th>This workshop’s response</th></tr></thead><tbody>
+    <tr><td><strong>Actuation &amp; mechanics</strong><br>backlash, friction, gravity sag, servo lag</td><td>Sim uses idealized position actuators; real Feetech servos chase goals with slack and delay.</td><td>Low speed, calibrated joint limits, and a per-joint tracking tolerance (~1.5°) that aborts on a miss.</td></tr>
+    <tr><td><strong>Sensing &amp; perception</strong><br>no depth sensor, lighting shift, mount &amp; calibration error, motion blur</td><td>Sim renders perfect frames with exact, known camera poses.</td><td>Per-configuration calibration, reprojection-error gates, ≥ 2-view agreement, and settle-before-capture.</td></tr>
+    <tr><td><strong>Contact &amp; grasp</strong><br>unknown friction, object give, slip, contact forces</td><td>The contact solver is an approximation, and the arm has no force or slip sensor.</td><td>Light rigid objects, top-down grasps, and treating completion as <code>executed_unverified</code> until rescanned.</td></tr>
+    <tr><td><strong>World &amp; safety</strong><br>cables, clamps, people, latency, no certified e-stop</td><td>None of these live in the model at all.</td><td>One human approval per action, one operator at the stop, a bounded workspace, motor power kept reachable.</td></tr>
+  </tbody></table>
+
+  <div class="note">Every response above is the same four moves: <strong>measure</strong> instead of assume (calibration), <strong>gate</strong> every motion (approvals), move <strong>slowly</strong>, and <strong>verify</strong> after the fact. Sim-to-real is an experiment, not a copy operation—a green simulation earns you the right to <em>run</em> the experiment, not a guarantee of its result.</div>
+
+  <h3>Closing the Gap — Where These Challenges Become Extensions</h3>
+  <div class="grid-3">
+    <div class="card card-accent"><div class="card-title">Sense contact</div><div class="card-body">Add tactile or current-based force feedback to detect a real grasp and catch slip before the lift.</div></div>
+    <div class="card card-accent"><div class="card-title">Close the loop</div><div class="card-body">Visual servoing corrects the trajectory mid-motion instead of trusting one open-loop plan.</div></div>
+    <div class="card card-accent"><div class="card-title">Shrink the model gap</div><div class="card-body">Domain randomization and system identification make the simulator predict the real arm more faithfully.</div></div>
+  </div>
+  <div class="page-footer"><span>Agentic Robotics Workshop — Participant Field Guide</span><span>Page 20</span></div>
+</div>
+
+<!-- Page 21: Today's workshop -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">AGENTIC AI FITNESS</div><div class="page-header-section">Today’s Workshop</div></div>
+  <div class="section-number">Section 20</div><div class="section-title">What We Will Build Together</div><div class="section-divider"></div>
+  <div class="section-intro">Theory now becomes a guided lab. We will assemble the repository one numbered stage at a time, inspect the evidence produced by each stage, and finish with one approved, verified manipulation in MuJoCo.</div>
+
+  <div class="card card-accent"><div class="mini-label">FLAGSHIP REQUEST</div><div class="card-title" style="font-size:14px;line-height:1.4">“Pick up the marker and place it on the right side of the table.”</div><div class="card-body">The agent must observe, ground the object, reconstruct metric geometry, plan, simulate, request approval, act, and verify—without reading hidden object coordinates.</div></div>
+
+  <div class="split-panel mt-12">
+    <div>
+      <h3 style="margin-top:0">Guided Build Sequence</h3>
+      <div class="kv-row"><span class="kv-key">00–01</span><span class="kv-value">Set up, inspect, and control the arm</span></div>
+      <div class="kv-row"><span class="kv-key">02–03</span><span class="kv-value">Replay motion and understand IK</span></div>
+      <div class="kv-row"><span class="kv-key">04–05</span><span class="kv-value">Scan, reconstruct, and label the scene</span></div>
+      <div class="kv-row"><span class="kv-key">06–08</span><span class="kv-value">Use tools, run the loop, then unify it in the portal</span></div>
+    </div>
+    <div class="split-divider"></div>
+    <div>
+      <h3 style="margin-top:0">Participant Learning Focus</h3>
+      <div class="feature-item"><div class="icon-circle icon-accent">1</div><div><div class="feature-item-title">Predict before running</div><div class="feature-item-desc">Say what state or artifact the next script should produce.</div></div></div>
+      <div class="feature-item"><div class="icon-circle icon-blue">2</div><div><div class="feature-item-title">Inspect the evidence</div><div class="feature-item-desc">Use images and JSON, not only a successful exit code.</div></div></div>
+      <div class="feature-item"><div class="icon-circle icon-purple">3</div><div><div class="feature-item-title">Name the responsible layer</div><div class="feature-item-desc">Separate perception, planning, control, and verification failures.</div></div></div>
+      <div class="feature-item"><div class="icon-circle icon-green">4</div><div><div class="feature-item-title">Approve and verify</div><div class="feature-item-desc">Execution is gated; success requires observed change.</div></div></div>
+    </div>
+  </div>
+
+  <div class="code-block mt-12"><div class="code-label"><span>The complete reasoning loop</span><span class="badge badge-purple">Concept</span></div><pre>observe → ground → plan → simulate → human approval → execute → verify
+   ↑                                                               │
+   └──────────── rescan or clarify when evidence is weak ──────────┘</pre></div>
+
+  <h3>How We Will Use the Physical SO-ARM101</h3>
+  <div class="grid-3"><div class="card"><div class="card-title">Connect with controls locked</div><div class="card-body">Support the compact arm, discover the follower and wrist camera, load the exact LeRobot ID, and seed the current joint positions as hold targets.</div></div><div class="card"><div class="card-title">Measure the real scene</div><div class="card-body">Calibrate intrinsics, teach three camera poses, and reconstruct from physical RGB—never simulator depth.</div></div><div class="card"><div class="card-title">Approve one bounded act</div><div class="card-body">Review the hashed joint sequence, execute once at low speed, then inspect and rescan before any success claim.</div></div></div>
+  <div class="note success-note"><strong>Next:</strong> open Runbook A and start at Milestone 00. The instructor leads; participants are not expected to solve an independent challenge.</div>
+  <div class="page-footer"><span>Agentic Robotics Workshop — Participant Field Guide</span><span>Page 21</span></div>
+</div>
+
+<!-- Page 22: Runbook A -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">AGENTIC AI FITNESS</div><div class="page-header-section">Runbook A · Foundations</div></div>
+  <div class="section-number">Section 21</div><div class="section-title">Run Milestones 00–03</div><div class="section-divider"></div>
+  <div class="section-intro">Run every command from the repository root unless noted. Pause after each row: first predict the result, then compare the simulator or terminal with the pass signal.</div>
+
+  <div class="code-block"><div class="code-label"><span>One-time environment setup</span><span class="badge badge-green">Start here</span></div><pre>python3.11 -m venv .venv
+source .venv/bin/activate          # macOS / Linux
+python -m pip install -r requirements.txt</pre></div>
+
+  <table><thead><tr><th>Stage and command</th><th>What you should see</th><th>Pass signal</th></tr></thead><tbody>
+    <tr><td><span class="badge badge-accent">00 · Preflight</span><br><code>python 00_getting_started/check_setup.py</code></td><td>Python, MuJoCo, PyTorch, Transformers, the learned-depth device, and one rendered wrist image.</td><td>All six actuators found; final line says setup is ready.</td></tr>
+    <tr><td><span class="badge badge-blue">01 · Manual control</span><br><code>python 01_sim_manual_control/view.py --office</code><br><code>python 01_sim_manual_control/teleop.py</code></td><td>First inspect MuJoCo’s Control sliders; then use the dedicated full-arm view with a live portrait wrist-camera inset. Hold <code>Q/A</code> through <code>Y/H</code>.</td><td>Sliders and held keys move every joint; releasing a key stops target changes and no MuJoCo letter shortcut fires.</td></tr>
+    <tr><td><span class="badge badge-purple">02 · Record / replay</span><br><code>python 02_record_replay/record.py my_skill</code><br><code>mjpython 02_record_replay/replay.py 02_record_replay/trajectories/my_skill.json --loop</code></td><td><code>SPACE</code> starts and stops capture. A JSON trajectory is saved, then the same control frames replay.</td><td>Replay begins from the stored state and repeats the recorded motion.</td></tr>
+    <tr><td><span class="badge badge-green">03 · Oracle pick-place</span><br><code>python 03_kinematic_pick_place/pick_place.py all --headless</code></td><td>The IK controller performs tuck, hover, descend, grasp, carry, place, and release for three primitive objects.</td><td>Terminal ends with <code>3/3 placed on the drop zone</code>.</td></tr>
+  </tbody></table>
+
+  <h3>Read These Files While the Result Is Visible</h3>
+  <div class="grid-3"><div class="card"><div class="card-title"><code>teleop.py</code></div><div class="card-body">Held-key state becomes bounded actuator targets every physics step.</div></div><div class="card"><div class="card-title"><code>record.py</code> / <code>replay.py</code></div><div class="card-body">Initial physics state plus control frames make the skill reproducible.</div></div><div class="card"><div class="card-title"><code>ik.py</code> / <code>pick_place.py</code></div><div class="card-body">Damped IK turns Cartesian waypoints into joint-space motion.</div></div></div>
+  <div class="note"><strong>macOS:</strong> passive-viewer scripts use <code>mjpython</code>. Teleoperation, recording, headless checks, and later perception scripts use normal <code>python</code>.</div>
+  <div class="page-footer"><span>Agentic Robotics Workshop — Participant Field Guide</span><span>Page 22</span></div>
+</div>
+
+<!-- Page 23: Runbook B -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">AGENTIC AI FITNESS</div><div class="page-header-section">Runbook B · Agentic Pipeline</div></div>
+  <div class="section-number">Section 22</div><div class="section-title">Run Milestones 04–08</div><div class="section-divider"></div>
+  <div class="section-intro">Now replace hidden coordinates with wrist-camera evidence. The output of each stage becomes the input contract of the next, so stale or mismatched artifacts must stop the pipeline.</div>
+
+  <table><thead><tr><th>Stage and command</th><th>Inspect this evidence</th><th>Pass before continuing</th></tr></thead><tbody>
+    <tr><td><span class="badge badge-blue">04 · Scan</span><br><code>python 04_active_perception/scan_workspace.py --scene empty</code><br><code>python 04_active_perception/scan_workspace.py</code></td><td>Inspect the RGB contact sheets and <code>scan.json</code>; verify the three views overlap and contain no sensed-depth records.</td><td>Three settled 360×640 RGB frames; quality says <code>basic_check_passed</code> and the contract is <code>calibrated_multi_view_rgb_scan_v2</code>.</td></tr>
+    <tr><td><span class="badge badge-purple">05 · Reconstruct</span><br><code>python 05_semantic_scene/reconstruct_scene.py</code><br><code>python 05_semantic_scene/make_object_crops.py</code><br><code>python 05_semantic_scene/evaluate_geometry.py</code></td><td>Inspect raw depth, table-aligned depth, cross-view support, <code>fused_cloud.ply</code>, <code>topdown.png</code>, height map, and crops.</td><td>Three clusters; table RMSE ≤ 20 mm, ≥2-view support survives, and evaluator errors are recorded before continuing.</td></tr>
+    <tr><td><span class="badge badge-green">06 · Tool loop</span><br><code>python 06_agentic_manipulation/guided_demo.py</code></td><td>The six tool responses: scan, find, plan, simulate, execute, and verify. This first run intentionally stops after preflight.</td><td>The writing tool resolves to one ID and <code>simulate_plan</code> reports <code>safe: true</code>.</td></tr>
+    <tr><td><span class="badge badge-accent">07–08 · Guided + portal</span><br><code>python 07_guided_full_pipeline/run_guided_workshop.py --manual-labels --execute</code><br><code>python 08_workshop_portal/app.py</code></td><td>Stage 07 proves the CLI path. Stage 08 turns the same scans, memory, safety checks, and execution into provider-selectable chatbot tools at <code>127.0.0.1:8000</code>.</td><td>Choose a vision + tool-capable model in the portal, then ask the copilot to inspect memory or move an object. Missing stages appear as tool calls before verified motion.</td></tr>
+  </tbody></table>
+
+  <div class="code-block"><div class="code-label"><span>Acceptance check after the guided run</span><span class="badge badge-green">Simulation only</span></div><pre>python 07_guided_full_pipeline/evaluate_randomized_geometry.py --episodes 50
+# Acceptance target: every selected layout stays within the 20 mm XY gate</pre></div>
+
+  <h3>Hosted Semantic and Agent Pass</h3>
+  <div class="grid-2"><div class="card"><div class="card-title">1 · Configure the portal model</div><div class="card-body">Click the model chip in Robot Copilot. Choose OpenRouter, OpenAI, Anthropic, or a compatible endpoint; enter the model and key in the UI. No <code>.env</code> is required.</div></div><div class="card"><div class="card-title">2 · Ask for an outcome</div><div class="card-body">Try “Prepare the scene and tell me what you see.” A vision model names crops automatically. With a text-only model, reply with one ordered label per object when asked; inspect the stored labels before execution.</div></div></div>
+  <p class="text-muted text-small">Finish this MuJoCo acceptance pass first. Runbook C repeats the same evidence chain with measured physical camera poses and separate scan/motion approvals.</p>
+  <div class="note danger-note"><strong>Stop conditions:</strong> review failed image quality, the wrong object count, ambiguous grounding, unsafe preflight, stale scene IDs, or failed verification. Rescan instead of forcing the next command.</div>
+  <div class="page-footer"><span>Agentic Robotics Workshop — Participant Field Guide</span><span>Page 23</span></div>
+</div>
+
+<!-- Page 24: Physical runbook -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">AGENTIC AI FITNESS</div><div class="page-header-section">Runbook C · Physical SO-101</div></div>
+  <div class="section-number">Section 23</div><div class="section-title">Test the Real Arm Deliberately</div><div class="section-divider"></div>
+  <div class="section-intro">The real path uses the same agent contract but its own measured camera profile and artifact directory. Nothing below inherits MuJoCo object coordinates or depth. Keep one operator at the stop control.</div>
+
+  <div class="grid-3">
+    <div class="card card-green"><div class="card-title">1 · Make it physically safe</div><div class="card-body">Clamp the follower, clear the sweep, use only light objects, put the arm in a compact supported pose, and keep motor power reachable.</div></div>
+    <div class="card card-accent"><div class="card-title">2 · Connect with controls locked</div><div class="card-body">The portal writes each raw encoder position back as its hold target before torque is enabled. Configuration briefly releases torque; support the arm. No trajectory runs.</div></div>
+    <div class="card card-purple"><div class="card-title">3 · Never infer approval</div><div class="card-body">Chat may request a scan or prepare a plan. Only the physical safety bar grants one scan or one exact-plan execution.</div></div>
+  </div>
+
+  <h3>Workspace Setup · One Profile per Physical Configuration</h3>
+  <table><thead><tr><th>Portal step</th><th>What you do</th><th>Gate</th></tr></thead><tbody>
+    <tr><td><strong>Camera</strong></td><td>Select the output rotation (90° counter-clockwise is the wrist-mount default), print the supplied 8 × 6 inner-corner target at 100%, capture ≥10 sharp varied views, and solve OpenCV intrinsics.</td><td>RMS ≤ 2 px; profile v4 stores the exact resolution and counter-clockwise output rotation.</td></tr>
+    <tr><td><strong>Survey poses</strong></td><td>Lay the target printed-side up. Use the tabletop point below the fixed-base center as origin (+X into the desk, +Y robot-left), measure the red-marker corner, and enter the yaw of printed +X. The portal maps printed +Y-down and +Z-into-table automatically.</td><td>Each <code>solvePnP</code> reprojection RMSE ≤ 1.5 px and solved camera height is 0.04–0.60 m above the table.</td></tr>
+    <tr><td><strong>Workspace</strong></td><td>Enter reachable XYZ, table XY, placement points, and gripper values in that same frame; explicitly confirm base registration.</td><td>Every destination lies inside the measured workspace; no frame confirmation means no motion.</td></tr>
+    <tr><td><strong>Kinematics</strong></td><td>At slow manual jog, verify physical zero and all five joint signs. Real jog commands have a 300 ms server-side dead-man lease. The portal derives a fixed gripper-to-camera transform independently from each taught pose.</td><td>Translation spread ≤ 25 mm, rotation spread ≤ 10°, camera baseline ≥ 40 mm, and wrist-frame rotation ≥ 15°.</td></tr>
+  </tbody></table>
+
+  <h3>First End-to-End Physical Pass</h3>
+  <table><thead><tr><th>Chat / control</th><th>Observable evidence</th><th>Do not continue unless</th></tr></thead><tbody>
+    <tr><td><code>Capture the empty table</code><br>then <strong>Approve one scan</strong></td><td>The arm visibly visits all three taught poses. Scene memory receives the physical calibration contact sheet.</td><td>The table is empty and every view repeats within 1.5°.</td></tr>
+    <tr><td>Place objects, then<br><code>Scan the objects and reconstruct the scene</code></td><td>Approve one more scan. Inspect masks, raw depth, table-aligned metric depth, cross-view support, height map, and fitted footprints.</td><td>Alignment and object fitting say pass—not review or error.</td></tr>
+    <tr><td>Name with vision, or reply<br><code>first, second, third are box, eraser, pen</code></td><td>Semantic labels attach to the reconstructed IDs; coordinates remain deterministic geometry.</td><td>Every current ID has exactly one explicit label.</td></tr>
+    <tr><td><code>Move the pen to the left side</code></td><td>The copilot stops on a preflight. Expand the safety bar to review pick/place points and every exact joint target.</td><td>Base registration, calibration hash, IK, both joint-limit sets, sampled collision, clearance, and confidence all pass.</td></tr>
+    <tr><td><strong>Review, acknowledge, execute once</strong></td><td>One hashed plan is consumed. The arm moves slowly; Stop + disconnect remains available. Scene memory is invalidated after success, stop, or failure.</td><td>Treat completion as <code>executed_unverified</code>; inspect and rescan before claiming placement.</td></tr>
+  </tbody></table>
+
+  <div class="note danger-note"><strong>Scope:</strong> holding torque after connection is not permission to move. Manual jogging, one scan, and one exact plan each require a separate gate. This path does not sense grasp force or slip and cannot model loose cables, clamps, people, or arbitrary room obstacles. Stop + disconnect is software—not a certified emergency stop—so keep motor power reachable. An unsafe or review result is a stop signal, not a prompt-engineering problem.</div>
+  <div class="page-footer"><span>Agentic Robotics Workshop — Participant Field Guide</span><span>Page 24</span></div>
+</div>
+
+<!-- Page 25: Quick reference -->
+<div class="page">
+  <div class="page-header"><div class="page-header-logo">AGENTIC AI FITNESS</div><div class="page-header-section">Quick Reference</div></div>
+  <div class="section-number">Reference</div><div class="section-title">Commands, Terms, and Recovery</div><div class="section-divider"></div>
+  <div class="section-intro">Keep this page open while working. It collects the current commands, the most important vocabulary, and the first recovery step for common failures.</div>
+
+  <h3>High-Frequency Commands</h3>
+  <div class="code-block"><div class="code-label"><span>Run from repository root · full sequence in Runbooks A–C</span><span class="badge badge-green">Run</span></div><pre>python 00_getting_started/check_setup.py
+python 01_sim_manual_control/teleop.py
+python 03_kinematic_pick_place/pick_place.py all --headless
+python 04_active_perception/scan_workspace.py --scene empty
+python 04_active_perception/scan_workspace.py
+python 05_semantic_scene/reconstruct_scene.py
+python 06_agentic_manipulation/guided_demo.py
+python 07_guided_full_pipeline/run_guided_workshop.py --manual-labels --execute
+python 08_workshop_portal/app.py
+python 07_guided_full_pipeline/evaluate_randomized_geometry.py --episodes 50</pre></div>
+
+  <h3>Compact Glossary</h3>
+  <table><thead><tr><th>Term</th><th>Meaning</th><th>Remember</th></tr></thead><tbody>
+    <tr><td>DOF</td><td>Independent degree of freedom</td><td>The arm has five; the gripper adds one.</td></tr>
+    <tr><td>IK</td><td>Pose target → joint angles</td><td>Solutions depend on seeds and constraints.</td></tr>
+    <tr><td>Extrinsics</td><td>Camera pose in another frame</td><td>Direction of the transform matters.</td></tr>
+    <tr><td>Intrinsics</td><td>Camera’s pixel projection</td><td>Focal length and principal point.</td></tr>
+    <tr><td>Scene graph</td><td>Objects plus geometric relations</td><td>Semantics attach to stable object IDs.</td></tr>
+    <tr><td>Open loop</td><td>No visual correction during motion</td><td>Joint servo feedback still operates.</td></tr>
+  </tbody></table>
+
+  <h3>First Recovery Step</h3>
+  <div class="grid-2"><div class="card"><div class="card-title">Viewer will not open</div><div class="card-body">macOS passive-viewer scripts need <code>mjpython</code>, not <code>python</code>—or pass <code>--headless</code> to skip the window. If <code>mjpython</code> aborts with a <code>libpython3.11.dylib</code> load error (common on uv-built virtualenvs), prefix it with <code>DYLD_FALLBACK_LIBRARY_PATH=&quot;$(python -c 'import sysconfig;print(sysconfig.get_config_var(&quot;LIBDIR&quot;))')&quot;</code>.</div></div><div class="card"><div class="card-title">IK residual is high</div><div class="card-body">Check target reachability and try a bent-arm or pan-aligned seed.</div></div><div class="card"><div class="card-title">Wrong object selected</div><div class="card-body">Inspect evidence crops and aliases; ask the user to disambiguate.</div></div><div class="card"><div class="card-title">Grasp fails unexpectedly</div><div class="card-body">Run oracle mode, inspect pose error, friction, jaw clearance, and verification output.</div></div></div>
+  <div class="note success-note"><strong>The workshop loop:</strong> observe → ground → plan → simulate → approve → execute → verify. When uncertain, move backward in the loop rather than guessing forward.</div>
+  <div class="page-footer"><span>Agentic Robotics Workshop — Participant Field Guide</span><span>Page 25</span></div>
+</div>
+
+</body>
+</html>

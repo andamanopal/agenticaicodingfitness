@@ -1,0 +1,49 @@
+<mujoco>
+  <!-- Keep the default viewer focused on the arm instead of the room walls. -->
+  <statistic center="0.24 0 0.05" extent="0.65"/>
+
+  <asset>
+    <texture type="skybox" builtin="gradient" rgb1="0.22 0.25 0.29" rgb2="0.05 0.06 0.08"
+      width="512" height="3072"/>
+    <material name="desk_surface" rgba="0.38 0.40 0.43 1" reflectance="0"/>
+    <texture type="2d" name="room_floor" builtin="checker" rgb1="0.22 0.23 0.24" rgb2="0.26 0.27 0.28"
+      width="512" height="512"/>
+    <material name="room_floor" texture="room_floor" texuniform="true" texrepeat="8 8" reflectance="0.04"/>
+  </asset>
+
+  <worldbody>
+    <light name="room_key" pos="0 0 3.5" dir="0 0 -1" directional="true"
+      diffuse="0.70 0.70 0.70" specular="0 0 0"/>
+
+    <!-- Preserve the verified plane contact model while rendering a finite desk. -->
+    <geom name="table" type="plane" pos="0 0 0" size="0 0 0.05"
+      rgba="0 0 0 0" friction="1 .03 .003"/>
+    <geom name="tabletop_visual" type="box" pos="0.26 0 -0.025" size="0.34 0.38 0.025"
+      material="desk_surface" contype="0" conaffinity="0"/>
+
+    <!-- A compact two-column standing-desk frame. -->
+    <geom name="desk_crossbar" type="box" pos="0.27 0 -0.12" size="0.035 0.31 0.025"
+      rgba="0.10 0.11 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="desk_leg_left" type="box" pos="0.27 0.29 -0.40" size="0.04 0.04 0.35"
+      rgba="0.12 0.13 0.14 1" contype="0" conaffinity="0"/>
+    <geom name="desk_leg_right" type="box" pos="0.27 -0.29 -0.40" size="0.04 0.04 0.35"
+      rgba="0.12 0.13 0.14 1" contype="0" conaffinity="0"/>
+    <geom name="desk_foot_left" type="box" pos="0.27 0.29 -0.72" size="0.22 0.035 0.025"
+      rgba="0.10 0.11 0.12 1" contype="0" conaffinity="0"/>
+    <geom name="desk_foot_right" type="box" pos="0.27 -0.29 -0.72" size="0.22 0.035 0.025"
+      rgba="0.10 0.11 0.12 1" contype="0" conaffinity="0"/>
+
+    <!-- Visual C-clamp beneath the SO-101 base at the near table edge. -->
+    <geom name="robot_clamp_edge" type="box" pos="-0.068 0 -0.045" size="0.012 0.07 0.045"
+      rgba="0.08 0.09 0.10 1" contype="0" conaffinity="0"/>
+    <geom name="robot_clamp_lower" type="box" pos="-0.018 0 -0.064" size="0.05 0.07 0.010"
+      rgba="0.08 0.09 0.10 1" contype="0" conaffinity="0"/>
+
+    <geom name="room_floor" type="plane" pos="0 0 -0.75" size="0 0 0.05"
+      material="room_floor"/>
+    <geom name="room_back_wall" type="box" pos="0.84 0 0.25" size="0.025 1.10 1.0"
+      rgba="0.48 0.50 0.53 1" contype="0" conaffinity="0"/>
+    <geom name="room_side_wall" type="box" pos="0.25 0.82 0.25" size="0.62 0.025 1.0"
+      rgba="0.43 0.45 0.48 1" contype="0" conaffinity="0"/>
+  </worldbody>
+</mujoco>
