@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.py[cod]
+.DS_Store
+.researchclaw_cache/
+tmp/
+MUJOCO_LOG.TXT
+04_active_perception/output/
+05_semantic_scene/output/
+06_agentic_manipulation/output/
+07_guided_full_pipeline/output/

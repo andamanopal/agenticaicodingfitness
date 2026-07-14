@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#070a0e">
+  <title>Agentic Robotics · Workshop Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Agentic Robotics workshop portal">
+      <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <strong>Agentic Robotics</strong>
+    </a>
+    <div class="topbar-status">
+      <a class="guide-link" href="/guide" target="_blank">Guide</a>
+      <span class="connection-status"><i id="connection-dot"></i><span id="connection-label">Connecting</span></span>
+    </div>
+  </header>
+
+  <main id="top" class="shell">
+    <section class="workspace">
+      <div class="workspace-heading">
+        <h1>Robot workspace</h1>
+        <div class="workspace-tools">
+          <div class="manual-box">
+            <button class="manual-trigger" type="button" aria-label="Show manual controls">Manual control</button>
+            <div class="manual-flyout panel">
+              <div class="manual-flyout-heading">
+                <h3>Manual control</h3>
+                <div class="manual-actions">
+                  <button class="button ghost" data-manual-action="home">Home</button>
+                  <button class="button ghost danger-ghost" data-manual-action="reset">Reset</button>
+                </div>
+              </div>
+              <p id="manual-help">Keyboard pairs are shown on each control. Release stops motion immediately.</p>
+              <div id="joint-controls" class="joint-controls compact"></div>
+            </div>
+          </div>
+          <div class="runtime-picker" aria-label="Robot connection">
+            <button id="robot-mode-simulation" class="runtime-option active">Simulation</button>
+            <button id="robot-mode-real" class="runtime-option">Real SO-101</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="real-safety-bar" class="real-safety-bar panel" hidden>
+        <div class="real-connection-copy">
+          <span class="status-dot connected"></span>
+          <div>
+            <small>PHYSICAL SO-101</small>
+            <b id="real-safety-status">Controls locked · torque holding pose</b>
+            <span id="real-workspace-status">Workspace calibration required</span>
+          </div>
+        </div>
+        <div class="real-safety-actions">
+          <button id="configure-real-button" class="button secondary">Workspace setup</button>
+          <button id="arm-real-button" class="button secondary">Arm manual control</button>
+          <button id="teleop-toggle-button" class="button secondary">Teleop</button>
+          <button id="approve-scan-button" class="button primary">Approve one scan</button>
+          <button id="disconnect-real-button" class="button emergency">Stop + disconnect</button>
+        </div>
+        <div id="teleop-panel" class="teleop-panel" hidden>
+          <div class="teleop-fields">
+            <label>Leader port<input id="teleop-leader-port" list="serial-port-options" placeholder="Leader USB port" autocomplete="off"></label>
+            <label>Leader ID<input id="teleop-leader-id" list="leader-id-options" placeholder="Leader calibration ID" autocomplete="off"></label>
+          </div>
+          <div class="teleop-actions">
+            <button id="teleop-start-button" class="button primary" type="button">Start teleop</button>
+            <button id="teleop-record-button" class="button secondary" type="button" hidden>● Record</button>
+          </div>
+          <div class="teleop-recordings">
+            <div class="teleop-recordings-head">
+              <span class="teleop-recordings-title">Saved recordings <small id="teleop-recordings-count" class="teleop-recordings-count"></small></span>
+              <button id="teleop-recordings-refresh" class="teleop-icon-button" type="button" title="Refresh list" aria-label="Refresh recordings">⟳</button>
+            </div>
+            <select id="teleop-recording-select" class="teleop-recording-select" size="4" aria-label="Recorded trajectories"></select>
+            <p id="teleop-recordings-empty" class="teleop-recordings-empty" hidden>No recordings yet — start teleop, hit ● Record, then Stop to save one.</p>
+            <div class="teleop-recording-actions">
+              <button id="teleop-replay-button" class="button secondary" type="button">▶ Replay</button>
+              <button id="teleop-delete-button" class="button danger" type="button">Delete</button>
+            </div>
+          </div>
+          <span id="teleop-status" class="teleop-status">Move the leader arm to drive the follower. Recording is optional.</span>
+        </div>
+        <div id="physical-plan-review" class="physical-plan-review" hidden>
+          <div class="physical-plan-copy">
+            <small id="physical-plan-state">PLAN AWAITING REVIEW</small>
+            <b id="physical-plan-title"></b>
+            <span id="physical-plan-coordinates"></span>
+            <div id="physical-plan-checks" class="physical-plan-checks"></div>
+            <details class="physical-plan-details">
+              <summary id="physical-plan-summary">Review joint sequence</summary>
+              <div id="physical-plan-steps"></div>
+            </details>
+          </div>
+          <div class="physical-plan-action">
+            <label>
+              <input id="physical-plan-confirm" type="checkbox">
+              <span>I reviewed the exact targets and cleared the physical workspace.</span>
+            </label>
+            <button id="approve-plan-button" class="button physical-approve">Execute this plan once</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="vision-grid">
+        <article class="video-card main-feed panel">
+          <div class="feed-header">
+            <b id="main-feed-name">Simulation</b>
+            <span id="main-stream-meta">1280 × 800 · warming up</span>
+          </div>
+          <div class="feed-frame landscape">
+            <img id="main-stream" alt="Live MuJoCo simulation view">
+          </div>
+        </article>
+
+        <article class="video-card wrist-feed panel">
+          <div class="feed-header">
+            <b>Wrist camera</b>
+            <span id="wrist-stream-meta">1080 × 1920 · native</span>
+          </div>
+          <div class="feed-frame portrait">
+            <img id="wrist-stream" alt="Live wrist-mounted camera view">
+            <div class="camera-reticle" aria-hidden="true"></div>
+          </div>
+        </article>
+      </div>
+
+      <article class="artifacts panel">
+        <div class="section-title-row">
+          <div>
+            <h2>Scene memory</h2>
+            <p id="memory-live-status">Waiting for calibration</p>
+          </div>
+          <button id="clear-memory-button" class="button ghost memory-clear">Clear</button>
+        </div>
+        <div id="semantic-memory" class="semantic-memory">
+          <span class="memory-placeholder">No objects in memory.</span>
+        </div>
+        <div id="reconstruction-stages" class="reconstruction-stages" hidden></div>
+        <div id="artifact-gallery" class="artifact-gallery">
+          <div class="empty-state">No perception outputs yet.</div>
+        </div>
+      </article>
+    </section>
+
+    <aside class="chat-panel panel" aria-label="Robot copilot chat">
+      <div class="chat-heading">
+        <div>
+          <h2>Robot copilot</h2>
+          <p id="chat-status-text">Ready</p>
+        </div>
+        <div class="chat-header-actions">
+          <button id="new-chat-button" type="button">New chat</button>
+          <button id="chat-model" class="model-button" type="button" aria-label="Configure the language model">Model settings</button>
+        </div>
+      </div>
+
+      <div id="chat-messages" class="chat-messages" aria-live="polite"></div>
+
+      <form id="chat-form" class="chat-composer">
+        <textarea id="chat-input" rows="2" maxlength="1000" placeholder="Move the pen to the left side of the table…" aria-label="Message the robot copilot"></textarea>
+        <button id="chat-send" type="submit" aria-label="Send command">Send</button>
+        <small id="chat-hint"></small>
+      </form>
+
+      <details class="technical-details chat-details">
+        <summary>Logs</summary>
+        <section class="console">
+          <div class="console-header"><button id="copy-log" type="button">Copy</button></div>
+          <pre id="pipeline-log">Portal starting…</pre>
+        </section>
+      </details>
+    </aside>
+  </main>
+
+  <dialog id="memory-dialog">
+    <form method="dialog" class="dialog-card memory-dialog-card">
+      <div class="dialog-heading">
+        <h2>Clear scene memory</h2>
+        <button class="dialog-close" value="cancel" aria-label="Close memory dialog">×</button>
+      </div>
+      <p>This also invalidates the current motion plan.</p>
+      <div class="memory-clear-options">
+        <button id="forget-objects-button" class="memory-clear-option" type="button">
+          <b>Forget objects only</b>
+          <small>Delete the occupied scan, reconstruction, labels, and verification. Keep the empty-table calibration.</small>
+        </button>
+        <button id="clear-all-memory-button" class="memory-clear-option danger" type="button">
+          <b>Clear all scene memory</b>
+          <small>Also delete the empty-table calibration. The workflow returns to its initial state.</small>
+        </button>
+      </div>
+      <div class="dialog-actions">
+        <button class="button ghost" value="cancel">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="llm-dialog">
+    <form method="dialog" class="dialog-card llm-dialog-card">
+      <div class="dialog-heading">
+        <h2>Model settings</h2>
+        <button class="dialog-close" value="cancel" aria-label="Close model settings">×</button>
+      </div>
+      <div class="llm-fields">
+        <label>Provider
+          <select id="llm-provider">
+            <option value="openrouter">OpenRouter</option>
+            <option value="openai">OpenAI</option>
+            <option value="anthropic">Anthropic · Claude</option>
+            <option value="glm">GLM · Z.ai</option>
+            <option value="custom">Custom · OpenAI-compatible</option>
+          </select>
+          <small id="llm-provider-help"></small>
+        </label>
+        <label>Model ID
+          <input id="llm-model" list="llm-model-options" autocomplete="off" spellcheck="false" placeholder="openrouter/free">
+          <datalist id="llm-model-options"></datalist>
+          <small>Tool calls are required. Image input is optional when you supply labels manually.</small>
+        </label>
+        <label id="llm-base-url-field" hidden>OpenAI-compatible base URL
+          <input id="llm-base-url" type="url" autocomplete="off" spellcheck="false" placeholder="http://localhost:11434/v1">
+          <small>For Ollama, LM Studio, or another compatible service.</small>
+        </label>
+        <label>API key <span id="llm-key-optional"></span>
+          <div class="secret-input">
+            <input id="llm-api-key" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your provider key">
+            <button id="toggle-llm-key" type="button">Show</button>
+          </div>
+          <small>Sent only with chat requests.</small>
+        </label>
+      </div>
+      <label class="remember-key">
+        <input id="remember-llm-key" type="checkbox">
+        <span><b>Remember key in this browser</b><small>Leave off on shared computers.</small></span>
+      </label>
+      <div class="dialog-actions">
+        <button class="button ghost" value="cancel">Cancel</button>
+        <button id="save-llm-settings" class="button primary" type="button">Save and use</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="robot-dialog">
+    <form method="dialog" class="dialog-card robot-dialog-card">
+      <div class="dialog-heading">
+        <div>
+          <h2>Connect physical SO-101</h2>
+          <p id="robot-setup-position">Step 1 of 4 · Prepare</p>
+        </div>
+        <button class="dialog-close" value="cancel" aria-label="Close robot connection dialog">×</button>
+      </div>
+
+      <ol class="setup-progress" aria-label="Physical robot setup progress">
+        <li data-setup-progress="1"><span>1</span><b>Prepare</b></li>
+        <li data-setup-progress="2"><span>2</span><b>Devices</b></li>
+        <li data-setup-progress="3"><span>3</span><b>Calibration</b></li>
+        <li data-setup-progress="4"><span>4</span><b>Review</b></li>
+      </ol>
+
+      <div class="robot-setup-content">
+        <section class="robot-setup-step" data-setup-step="1">
+          <div class="setup-step-heading">
+            <h3>Prepare the physical workspace</h3>
+            <p>This wizard connects an assembled, motor-configured SO-101. It never runs an implicit calibration or trajectory.</p>
+          </div>
+          <div class="setup-checklist">
+            <label><input id="setup-confirm-built" type="checkbox"><span><b>The arm is ready for software</b><small>All six motor IDs and baud rates were configured previously.</small></span></label>
+            <label><input id="setup-confirm-secure" type="checkbox"><span><b>The follower is secured, compact, and supported</b><small>Clamp the base, use the correct power supply, clear the sweep, and support the links because motor configuration briefly releases holding torque.</small></span></label>
+            <label><input id="setup-confirm-stop" type="checkbox"><span><b>I can stop it immediately</b><small>Keep the motor power connection and Stop + disconnect within reach. The browser control is not a certified emergency stop; cut motor power if software does not respond.</small></span></label>
+          </div>
+          <div class="setup-callout"><b>Connection contract</b><span>The portal reads each raw joint position and writes it back as that servo's hold target before torque is enabled. Torque then holds the pose while all motion controls remain locked.</span></div>
+        </section>
+
+        <section class="robot-setup-step" data-setup-step="2" hidden>
+          <div class="setup-step-heading">
+            <h3>Discover and assign devices</h3>
+            <p>Scan first, then confirm which serial device is the follower and which camera is mounted on its wrist.</p>
+          </div>
+          <div class="hardware-discovery-row">
+            <div>
+              <b>Hardware check</b>
+              <span id="hardware-discovery-status">Not scanned</span>
+            </div>
+            <button id="discover-hardware-button" class="button secondary" type="button">Scan connected hardware</button>
+          </div>
+          <div id="hardware-discovery-error" class="setup-inline-status" hidden></div>
+          <div class="setup-device-hint"><b>Unsure which port is the follower?</b> Disconnect only the leader’s USB, scan again, and choose the serial device that remains. Reconnect the leader afterward.</div>
+          <div class="robot-fields setup-required-fields">
+            <label>Follower USB port
+              <input id="real-port" list="serial-port-options" placeholder="Scan to choose a serial device" autocomplete="off">
+              <small>Required · motor bus connected to the physical follower.</small>
+            </label>
+            <label>Wrist camera
+              <input id="real-camera-index" list="camera-index-options" type="number" min="0" value="0">
+              <small>Required · usually camera 0 when only one camera is connected.</small>
+            </label>
+          </div>
+          <div class="camera-settings">
+            <label>Output width<input id="real-camera-width" type="number" min="160" max="1920" value="480"></label>
+            <label>Output height<input id="real-camera-height" type="number" min="120" max="1920" value="640"></label>
+            <label>FPS<input id="real-camera-fps" type="number" min="5" max="60" value="30"></label>
+            <label>Orientation
+              <select id="real-camera-rotation">
+                <option value="0">No rotation</option>
+                <option value="90" selected>90° counter-clockwise</option>
+                <option value="180">180°</option>
+                <option value="270">90° clockwise</option>
+              </select>
+            </label>
+          </div>
+          <details class="optional-hardware">
+            <summary>Leader arm · optional for later teleoperation</summary>
+            <label>Leader USB port
+              <input id="real-leader-port" list="serial-port-options" placeholder="Optional" autocomplete="off">
+              <small>The current portal records this assignment but connects only the follower.</small>
+            </label>
+          </details>
+        </section>
+
+        <section class="robot-setup-step" data-setup-step="3" hidden>
+          <div class="setup-step-heading">
+            <h3>Match saved calibration</h3>
+            <p>LeRobot stores calibration by ID. Reuse exactly the same ID that was used when this physical arm was calibrated.</p>
+          </div>
+          <div class="robot-fields setup-calibration-fields">
+            <label>Follower calibration ID
+              <input id="real-robot-id" list="follower-id-options" placeholder="Choose a saved follower ID" autocomplete="off">
+              <small>Required for connection and software joint limits.</small>
+            </label>
+            <label>Leader calibration ID
+              <input id="real-leader-id" list="leader-id-options" placeholder="Optional" autocomplete="off">
+              <small>Optional until leader teleoperation is enabled.</small>
+            </label>
+          </div>
+          <div id="calibration-summary" class="calibration-summary">Saved calibration has not been inspected.</div>
+          <div id="leader-calibration-summary" class="calibration-summary secondary">Leader calibration is optional.</div>
+          <details class="joint-limit-details">
+            <summary>Review follower software joint limits</summary>
+            <div id="joint-limit-list" class="joint-limit-list"></div>
+          </details>
+          <div class="setup-callout neutral">
+            <b>Calibration is deliberate</b>
+            <span>If the follower calibration is missing, this wizard stops. Perform the guided LeRobot calibration once, return here, and scan again.</span>
+            <a href="https://huggingface.co/docs/lerobot/so101#calibrate" target="_blank" rel="noreferrer">Open official calibration guide</a>
+          </div>
+        </section>
+
+        <section class="robot-setup-step" data-setup-step="4" hidden>
+          <div class="setup-step-heading">
+            <h3>Review and connect safely</h3>
+            <p>Confirm the hardware. Connection seeds the current raw joint positions as hold targets, configures the motors, and opens the camera. It does not run a trajectory.</p>
+          </div>
+          <dl class="hardware-review">
+            <div><dt>Follower</dt><dd id="setup-review-follower">Not selected</dd></div>
+            <div><dt>Calibration</dt><dd id="setup-review-calibration">Not selected</dd></div>
+            <div><dt>Wrist camera</dt><dd id="setup-review-camera">Not selected</dd></div>
+            <div><dt>Leader</dt><dd id="setup-review-leader">Optional · not connected</dd></div>
+          </dl>
+          <label class="setup-final-confirmation">
+            <input id="setup-confirm-connect" type="checkbox">
+            <span><b>Connect with motion controls locked</b><small>I am supporting the arm during the brief torque release. After connection, torque holds the current pose; moving the arm still requires a separate Arm manual control action.</small></span>
+          </label>
+          <div class="hardware-note">After connection, Workspace setup guides camera calibration, three measured survey poses, tabletop bounds, and a slow kinematic check. Scans and exact motion plans remain separately approval-gated.</div>
+        </section>
+      </div>
+
+      <datalist id="serial-port-options"></datalist>
+      <datalist id="follower-id-options"></datalist>
+      <datalist id="leader-id-options"></datalist>
+      <datalist id="camera-index-options"></datalist>
+      <div id="robot-setup-message" class="robot-setup-message" role="alert" hidden></div>
+      <div class="dialog-actions">
+        <button class="button ghost" value="cancel">Cancel</button>
+        <button id="robot-setup-back" class="button secondary" type="button" hidden>Back</button>
+        <button id="robot-setup-next" class="button primary" type="button">Continue</button>
+        <button id="connect-real-button" class="button primary" type="button" hidden>Connect safely</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="physical-calibration-dialog">
+    <form method="dialog" class="dialog-card physical-calibration-card">
+      <div class="dialog-heading">
+        <div>
+          <h2>Calibrate the physical workspace</h2>
+          <p id="physical-calibration-position">Step 1 of 4 · Camera</p>
+        </div>
+        <button class="dialog-close" value="cancel" aria-label="Close physical calibration">×</button>
+      </div>
+
+      <ol class="setup-progress physical-progress" aria-label="Physical workspace calibration progress">
+        <li data-physical-progress="1"><span>1</span><b>Camera</b></li>
+        <li data-physical-progress="2"><span>2</span><b>Survey poses</b></li>
+        <li data-physical-progress="3"><span>3</span><b>Workspace</b></li>
+        <li data-physical-progress="4"><span>4</span><b>Ready</b></li>
+      </ol>
+
+      <div class="robot-setup-content physical-calibration-content">
+        <section class="robot-setup-step" data-physical-step="1">
+          <div class="setup-step-heading">
+            <h3>Calibrate the wrist camera</h3>
+            <p>Print the 8 × 6 inner-corner checkerboard at 100% scale. Show it from at least ten varied angles; keep the full pattern sharp and visible.</p>
+          </div>
+          <div class="calibration-camera">
+            <img id="calibration-wrist-stream" alt="Live wrist camera view">
+          </div>
+          <div class="calibration-action-row">
+            <a class="button secondary" href="/static/checkerboard.html" target="_blank">Open printable target</a>
+            <button id="capture-intrinsic-button" class="button secondary" type="button">Capture sample</button>
+            <button id="solve-intrinsic-button" class="button primary" type="button">Solve intrinsics</button>
+          </div>
+          <div id="intrinsic-calibration-status" class="setup-callout neutral">0 of 10 samples captured</div>
+          <div class="setup-callout"><b>Use the live camera</b><span>Move either the arm or target between samples. Repeated copies of the same view do not constrain focal length and distortion well.</span></div>
+        </section>
+
+        <section class="robot-setup-step" data-physical-step="2" hidden>
+          <div class="setup-step-heading">
+            <h3>Teach one safe travel pose and three camera poses</h3>
+            <p>Place the checkerboard face-up and flat. Measure the first inner corner nearest the red marker from the tabletop point directly below the fixed-base center: +X goes into the desk and +Y goes robot-left. Board yaw is the counter-clockwise angle from robot +X to printed +X. The portal accounts for printed +Y running down the page and printed +Z pointing into the table. Keep the board fixed for all three recordings.</p>
+          </div>
+          <div class="board-pose-fields">
+            <label>Board X (m)<input id="board-origin-x" type="number" min="-1" max="1" step="0.001" value="0.12" required></label>
+            <label>Board Y (m)<input id="board-origin-y" type="number" min="-1" max="1" step="0.001" value="-0.08" required></label>
+            <label>Board Z (m)<input id="board-origin-z" type="number" min="-0.2" max="0.5" step="0.001" value="0" required></label>
+            <label>Board yaw (°)<input id="board-yaw" type="number" min="-180" max="180" step="0.1" value="0" required></label>
+          </div>
+          <div class="setup-callout neutral"><b>Accuracy-critical</b><span>These measurements register camera pixels to robot coordinates. A 20 mm origin error becomes roughly a 20 mm grasp error. Teach genuinely different left/center/right positions with at least 15° of wrist-frame rotation across the set.</span></div>
+          <div class="calibration-camera">
+            <img id="survey-wrist-stream" alt="Live wrist camera view">
+          </div>
+          <div class="calibration-manual-heading">
+            <span>Hold to move. Release—or a lost browser heartbeat—stops the command.</span>
+            <button id="calibration-arm-button" class="button secondary" type="button">Arm manual control</button>
+          </div>
+          <div id="calibration-joint-controls" class="joint-controls calibration-joints"></div>
+          <div class="pose-record-grid">
+            <button id="record-travel-button" class="pose-record" type="button"><b>Safe travel</b><span id="travel-pose-state">Not recorded</span></button>
+            <button class="pose-record" data-record-viewpoint="survey_left" type="button"><b>Left view</b><span data-viewpoint-state="survey_left">Not recorded</span></button>
+            <button class="pose-record" data-record-viewpoint="survey_center" type="button"><b>Center view</b><span data-viewpoint-state="survey_center">Not recorded</span></button>
+            <button class="pose-record" data-record-viewpoint="survey_right" type="button"><b>Right view</b><span data-viewpoint-state="survey_right">Not recorded</span></button>
+          </div>
+          <div id="survey-kinematic-status" class="setup-callout neutral"><b>Kinematic check</b><span>Record three distinct survey poses first.</span></div>
+        </section>
+
+        <section class="robot-setup-step" data-physical-step="3" hidden>
+          <div class="setup-step-heading">
+            <h3>Define the reachable tabletop region</h3>
+            <p>These bounds crop reconstruction and define the three placement points. Measure them in metres from the robot base: +X forward, +Y left, Z=0 on the tabletop.</p>
+          </div>
+          <div class="workspace-calibration-grid">
+            <label>X min<input id="workspace-x-min" type="number" step="0.001" value="0.10" required></label>
+            <label>X max<input id="workspace-x-max" type="number" step="0.001" value="0.34" required></label>
+            <label>Y min<input id="workspace-y-min" type="number" step="0.001" value="-0.20" required></label>
+            <label>Y max<input id="workspace-y-max" type="number" step="0.001" value="0.20" required></label>
+            <label>Z max<input id="workspace-z-max" type="number" min="0.01" max="0.5" step="0.001" value="0.12" required></label>
+            <label>Table X min<input id="table-x-min" type="number" step="0.001" value="-0.08" required></label>
+            <label>Table X max<input id="table-x-max" type="number" step="0.001" value="0.60" required></label>
+            <label>Table Y min<input id="table-y-min" type="number" step="0.001" value="-0.38" required></label>
+            <label>Table Y max<input id="table-y-max" type="number" step="0.001" value="0.38" required></label>
+            <label>Left Y<input id="destination-left-y" type="number" step="0.001" value="0.16" required></label>
+            <label>Center X<input id="destination-x" type="number" step="0.001" value="0.18" required></label>
+            <label>Right Y<input id="destination-right-y" type="number" step="0.001" value="-0.16" required></label>
+            <label>Gripper open (%)<input id="gripper-open" type="number" min="1" max="99" step="1" value="70" required></label>
+            <label>Gripper closed (%)<input id="gripper-closed" type="number" min="1" max="99" step="1" value="8" required></label>
+          </div>
+          <label class="setup-final-confirmation">
+            <input id="confirm-base-registration" type="checkbox">
+            <span><b>I measured every XY value from the robot base datum</b><small>The checkerboard, table bounds, workspace bounds, and destinations all use the same +X-forward, +Y-left frame. The base, camera mount, table, and checkerboard have not moved since the three survey poses were recorded.</small></span>
+          </label>
+          <label class="setup-final-confirmation">
+            <input id="confirm-kinematic-model" type="checkbox">
+            <span><b>I manually verified zero pose and all five arm-joint directions</b><small>Using slow manual control, confirm the physical arm matches the portal's SO-101 model. The portal also checks all three measured camera poses against forward kinematics before enabling manipulation.</small></span>
+          </label>
+          <div id="kinematic-validation-status" class="setup-callout neutral"><b>Kinematic check</b><span>Record three distinct survey poses first.</span></div>
+          <button id="save-workspace-button" class="button primary" type="button">Save workspace</button>
+        </section>
+
+        <section class="robot-setup-step" data-physical-step="4" hidden>
+          <div class="physical-ready-summary">
+            <span class="status-dot connected"></span>
+            <div><h3 id="physical-ready-title">Calibration incomplete</h3><p id="physical-ready-copy"></p></div>
+          </div>
+          <div class="setup-callout neutral"><b>How testing works</b><span>Approve one three-view scan, then ask the copilot to capture the empty table. Approve a second scan after placing objects. Physical pick-and-place always pauses at a reviewed, exact-plan approval.</span></div>
+          <div class="setup-callout"><b>First live pass</b><span>Move each joint a few degrees, build and inspect the scene, compare one reconstructed XY position with a ruler, then generate a plan without executing it. Use one light object for the first approved motion.</span></div>
+          <button id="clear-physical-calibration-button" class="button danger-ghost" type="button">Delete this workspace profile</button>
+        </section>
+      </div>
+
+      <div id="physical-calibration-message" class="robot-setup-message" role="alert" hidden></div>
+      <div class="dialog-actions">
+        <button class="button ghost" value="cancel">Close</button>
+        <button id="physical-calibration-back" class="button secondary" type="button" hidden>Back</button>
+        <button id="physical-calibration-next" class="button primary" type="button">Continue</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
