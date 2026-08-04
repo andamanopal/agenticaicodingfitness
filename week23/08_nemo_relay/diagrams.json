@@ -1,0 +1,87 @@
+{
+  "hero": "08-nemo-relay.jpg",
+  "architecture": {
+    "title": "NeMo Relay — the observe → learn → optimize layer under a long-running agent",
+    "caption": "A relay wraps every tool and model call of a Hermes turn in a telemetry span, a right-sizing router sends easy prompts to a small model and hard ones to the big one, and one OTel instrumentation fans the same trace out to Phoenix, Datadog or LangSmith — with slow/expensive spans curated as Data Flywheel feedstock. Relay itself is early/limited availability, so you build the substrate: spans, Phoenix, router, OTLP export.",
+    "lanes": [
+      {"id": "laptop", "label": "Your laptop — agent + relay (lab code)"},
+      {"id": "dgx-spark", "label": "DGX Spark — model endpoints (Ollama :11434/v1)"},
+      {"id": "observability", "label": "Observability & flywheel backends"}
+    ],
+    "nodes": [
+      {"id": "hermes-agent", "label": "Hermes agent turn", "lane": "laptop", "sub": "tool → llm → tool · thousands of calls over a long run"},
+      {"id": "relay", "label": "Minimal relay (lab01)", "lane": "laptop", "sub": "~40 lines · a span per call with measured latency + gen_ai.usage.* tokens", "accent": "cyan"},
+      {"id": "router", "label": "Right-sizing router (lab02)", "lane": "laptop", "sub": "heuristic easy/medium/hard classifier picks the backend per request", "accent": "green"},
+      {"id": "small-model", "label": "gemma3:12b (small)", "lane": "dgx-spark", "sub": "easy prompts · measured 1.1 s, 8 out-tokens"},
+      {"id": "big-model", "label": "qwen3.6:35b-a3b-q8_0 (big)", "lane": "dgx-spark", "sub": "hard prompts · measured 11.4 s, 227 out-tokens", "accent": "cyan"},
+      {"id": "phoenix", "label": "Arize Phoenix :6006", "lane": "observability", "sub": "UI + OTLP-HTTP /v1/traces · gRPC :4317 · SPARK-1 verified — keep on box/VPN, spans carry prompts", "accent": "violet"},
+      {"id": "other-backends", "label": "Datadog / LangSmith", "lane": "observability", "sub": "same OTel doc — one instrumentation, many backends, no lock-in"},
+      {"id": "flywheel", "label": "Data Flywheel (App 11)", "lane": "observability", "sub": "curated slow/expensive spans as JSONL → fine-tune feedstock", "accent": "amber"}
+    ],
+    "edges": [
+      {"from": "hermes-agent", "to": "relay", "label": "every tool + LLM call becomes a span", "animated": true},
+      {"from": "relay", "to": "router", "label": "llm requests pass through the gateway"},
+      {"from": "router", "to": "small-model", "label": "route(easy)"},
+      {"from": "router", "to": "big-model", "label": "route(hard)", "animated": true},
+      {"from": "relay", "to": "phoenix", "label": "POST OTel trace → OTLP-HTTP", "animated": true},
+      {"from": "relay", "to": "other-backends", "label": "same exporter fan-out"},
+      {"from": "relay", "to": "flywheel", "label": "slow/expensive spans → JSONL (scrub PII first)"}
+    ]
+  },
+  "sequence": {
+    "title": "One Hermes turn: spans captured, routed, exported to Phoenix",
+    "caption": "The relay measures — it never guesses: token counts come from the API response's usage field, latency from wall-clock timing. The trace then travels to Phoenix over OTLP-HTTP where the span tree becomes inspectable evidence.",
+    "actors": [
+      {"id": "agent", "label": "Hermes agent"},
+      {"id": "relay", "label": "Relay (lab01)"},
+      {"id": "router", "label": "Router (lab02)"},
+      {"id": "model", "label": "Model endpoint"},
+      {"id": "phoenix", "label": "Phoenix :6006"}
+    ],
+    "steps": [
+      {"from": "agent", "to": "relay", "label": "tool call: read_demos (real file I/O)", "kind": "call"},
+      {"from": "relay", "to": "agent", "label": "span [tool] read_demos · 0.8 ms", "kind": "return"},
+      {"from": "agent", "to": "relay", "label": "llm call: summarize", "kind": "call"},
+      {"from": "relay", "to": "router", "label": "classify prompt → easy | medium | hard", "kind": "call"},
+      {"from": "router", "to": "model", "label": "route(hard) → qwen3.6:35b · route(easy) → gemma3:12b", "kind": "call"},
+      {"from": "model", "to": "router", "label": "response + usage tokens (gen_ai.usage.*)", "kind": "return"},
+      {"from": "router", "to": "relay", "label": "span [llm] summarize · 2223.4 ms · $0.000017", "kind": "return"},
+      {"from": "relay", "to": "agent", "label": "answer; agent span hermes-turn closes at 2225 ms", "kind": "return"},
+      {"from": "relay", "to": "phoenix", "label": "POST trace_lab01.json → /v1/traces (OTLP-HTTP)", "kind": "call"},
+      {"from": "phoenix", "to": "relay", "label": "HTTP 200 — trace accepted; span tree visible in the UI", "kind": "return"},
+      {"from": "relay", "to": "phoenix", "label": "curate slow/expensive spans → flywheel JSONL — and remember: 'equal outcome' from routing is a claim until App 09's LLM-judge proves it", "kind": "note"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Where the time goes — span latency in one agent turn",
+      "type": "hbars",
+      "unit": "ms",
+      "labels": ["tool · read_demos", "llm · summarize", "hermes-turn (agent)"],
+      "series": [
+        {"name": "measured latency", "values": [0.8, 2223.4, 2225], "color": "cyan"}
+      ],
+      "caption": "Measured by lab01_build_a_relay.py (TUTORIAL step 2 expected output; your numbers WILL differ — they're measured). The llm span dwarfs the tool spans, which is why the router targets model calls, not tool calls."
+    },
+    {
+      "title": "Right-sizing router — same measured tokens, priced two ways",
+      "type": "bars",
+      "unit": "$ per 3-request batch",
+      "labels": ["relay-routed", "always-big"],
+      "series": [
+        {"name": "cost", "values": [0.000572, 0.00063], "color": "green"}
+      ],
+      "caption": "lab02_rightsize_router.py: the SAME measured tokens priced at illustrative $/M-token tiers — routed is 9% cheaper at (claimed) equal outcome. The saving is dominated by how much easy traffic you have, and the equal-outcome claim needs App 09's LLM-judge before production."
+    },
+    {
+      "title": "Routed latency — small vs big backend (measured)",
+      "type": "bars",
+      "unit": "seconds",
+      "labels": ["easy → gemma3:12b (8 out-tok)", "hard → qwen3.6:35b (227 out-tok)"],
+      "series": [
+        {"name": "wall-clock latency", "values": [1.1, 11.4], "color": "violet"}
+      ],
+      "caption": "lab02's real calls (TUTORIAL step 4 expected output, measured on the course setup): the easy request answers in 1.1 s with 8 output tokens on the small model; the hard diagnosis takes 11.4 s and 227 tokens on the big one."
+    }
+  ]
+}

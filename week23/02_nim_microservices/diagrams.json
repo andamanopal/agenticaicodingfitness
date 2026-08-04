@@ -1,0 +1,82 @@
+{
+  "hero": "02-nim-microservices.jpg",
+  "architecture": {
+    "title": "NIM — one signed container, the same OpenAI API everywhere",
+    "caption": "One docker run pulls a signed container from NGC and brings up model + auto-selected engine + OpenAI API on :8000. The client only ever changes base_url — that swap is the whole migration from laptop Ollama to Spark NIM to hosted cloud.",
+    "lanes": [
+      {"id": "your-laptop", "label": "Your laptop"},
+      {"id": "dgx-spark", "label": "DGX Spark (aarch64)"},
+      {"id": "nvidia-cloud", "label": "NVIDIA cloud"}
+    ],
+    "nodes": [
+      {"id": "openai-client", "label": "OpenAI SDK client", "lane": "your-laptop", "sub": "only base_url / api_key / model ever change", "accent": "cyan"},
+      {"id": "ollama-local", "label": "Ollama :11434/v1", "lane": "your-laptop", "sub": "path C — the laptop concept-equivalent (ollama run gemma4)", "accent": "green"},
+      {"id": "nim-container", "label": "NIM container :8000/v1", "lane": "dgx-spark", "sub": "model + TensorRT-LLM/vLLM/SGLang engine + OpenAI API", "accent": "green"},
+      {"id": "nim-cache", "label": "NIM cache", "lane": "dgx-spark", "sub": "~/.cache/nim — 10–50 GB weights on first start", "accent": "amber"},
+      {"id": "ngc-registry", "label": "nvcr.io (NGC registry)", "lane": "nvidia-cloud", "sub": "docker login with NGC_API_KEY · -dgx-spark = ARM64 tags", "accent": "amber"},
+      {"id": "hosted-nim", "label": "integrate.api.nvidia.com/v1", "lane": "nvidia-cloud", "sub": "hosted NIMs · usage-billed, convenient — not sovereign", "accent": "violet"}
+    ],
+    "edges": [
+      {"from": "openai-client", "to": "nim-container", "label": "POST /v1/chat/completions", "animated": true},
+      {"from": "ngc-registry", "to": "nim-container", "label": "docker pull …-dgx-spark:latest", "animated": true},
+      {"from": "nim-container", "to": "nim-cache", "label": "first-start weight download"},
+      {"from": "openai-client", "to": "ollama-local", "label": "same code, base_url swapped"},
+      {"from": "openai-client", "to": "hosted-nim", "label": "same code, Bearer nvapi-"}
+    ]
+  },
+  "sequence": {
+    "title": "Deploy a NIM on the Spark, then call it like the cloud",
+    "caption": "TUTORIAL.md steps 3–5: one docker run gives you a production endpoint; /v1/health/ready plus a one-model /v1/models list is the classic NIM fingerprint from lab01.",
+    "actors": [
+      {"id": "ops", "label": "You (SSH / DGX console)"},
+      {"id": "ngc", "label": "nvcr.io (NGC)"},
+      {"id": "nim", "label": "NIM container :8000"},
+      {"id": "client", "label": "OpenAI client"}
+    ],
+    "steps": [
+      {"from": "ops", "to": "ngc", "label": "docker login nvcr.io ($oauthtoken + NGC_API_KEY)", "kind": "call"},
+      {"from": "ngc", "to": "ops", "label": "Login Succeeded", "kind": "return"},
+      {"from": "ops", "to": "nim", "label": "docker run --gpus all --shm-size 16GB -p 8000:8000 …-dgx-spark", "kind": "call"},
+      {"from": "nim", "to": "ngc", "label": "download GB10 engine profile + 10–50 GB weights", "kind": "call"},
+      {"from": "nim", "to": "ops", "label": "Uvicorn running on 0.0.0.0:8000", "kind": "return"},
+      {"from": "ops", "to": "nim", "label": "GET /v1/health/ready", "kind": "call"},
+      {"from": "nim", "to": "ops", "label": "200 · \"Service is ready\" — the NIM fingerprint", "kind": "return"},
+      {"from": "client", "to": "nim", "label": "POST /v1/chat/completions (OpenAI SDK, stream=True)", "kind": "call"},
+      {"from": "nim", "to": "client", "label": "streamed tokens — identical API to the cloud", "kind": "return"},
+      {"from": "client", "to": "nim", "label": "promotion drill (lab02): Ollama → NIM → cloud = 0 client lines changed", "kind": "note"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Will this NIM fit a 128 GB Spark? (NVFP4, ×1.18 overhead)",
+      "type": "hbars",
+      "unit": "GB",
+      "labels": ["llama-3.1-8b", "nemotron-3-nano 30B", "qwen3-32b", "nemotron-3-super 120B", "nemotron-3-ultra 550B"],
+      "series": [
+        {"name": "needed GB", "values": [5.2, 19.5, 20.8, 77.9, 357], "color": "cyan"},
+        {"name": "usable budget (128 × 0.9)", "values": [115, 115, 115, 115, 115], "color": "green"}
+      ],
+      "caption": "lab03_spark_fit_check.py: params_B × 0.55 GB/B (NVFP4) × 1.18 overhead vs the ~115 GB usable budget. Super fits only at Q4/NVFP4; Ultra (≈357 GB) fits nowhere on Sparks — cloud-only. Run the fit math before a 50 GB pull."
+    },
+    {
+      "title": "base_url swap — time to first token",
+      "type": "bars",
+      "unit": "s",
+      "labels": ["endpoint A · local Ollama", "endpoint B · build.nvidia.com"],
+      "series": [
+        {"name": "first token", "values": [0.18, 0.6], "color": "amber"}
+      ],
+      "caption": "lab02_base_url_swap.py expected-output samples (illustrative — your numbers will differ): the cloud call adds network RTT + gateway queueing. The point is the code diff between the two calls: 0 lines."
+    },
+    {
+      "title": "base_url swap — decode throughput",
+      "type": "bars",
+      "unit": "tok/s",
+      "labels": ["endpoint A · local Ollama", "endpoint B · build.nvidia.com"],
+      "series": [
+        {"name": "tok/s", "values": [18.1, 12.2], "color": "green"}
+      ],
+      "caption": "Same lab02 expected-output samples (illustrative): ~38 tok in 2.1 s locally vs ~41 tok in 3.4 s hosted. Identical client code measured both — the swap drill is the entire migration cost."
+    }
+  ]
+}

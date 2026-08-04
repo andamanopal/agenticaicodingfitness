@@ -1,0 +1,88 @@
+{
+  "hero": "03-dynamo-serving.jpg",
+  "architecture": {
+    "title": "Dynamo — disaggregated prefill/decode behind one OpenAI frontend",
+    "caption": "Prefill is compute-bound and decode is memory-bound, so Dynamo splits them into separate right-sized pools, routes requests to the worker that already caches the prefix, and lets an SLO Planner grow each pool independently — all behind the same /v1 surface as NIM, vLLM, or Ollama.",
+    "lanes": [
+      {"id": "clients", "label": "Agent clients"},
+      {"id": "dynamo-control", "label": "Dynamo frontend & control plane"},
+      {"id": "worker-pools", "label": "Worker pools (1–2 Sparks / GPU fleet)"}
+    ],
+    "nodes": [
+      {"id": "agent-fleet", "label": "Agent fleet", "lane": "clients", "sub": "re-sends the same ~500-token system prompt every turn", "accent": "cyan"},
+      {"id": "frontend", "label": "Dynamo frontend :8000", "lane": "dynamo-control", "sub": "OpenAI-compatible — same /v1 surface as NIM/vLLM/Ollama", "accent": "green"},
+      {"id": "kv-router", "label": "KV-cache-aware router", "lane": "dynamo-control", "sub": "prefix hash → the worker that already holds the KV cache", "accent": "cyan"},
+      {"id": "slo-planner", "label": "SLO Planner", "lane": "dynamo-control", "sub": "declared TTFT/ITL targets drive pool autoscaling", "accent": "violet"},
+      {"id": "control-plane", "label": "etcd :2379 + NATS :4222", "lane": "dynamo-control", "sub": "worker registration and messaging", "accent": "amber"},
+      {"id": "prefill-pool", "label": "Prefill workers", "lane": "worker-pools", "sub": "compute-bound — TTFT scales with input tokens", "accent": "amber"},
+      {"id": "nixl", "label": "NIXL", "lane": "worker-pools", "sub": "moves KV cache prefill → decode across nodes (QSFP 200GbE)", "accent": "violet"},
+      {"id": "decode-pool", "label": "Decode workers", "lane": "worker-pools", "sub": "memory-bound — 273 GB/s bounds tok/s on a Spark", "accent": "green"}
+    ],
+    "edges": [
+      {"from": "agent-fleet", "to": "frontend", "label": "POST /v1/chat/completions", "animated": true},
+      {"from": "frontend", "to": "kv-router", "label": "prefix hash"},
+      {"from": "kv-router", "to": "prefill-pool", "label": "MISS → full prefill", "animated": true},
+      {"from": "prefill-pool", "to": "nixl", "label": "KV cache handoff"},
+      {"from": "nixl", "to": "decode-pool", "label": "KV cache lands, decode streams", "animated": true},
+      {"from": "decode-pool", "to": "agent-fleet", "label": "streamed tokens"},
+      {"from": "slo-planner", "to": "prefill-pool", "label": "TTFT breach → grow prefill"},
+      {"from": "slo-planner", "to": "decode-pool", "label": "ITL creep → grow decode"},
+      {"from": "frontend", "to": "control-plane", "label": "register / discover workers"}
+    ]
+  },
+  "sequence": {
+    "title": "One request through disaggregated serving",
+    "caption": "The runtime flow the labs measure by hand: prefill produces the KV cache and the first token's latency, NIXL moves that cache to a decode worker, and warm prefix repeats skip prefill entirely.",
+    "actors": [
+      {"id": "client", "label": "Client"},
+      {"id": "frontend", "label": "Frontend :8000"},
+      {"id": "router", "label": "KV-aware router"},
+      {"id": "prefill-worker", "label": "Prefill worker"},
+      {"id": "decode-worker", "label": "Decode worker"}
+    ],
+    "steps": [
+      {"from": "client", "to": "frontend", "label": "POST /v1/chat/completions (stream=True)", "kind": "call"},
+      {"from": "frontend", "to": "router", "label": "hash the prompt prefix, look up cached workers", "kind": "call"},
+      {"from": "router", "to": "prefill-worker", "label": "MISS → prefill 849 input tokens (compute-bound)", "kind": "call"},
+      {"from": "prefill-worker", "to": "decode-worker", "label": "NIXL transfers the KV cache over the 200GbE fabric", "kind": "call"},
+      {"from": "decode-worker", "to": "client", "label": "first token — TTFT stops here", "kind": "return"},
+      {"from": "decode-worker", "to": "client", "label": "decode stream ~50 tok/s, near-constant (memory-bound)", "kind": "return"},
+      {"from": "router", "to": "prefill-worker", "label": "warm repeat: HIT skips prefill — lab02 sample: cold 780 ms → warm 160 ms TTFT", "kind": "note"},
+      {"from": "frontend", "to": "prefill-worker", "label": "SLO Planner: worst TTFT breaches 2000 ms at concurrency 4 → grow the prefill pool", "kind": "note"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Dynamo's stacked wins (simulation)",
+      "type": "bars",
+      "unit": "×",
+      "labels": ["naive worker", "+ KV routing", "+ disagg P/D", "+ SLO autoscale"],
+      "series": [
+        {"name": "throughput ×", "values": [1.0, 1.8, 3.1, 4.4], "color": "green"},
+        {"name": "cost/token ×", "values": [1.0, 0.58, 0.34, 0.24], "color": "red"}
+      ],
+      "caption": "Illustrative factors from this app's sim.py (demos step02/step03) — labeled sim-derived in the tutorial; real value depends on your prefix-sharing rate. Low-QPS, no-shared-prefix workloads don't need Dynamo."
+    },
+    {
+      "title": "Prefill scales with input, decode doesn't",
+      "type": "bars",
+      "unit": "ms TTFT",
+      "labels": ["SHORT · 11 tok in", "LONG · 849 tok in"],
+      "series": [
+        {"name": "TTFT", "values": [142, 891], "color": "amber"}
+      ],
+      "caption": "lab01_prefill_vs_decode.py sample expected output (illustrative — measure your own endpoint): TTFT grows 6.3× with input length while decode stays 51.8 vs 50.9 tok/s. That asymmetry is the entire case for disaggregation."
+    },
+    {
+      "title": "SLO ramp — worst TTFT vs the declared objective",
+      "type": "bars",
+      "unit": "ms",
+      "labels": ["concurrency 1", "concurrency 4"],
+      "series": [
+        {"name": "worst TTFT", "values": [410, 2350], "color": "cyan"},
+        {"name": "SLO: TTFT ≤ 2000", "values": [2000, 2000], "color": "red"}
+      ],
+      "caption": "lab03_slo_economics.py sample expected output (illustrative): aggregate throughput rose 50.4 → 151.9 tok/s even as TTFT broke the 2000 ms SLO — throughput and latency pull in opposite directions, which is why you declare objectives. At 151.9 tok/s the Spark's 240 W costs ≈$0.0658/1M tokens, electricity only."
+    }
+  ]
+}

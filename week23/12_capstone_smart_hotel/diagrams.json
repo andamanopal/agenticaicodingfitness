@@ -1,0 +1,90 @@
+{
+  "hero": "12-capstone-smart-hotel.jpg",
+  "architecture": {
+    "title": "The capstone — every Week 23 layer wired into one hotel",
+    "caption": "The harness (tools, signed policy, relay, flywheel) is identical real Python in every mode — only the brain swaps between a live Nemotron endpoint and the deterministic SimBrain. Every tool call passes one policy choke-point before it can mutate the real HotelState.",
+    "lanes": [
+      {"id": "laptop", "label": "Your laptop — the harness (real Python)"},
+      {"id": "spark", "label": "DGX Spark — the brain"},
+      {"id": "cloud", "label": "Cloud (build.nvidia.com)"}
+    ],
+    "nodes": [
+      {"id": "router", "label": "Intent Router (AI-Q)", "lane": "laptop", "sub": "right-sizes Nano vs Super per request [Apps 05, 08]"},
+      {"id": "deep-agent", "label": "Deep Agent (Super)", "lane": "laptop", "sub": "plans the morning sweep, fans out work [App 05]"},
+      {"id": "specialists", "label": "NemoClaw specialists", "lane": "laptop", "sub": "Energy · Maintenance · Guest [App 06]", "accent": "cyan"},
+      {"id": "gateway", "label": "OpenShell signed policy", "lane": "laptop", "sub": "hotel-ops-2026.07 · sig ff108a8616d1e6a7 — one choke-point [App 07]", "accent": "amber"},
+      {"id": "world", "label": "HotelState — AltoTech Grand Bangkok", "lane": "laptop", "sub": "tools genuinely mutate it (WO-1203, setpoints, kW)", "accent": "green"},
+      {"id": "relay", "label": "Relay + Phoenix trace", "lane": "laptop", "sub": "cost · latency · tokens · Wh per span [Apps 08, 09]"},
+      {"id": "flywheel", "label": "Data Flywheel", "lane": "laptop", "sub": "verifiable rewards curate traces for a Nano student [Apps 10, 11]", "accent": "violet"},
+      {"id": "sim-brain", "label": "SimBrain (deterministic)", "lane": "laptop", "sub": "$0, no GPU — drives the same harness"},
+      {"id": "brain-spark", "label": "Nemotron via Ollama :11434/v1", "lane": "spark", "sub": "qwen3.6:35b workhorse — MODE: REAL, native tool-calling"},
+      {"id": "brain-cloud", "label": "Hosted Nemotron NIM", "lane": "cloud", "sub": "nvapi- key · usage-billed, not the sovereign path"}
+    ],
+    "edges": [
+      {"from": "router", "to": "deep-agent", "label": "hard → escalate to Super"},
+      {"from": "deep-agent", "to": "specialists", "label": "fan out the sweep", "animated": true},
+      {"from": "brain-spark", "to": "specialists", "label": "decide() — native tool_calls", "animated": true},
+      {"from": "brain-cloud", "to": "specialists", "label": "Path B — same API"},
+      {"from": "sim-brain", "to": "specialists", "label": "SIM fallback, same harness"},
+      {"from": "specialists", "to": "gateway", "label": "every tool call"},
+      {"from": "gateway", "to": "world", "label": "ALLOW → mutate state", "animated": true},
+      {"from": "gateway", "to": "relay", "label": "spans + verdicts"},
+      {"from": "relay", "to": "flywheel", "label": "traces → verifiable rewards"}
+    ]
+  },
+  "sequence": {
+    "title": "Room 1203 CRITICAL alarm — telemetry → SOP → policy-gated dispatch",
+    "caption": "The Ch 3 thread end-to-end: the Maintenance specialist reads real telemetry, retrieves the SOP, and files a CRITICAL work order — every call passing the signed policy, and the whole run priced by the Phoenix-style trace.",
+    "actors": [
+      {"id": "bms", "label": "BMS alarm"},
+      {"id": "maintenance", "label": "Maintenance specialist"},
+      {"id": "gateway", "label": "OpenShell gateway"},
+      {"id": "world", "label": "Hotel world (state)"},
+      {"id": "relay", "label": "Relay / Phoenix"}
+    ],
+    "steps": [
+      {"from": "bms", "to": "maintenance", "label": "\"Room 1203 temperature alarm — triage and act\"", "kind": "call"},
+      {"from": "maintenance", "to": "gateway", "label": "get_room_telemetry({room: 1203})", "kind": "call"},
+      {"from": "gateway", "to": "world", "label": "ALLOW — read on maintenance's allowlist", "kind": "call"},
+      {"from": "world", "to": "maintenance", "label": "temp 26.4°C vs setpoint 22.0 · Δ4.4°C · occupied", "kind": "return"},
+      {"from": "maintenance", "to": "gateway", "label": "search_sop('critical occupied room above setpoint')", "kind": "call"},
+      {"from": "world", "to": "maintenance", "label": "SOP: occupied + >3°C over setpoint → CRITICAL", "kind": "return"},
+      {"from": "maintenance", "to": "gateway", "label": "dispatch_work_order({room: 1203, priority: CRITICAL})", "kind": "call"},
+      {"from": "gateway", "to": "world", "label": "ALLOW → WO-1203 opened (state mutated)", "kind": "call"},
+      {"from": "relay", "to": "relay", "label": "trace: status ✓ · $0.00036 · 534 ms · 600 tok · ~5.83 Wh", "kind": "note"},
+      {"from": "gateway", "to": "gateway", "label": "contrast: a VIP setpoint change is DENIED → needs_human: True — escalated, not dropped", "kind": "note"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Right-sizing A/B — same rewards, smaller bill (lab03)",
+      "type": "bars",
+      "unit": "$ per morning sweep",
+      "labels": ["router (nano×7 + super×9)", "all-Super (super×16)"],
+      "series": [
+        {"name": "total cost", "values": [0.00078, 0.00135], "color": "green"}
+      ],
+      "caption": "Measured output of labs/lab02→lab03_router_goodput.py (offline SIM harness, illustrative NIM price table: Nano $0.10/Mtok, Super $0.60/Mtok): identical mean reward 0.88, 42% cost saved; goodput $0.000260 vs $0.000450 per successful decision."
+    },
+    {
+      "title": "Red-team battery — 7 attacks on the signed policy (lab02)",
+      "type": "donut",
+      "unit": "verdicts",
+      "labels": ["ALLOW (legitimate calls)", "DENY (band / allowlist)", "DENY → human (VIP escalation)"],
+      "series": [
+        {"name": "verdicts", "values": [3, 3, 1], "color": "amber"}
+      ],
+      "caption": "Real offline run of labs/lab02_policy_redteam.py: 3 allowed · 4 denied, one of which escalates to a human concierge; the tamper test then breaks signature ff108a8616d1e6a7."
+    },
+    {
+      "title": "Energy per morning sweep — router vs all-Super",
+      "type": "bars",
+      "unit": "Wh",
+      "labels": ["router (Nano+Super)", "all-Super"],
+      "series": [
+        {"name": "energy", "values": [12.44, 21.87], "color": "cyan"}
+      ],
+      "caption": "From the same lab03 A/B (illustrative wattage table: Nano 240 W, Super 700 W): 21.87 → 12.44 Wh at identical verifiable rewards — the router's whole argument."
+    }
+  ]
+}

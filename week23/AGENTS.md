@@ -130,6 +130,38 @@ browsers (localStorage only).
 
 ---
 
+## Mission 4 — Lab Runner visualization upgrade (workflow `week23-lab-runner-viz`, 7 agents + MCP)
+
+UX/UI pass on the Lab Runner driven by two MCP servers used in the main loop: **Mobbin** design
+research (Codecademy lesson affordances; LangSmith/Modal dark metric-card chart grids; Cloudflare
+sparklines) set the design contract, and **Higgsfield** generated the 21:9 header banner
+(`media/lab-runner-hero.jpg`, dark circuit-stack, green token streams).
+
+| Agent role | What it did |
+|---|---|
+| **Diagram authors ×4** | Wrote `diagrams.json` in all 12 folders (3 each): an architecture diagram (lanes/nodes/animated dataflow edges), a runtime sequence diagram, and 1–3 charts — every number grounded in the folder's own TUTORIAL/labs/runbook figures with sourced captions (e.g. 09's $0.2381 vs $1.2445 vs $1.80 per M-token; 01's NVFP4 fit-math; 07's measured red-team block rates). |
+| **Backend** | `/api/course` gains `hero` + `diagrams` per folder and injects a synthetic "📊 Visualize it" section before Labs; `/media/` route (allowlisted, traversal-safe); diagrams re-read on mtime change. |
+| **Frontend** | Generic inline-SVG toolkit, zero per-folder hardcoding: `drawArch` (lanes, topology-derived columns, SMIL glowing-dot dataflow pulses), `drawSeq` (lifelines, solid calls / dashed returns / note pills, staggered fade-in), `drawChart` (grow-in bars/hbars, draw-in lines, sweep-in donuts via IntersectionObserver) — all gated on `prefers-reduced-motion`; hero cards per tutorial intro + header banner. |
+| **QA** | All 12 specs referentially validated (fixed one rounding slip in 06's fit-math values), synthetic-section positioning verified, mtime hot-reload proven live, render smoke via node DOM-stub on all 12, `/api/run` + `/api/shell` regression green. |
+
+**Needs later:** diagrams are per-folder static specs — a future agent could generate charts live from actual lab-run output.
+
+---
+
+## Post-mission solo improvements (main-loop, not workflows)
+
+Incremental Lab Runner upgrades made directly after the Spark came online:
+
+1. **Per-run model picker** — `DGX_MODEL` added to the run/terminal env whitelist; a path-bar dropdown fed live from the Spark's `/v1/models` sends the chosen model with every ▶ Run and terminal command (persisted). Lets a lab run against `nemotron-3-super:120b` vs `nemotron-3-nano:4b` without leaving the page.
+2. **Configurable lab timeout** — `RUN_TIMEOUT` now reads `LAB_RUN_TIMEOUT` (default 150s); `connect-remote.env` sets 420s for slower tunneled big-model runs. Status API + timed-out message report the active cap.
+3. **Real-browser visual pass** (gstack `browse`) — screenshotted every view; fixed a real bug (Dynamo's architecture diagram collapsed to 27px because feedback edges inflated the canvas to 13k units — replaced with a topo-order layout that drops back-edges; all 12 now sane), a doubled 📊 sidebar icon, and a stale "local Ollama" path-C hint.
+4. **Run-history sparklines** — server records each lab run (ts, model, exit code, seconds, parsed tok/s) to gitignored `.run_history.json` (last 50/lab) via `/api/history`; each lab card shows a 20-run sparkline (dot color = exit status, height = duration, hover = full detail) + a "✓ Ns · N tok/s" last-run label, refreshed after each run. Verified live against the Spark.
+5. **Server-side checkpoint storage** — ticks persist to gitignored `progress.json` via `GET/POST /api/progress` (key-validated, lock-serialized write). Boot merges server ∪ localStorage (one-time migration of pre-existing local ticks up to the server), then writes through on every tick with localStorage kept as offline fallback. Verified: a tick survives a full localStorage wipe + reload (restored checked + green from the server), and browser ticks/unticks round-trip to the file both ways.
+
+**Still open (from the improvement list):** terminal has no stdin (interactive commands hang to the cap); decide whether `connect-remote.env` is committed or gitignored (contains the tailnet hostname).
+
+---
+
 ## How to re-run or extend the team
 
 The workflow script is persisted by Claude Code under the session directory (see the Workflow

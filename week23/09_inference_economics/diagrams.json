@@ -1,0 +1,85 @@
+{
+  "hero": "09-inference-economics.jpg",
+  "architecture": {
+    "title": "Inference economics — from a streamed call to $/M-token, goodput and a trusted judge",
+    "caption": "Everything divides by one measured number: YOUR decode tok/s. Lab01 turns watts × tariff ÷ throughput into $/M-token and compares it to a cloud list price; lab02 reframes cost as dollars per SUCCESSFUL task; lab03 checks that the judge scoring 'success' actually agrees with ground truth before you trust any of it.",
+    "lanes": [
+      {"id": "laptop", "label": "Your laptop — labs + companion app :8108"},
+      {"id": "dgx-spark", "label": "DGX Spark — 240 W · 128 GB · 273 GB/s"},
+      {"id": "cloud", "label": "Cloud — hosted API (usage-billed)"}
+    ],
+    "nodes": [
+      {"id": "lab01-cost", "label": "lab01 — measure $/M-token", "lane": "laptop", "sub": "one streamed call → TTFT + decode tok/s → wall-power economics", "accent": "green"},
+      {"id": "lab02-goodput", "label": "lab02 — goodput bench", "lane": "laptop", "sub": "4 self-verifying micro-tasks → $/success = $/attempt ÷ success rate", "accent": "amber"},
+      {"id": "lab03-judge", "label": "lab03 — LLM-as-judge", "lane": "laptop", "sub": "judge all 5 golden answers · judge agreement gated at 80%", "accent": "violet"},
+      {"id": "endpoint", "label": "Ollama endpoint :11434/v1", "lane": "dgx-spark", "sub": "decode tok/s is bound by 273 GB/s memory bandwidth, not FLOPs", "accent": "cyan"},
+      {"id": "wall-economics", "label": "Wall economics", "lane": "dgx-spark", "sub": "240 W × $0.15/kWh + $3999 box ÷ 3 y amortization"},
+      {"id": "cloud-price", "label": "Cloud list price", "lane": "cloud", "sub": "$1.80 / M-token (illustrative) · free tier ~40 req/min"}
+    ],
+    "edges": [
+      {"from": "lab01-cost", "to": "endpoint", "label": "stream one generation, capture usage tokens", "animated": true},
+      {"from": "lab01-cost", "to": "wall-economics", "label": "watts × tariff ÷ tok/s → $/M-token"},
+      {"from": "lab01-cost", "to": "cloud-price", "label": "compare against list price"},
+      {"from": "lab02-goodput", "to": "endpoint", "label": "self-verifying micro-tasks (17×23, reversal, primality, capital)", "animated": true},
+      {"from": "lab03-judge", "to": "endpoint", "label": "judge verdicts vs ground truth", "animated": true},
+      {"from": "lab03-judge", "to": "lab02-goodput", "label": "agreement ≥ 80% gates the goodput number"}
+    ]
+  },
+  "sequence": {
+    "title": "Measure tok/s → derive $/M-token → price success → audit the judge",
+    "caption": "The order matters: cost per raw token first, then cost per successful task, then proof that 'successful' was measured by a judge you can trust. Without the last step, chasing cheaper tokens silently buys worse outcomes.",
+    "actors": [
+      {"id": "learner", "label": "You"},
+      {"id": "lab01", "label": "lab01 (cost)"},
+      {"id": "lab02", "label": "lab02 (goodput)"},
+      {"id": "lab03", "label": "lab03 (judge)"},
+      {"id": "endpoint", "label": "Model endpoint"}
+    ],
+    "steps": [
+      {"from": "learner", "to": "lab01", "label": "run lab01_measure_cost_per_mtok.py", "kind": "call"},
+      {"from": "lab01", "to": "endpoint", "label": "stream one generation (stream_options.include_usage, reasoning_effort: none)", "kind": "call"},
+      {"from": "endpoint", "to": "lab01", "label": "TTFT + exact usage tokens → decode tok/s (~42 tok/s on the course setup)", "kind": "return"},
+      {"from": "lab01", "to": "learner", "label": "$0.238 electricity-only · $1.245 amortized vs $1.80 cloud per M-token", "kind": "return"},
+      {"from": "learner", "to": "lab02", "label": "run lab02_goodput_bench.py", "kind": "call"},
+      {"from": "lab02", "to": "endpoint", "label": "4 self-verifying micro-tasks, graded on the exact expected answer", "kind": "call"},
+      {"from": "endpoint", "to": "lab02", "label": "measured success rate (timeouts count as failures — too slow IS a goodput miss)", "kind": "return"},
+      {"from": "lab02", "to": "learner", "label": "$/SUCCESS = $/attempt ÷ success rate, plus 35/70/95% sensitivity", "kind": "return"},
+      {"from": "learner", "to": "lab03", "label": "run lab03_llm_judge.py", "kind": "call"},
+      {"from": "lab03", "to": "endpoint", "label": "judge all 5 golden answers (must FAIL '2+2=5' and '17=3×6')", "kind": "call"},
+      {"from": "endpoint", "to": "lab03", "label": "verdicts vs ground truth → judge agreement, gated at 80%", "kind": "return"},
+      {"from": "lab03", "to": "learner", "label": "below the 80% agreement gate → don't trust any goodput number built on this judge", "kind": "note"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "$/M-token — own box vs cloud list price",
+      "type": "bars",
+      "unit": "$ / M tokens",
+      "labels": ["electricity only", "+ amortized box", "cloud list price"],
+      "series": [
+        {"name": "cost per million tokens", "values": [0.2381, 1.2445, 1.8], "color": "green"}
+      ],
+      "caption": "TUTORIAL step 4 math at 240 W, $0.15/kWh, $3999 box over 3 years, 42 tok/s measured decode (dollar figures are illustrative teaching constants; the $1.80 cloud price is illustrative, not a quote). Amortization dominates electricity at single-stream tok/s — batching (App 03 · Dynamo) is the whole game."
+    },
+    {
+      "title": "Throughput's second denominator — tokens/s per Megawatt",
+      "type": "hbars",
+      "unit": "tok/s per MW",
+      "labels": ["1× DGX Spark (Nano) — 54 tok/s, 54/GPU", "8× GPU node (Super) — 3200 tok/s, 400/GPU", "Dynamo cluster (disagg) — 42000 tok/s, 656/GPU"],
+      "series": [
+        {"name": "tokens per second per MW", "values": [225000, 571429, 954545], "color": "cyan"}
+      ],
+      "caption": "demos/step02_throughput.py SIM table (illustrative serving configs; in REAL the 1× row is YOUR measured tok/s). Per-GPU says 'did we tune the engine'; per-MW says 'how much product per grid connection' — the Spark's per-MW number is respectable because it sips 240 W."
+    },
+    {
+      "title": "Goodput sensitivity — same sticker price, different success rates",
+      "type": "bars",
+      "unit": "$ / successful task",
+      "labels": ["35% success", "70% success", "95% success"],
+      "series": [
+        {"name": "$/SUCCESS at $0.45/Mtok, 300 tok/attempt", "values": [0.000386, 0.000193, 0.000142], "color": "amber"}
+      ],
+      "caption": "lab02_goodput_bench.py's sensitivity table at the illustrative $0.45/M-token price and 300 tokens/attempt: $/attempt is $0.000135 regardless, but dropping from 95% to 35% success nearly TRIPLES the cost per result — the cheap-model trap in one chart."
+    }
+  ]
+}

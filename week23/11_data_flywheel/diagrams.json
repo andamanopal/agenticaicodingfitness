@@ -1,0 +1,85 @@
+{
+  "hero": "11-data-flywheel.jpg",
+  "architecture": {
+    "title": "NeMo Data Flywheel — observe → curate → customize → evaluate → promote",
+    "caption": "Production traces flow into the Curator funnel, come out as a train.jsonl distillation set, and an A/B eval gate decides whether the cheaper student replaces the teacher. On one ARM64 Spark the honest scope is curate + small LoRA + evaluate; the full Customizer blueprint wants x86 datacenter Kubernetes.",
+    "lanes": [
+      {"id": "laptop", "label": "Your laptop (labs + .sandbox artifacts)"},
+      {"id": "spark", "label": "DGX Spark"},
+      {"id": "datacenter", "label": "Datacenter (x86 K8s)"}
+    ],
+    "nodes": [
+      {"id": "raw-logs", "label": "raw_logs.jsonl — OBSERVE", "lane": "laptop", "sub": "real request/response pairs you fired at the endpoint"},
+      {"id": "curator", "label": "mini-Curator — lab01", "lane": "laptop", "sub": "dedup → quality filter → PII scrub → LLM-judge label", "accent": "cyan"},
+      {"id": "train-jsonl", "label": "train.jsonl — CUSTOMIZE data", "lane": "laptop", "sub": "{messages:[system,user,assistant]} — teacher answers as labels", "accent": "green"},
+      {"id": "eval-gate", "label": "A/B eval gate — lab03", "lane": "laptop", "sub": "blind LLM-judge · tie-or-win on ALL items AND cheaper", "accent": "amber"},
+      {"id": "endpoint", "label": "Ollama :11434/v1 — teacher & student", "lane": "spark", "sub": "e.g. qwen3.6 teacher, gemma3:4b student"},
+      {"id": "phoenix", "label": "Phoenix :6006 — fleet-scale OBSERVE", "lane": "spark", "sub": "App 08's Relay/Phoenix does step 3 at scale"},
+      {"id": "lora", "label": "LoRA/PEFT fine-tune", "lane": "spark", "sub": "≤12B students on 1 Spark (week19 dgx_finetune); Nano-30B borderline"},
+      {"id": "nemo-microservices", "label": "NeMo Customizer/Evaluator microservices", "lane": "datacenter", "sub": "runbook §2.11 verdict for one Spark: SIM", "accent": "violet"}
+    ],
+    "edges": [
+      {"from": "endpoint", "to": "raw-logs", "label": "production traces", "animated": true},
+      {"from": "phoenix", "to": "raw-logs", "label": "same stage, fleet scale"},
+      {"from": "raw-logs", "to": "curator", "label": "14 messy rows"},
+      {"from": "curator", "to": "train-jsonl", "label": "9 curated rows", "animated": true},
+      {"from": "train-jsonl", "to": "lora", "label": "SFT/LoRA labels"},
+      {"from": "train-jsonl", "to": "nemo-microservices", "label": "full blueprint path (SIM on Spark)"},
+      {"from": "lora", "to": "eval-gate", "label": "candidate student"},
+      {"from": "eval-gate", "to": "endpoint", "label": "PROMOTE → serve the student", "animated": true}
+    ]
+  },
+  "sequence": {
+    "title": "Lab 03 — the promotion gate, live",
+    "caption": "Two real models answer the same golden questions, a blind LLM-judge scores each pair, and the gate applies the hard rule. '…keep teacher' is a correct outcome, not a failure.",
+    "actors": [
+      {"id": "gate", "label": "lab03 eval gate"},
+      {"id": "teacher", "label": "Teacher (qwen3.6 35B)"},
+      {"id": "student", "label": "Student (gemma3:4b)"},
+      {"id": "judge", "label": "Blind LLM-judge"}
+    ],
+    "steps": [
+      {"from": "gate", "to": "teacher", "label": "golden Q1 + Q2", "kind": "call"},
+      {"from": "teacher", "to": "gate", "label": "answers (6.1 s · 5.8 s)", "kind": "return"},
+      {"from": "gate", "to": "student", "label": "same golden questions", "kind": "call"},
+      {"from": "student", "to": "gate", "label": "answers (1.4 s · 1.5 s)", "kind": "return"},
+      {"from": "gate", "to": "judge", "label": "score each pair blind (A vs B)", "kind": "call"},
+      {"from": "judge", "to": "gate", "label": "Q1 → TIE · Q2 → A(teacher)", "kind": "return"},
+      {"from": "gate", "to": "gate", "label": "cost proxy: student 4.2× faster wall-clock (2.9 s vs 11.9 s total)", "kind": "note"},
+      {"from": "gate", "to": "gate", "label": "GATE: ties-or-wins 1/2 → …keep teacher (must tie-or-win on ALL items)", "kind": "note"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Curator funnel at fleet scale — 1M raw traces → 62k training rows",
+      "type": "hbars",
+      "unit": "rows",
+      "labels": ["raw logs", "dedup", "quality filter", "PII scrub", "LLM-judge label"],
+      "series": [
+        {"name": "rows remaining", "values": [1000000, 420000, 180000, 180000, 62000], "color": "cyan"}
+      ],
+      "caption": "The illustrative fleet-scale funnel from demos/step02_curate.py (Ch 3): 1M messy production traces become ~62k clean, safe, labeled examples."
+    },
+    {
+      "title": "The funnel you actually run — lab01 on 14 bundled traces",
+      "type": "hbars",
+      "unit": "rows",
+      "labels": ["raw logs", "dedup", "quality filter", "PII scrub"],
+      "series": [
+        {"name": "rows remaining", "values": [14, 11, 9, 9], "color": "green"}
+      ],
+      "caption": "Real output of labs/lab01_curate_logs.py (TUTORIAL.md §4): 14 → 11 → 9 → 9 rows, with <EMAIL>/<PHONE>/<SECRET> redacted in 3 traces before the judge labels the keepers."
+    },
+    {
+      "title": "Student closes the quality gap over 4 flywheel rounds",
+      "type": "line",
+      "unit": "% accuracy",
+      "labels": ["round 1", "round 2", "round 3", "round 4"],
+      "series": [
+        {"name": "student", "values": [75.1, 82.3, 86.2, 88.4], "color": "green"},
+        {"name": "teacher (120B)", "values": [91, 91, 91, 91], "color": "violet"}
+      ],
+      "caption": "From sim.run_flywheel via demos/step04_evaluate_promote.py — an illustrative simulation: the student reaches 88% vs the teacher's 91% while serving at ~0.15–0.18× the $/token (~1/7th the cost)."
+    }
+  ]
+}

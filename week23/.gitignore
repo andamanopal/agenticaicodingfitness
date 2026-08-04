@@ -15,3 +15,8 @@ reference/
 media/originals/
 # session debugging screenshots
 issues/
+.run_history.json
+progress.json
+
+# local tunnel env with a private tailnet hostname — copy from connect-remote.env.example
+connect-remote.env
