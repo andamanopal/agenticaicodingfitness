@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Stack Navigator — the Open Superintelligence Stack</title>
+<style>
+  :root{
+    --bg:#0c0f0a; --panel:#13160f; --panel2:#1a1f14; --line:#2c3322;
+    --txt:#e8efe0; --dim:#8f9a82; --accent:#76b900; --green:#76b900;
+    --amber:#d29922; --red:#f85149; --violet:#bc8cff; --cyan:#56d4dd; --term:#080a06;
+  }
+  *{box-sizing:border-box} html{scroll-behavior:smooth}
+  body{margin:0;font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       background:var(--bg);color:var(--txt)}
+  header{display:flex;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid var(--line);
+         background:var(--panel);flex-wrap:wrap}
+  header h1{font-size:15px;margin:0;font-weight:650} header .sub{color:var(--dim);font-size:12px}
+  .grow{flex:1}
+  .pill{font-size:11px;padding:4px 9px;border-radius:999px;border:1px solid var(--line);color:var(--dim);
+        display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+  .pill .dot{width:8px;height:8px;border-radius:50%;background:var(--dim)}
+  .pill.real .dot{background:var(--green)} .pill.sim .dot{background:var(--cyan)}
+  .pill.sim{color:var(--cyan)} .pill.real{color:var(--green)}
+  .model-sel{font:inherit;font-size:12px;padding:5px 8px;border-radius:8px;border:1px solid var(--line);
+        background:var(--panel2);color:var(--txt);max-width:220px;cursor:pointer}
+  .model-sel:hover{border-color:var(--accent)} .model-sel:disabled{opacity:.5;cursor:not-allowed}
+  .tbtn{font:inherit;font-size:12px;font-weight:600;padding:6px 12px;border-radius:8px;cursor:pointer;
+        border:1px solid var(--line);background:var(--panel2);color:var(--txt);text-decoration:none;
+        display:inline-flex;align-items:center;gap:6px}
+  .tbtn:hover{border-color:var(--accent)} .tbtn.on{border-color:var(--accent);color:var(--accent)}
+  .run{font:inherit;font-size:13px;font-weight:650;padding:9px 16px;border-radius:9px;cursor:pointer;
+       border:1px solid var(--green);background:rgba(118,185,0,.16);color:var(--txt)}
+  .run:hover:not(:disabled){background:rgba(118,185,0,.30)} .run:disabled{opacity:.45;cursor:not-allowed}
+  .note{font-size:12px;color:var(--amber)}
+  .dimtxt{color:var(--dim)}
+  /* ── sticky connection bar ── */
+  .connbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+        padding:9px 20px;background:var(--panel);border-bottom:1px solid var(--line);
+        box-shadow:0 3px 14px rgba(0,0,0,.45)}
+  .connbar input{font:12px ui-monospace,SFMono-Regular,Menlo,monospace;padding:6px 9px;border-radius:8px;
+        border:1px solid var(--line);background:var(--panel2);color:var(--txt)}
+  .connbar input:focus{outline:none;border-color:var(--accent)}
+  #cf-url{flex:1;min-width:220px} #cf-key{width:190px}
+  .cstat{font-size:11.5px;color:var(--dim)}
+  .cstat .ok{color:var(--green)} .cstat .warn{color:var(--amber)}
+  /* ── tour bar ── */
+  .tourbar{position:sticky;top:52px;z-index:49;display:none;align-items:center;gap:10px;flex-wrap:wrap;
+        padding:8px 20px;background:var(--panel2);border-bottom:1px solid var(--line)}
+  .tourbar.show{display:flex}
+  .dots{display:inline-flex;gap:5px;align-items:center}
+  .dots .d2{width:9px;height:9px;border-radius:50%;background:var(--line);cursor:pointer;border:1px solid var(--line)}
+  .dots .d2:hover{border-color:var(--accent)}
+  .dots .d2.seen{background:rgba(118,185,0,.45)}
+  .dots .d2.cur{background:var(--accent);box-shadow:0 0 6px rgba(118,185,0,.8)}
+  /* ── hero ── */
+  main{max-width:1120px;margin:0 auto;padding:20px 22px 60px}
+  .hero h2{font-size:20px;margin:4px 0 6px}
+  .hero .desc{color:#cdd6c2;font-size:13px;max-width:960px;white-space:pre-wrap;margin:0 0 12px}
+  .herobox{background:var(--term);border:1px solid var(--line);border-radius:10px;padding:10px}
+  .heromsg{padding:36px 12px;text-align:center;color:var(--dim);font-size:13px}
+  .vlegend{font-size:11px;color:var(--dim);margin-top:8px;display:flex;gap:16px;flex-wrap:wrap}
+  .vlegend i{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle}
+  /* hero SVG */
+  svg.stackmap{width:100%;height:auto;display:block}
+  .stackmap text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+        text-anchor:middle;dominant-baseline:middle}
+  .stackmap .nlabel{fill:#e8efe0;font-weight:650}
+  .stackmap .nsub{fill:#8f9a82}
+  .stackmap .llabel{font-weight:700;text-anchor:start;cursor:pointer}
+  .stackmap .llabel:hover{fill:#a3e635}
+  .stackmap .lsub{fill:#586049;font-size:1.7px;text-anchor:start}
+  .stackmap rect{stroke-width:.4}
+  .stackmap .n-s{fill:rgba(118,185,0,.15);stroke:rgba(118,185,0,.6)}
+  .stackmap .n-r{fill:rgba(139,148,158,.12);stroke:#3a4230}
+  .stackmap .n-a{fill:rgba(86,212,221,.13);stroke:rgba(86,212,221,.55)}
+  .stackmap .n-f{fill:rgba(188,140,255,.13);stroke:rgba(188,140,255,.55)}
+  .stackmap .n-w{fill:rgba(210,153,34,.13);stroke:rgba(210,153,34,.55)}
+  .stackmap .flowline{stroke:#2c3322;stroke-width:.3;stroke-dasharray:1.2 1.6;fill:none}
+  .stackmap .pulse{fill:var(--cyan);opacity:.9}
+  .stackmap .gnode{opacity:0;animation:vpop .45s ease-out forwards}
+  .hnode{cursor:pointer}
+  .hnode:hover rect{stroke:#a3e635;stroke-width:.6}
+  .hnode.hl rect{stroke:var(--accent);stroke-width:.75;filter:drop-shadow(0 0 1.6px rgba(118,185,0,.95))}
+  @keyframes vpop{to{opacity:1}}
+  /* ── apps strip ── */
+  .appsstrip{margin:26px 0 8px}
+  .appsstrip h3{font-size:13px;margin:0 0 10px;color:var(--accent);letter-spacing:.02em}
+  .appgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+  .appcard{display:flex;align-items:center;gap:8px;padding:9px 11px;border:1px solid var(--line);border-radius:9px;
+        background:var(--panel);font-size:12px;color:var(--txt);text-decoration:none}
+  .appcard:hover{border-color:var(--accent)}
+  .appcard .anum{font-weight:700;color:var(--dim);font-variant-numeric:tabular-nums}
+  .appcard.on .anum{color:var(--green)}
+  .appcard .atitle{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .appcard .aport{font-size:10.5px;color:var(--dim);font-variant-numeric:tabular-nums}
+  .rdot{width:8px;height:8px;border-radius:50%;background:#3a4230;flex:0 0 8px}
+  .rdot.on{background:var(--green);box-shadow:0 0 6px rgba(118,185,0,.8)}
+  /* ── node panels ── */
+  .layerhead{margin:34px 0 6px;padding:10px 14px;border:1px solid var(--line);border-left:4px solid var(--accent);
+        border-radius:8px;background:var(--panel);scroll-margin-top:130px}
+  .layerhead h3{margin:0;font-size:14px} .layerhead .lt{font-size:11.5px;color:var(--dim)}
+  .npanel{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:18px 20px;
+        margin:14px 0;scroll-margin-top:130px}
+  .npanel.tourfocus{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 0 22px rgba(118,185,0,.25)}
+  .phead{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:10.5px;text-transform:uppercase;
+        letter-spacing:.06em;color:var(--dim)}
+  .lchip{font-weight:700;padding:2px 8px;border-radius:6px;border:1px solid var(--line)}
+  .badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;letter-spacing:.04em}
+  .badge.ok{background:rgba(118,185,0,.16);color:var(--green)}
+  .badge.part{background:rgba(210,153,34,.16);color:var(--amber)}
+  .badge.simb{background:rgba(139,148,158,.14);color:var(--dim)}
+  .badge.cloudb{background:rgba(86,212,221,.14);color:var(--cyan)}
+  .npanel h2{font-size:18px;margin:6px 0 2px}
+  .tagline{font-size:12.5px;color:var(--cyan);margin:0 0 10px}
+  .desc{color:#cdd6c2;font-size:13px;max-width:920px;white-space:pre-wrap;margin:0 0 10px}
+  .why{font-size:12.5px;color:#cdd6c2;background:var(--panel2);border:1px solid var(--line);
+        border-left:3px solid var(--amber);border-radius:0 8px 8px 0;padding:9px 12px;max-width:920px;margin:0 0 14px}
+  .why b{color:var(--amber)}
+  /* tabs */
+  .tabs{display:flex;gap:6px;margin:6px 0 0}
+  .tab{font:inherit;font-size:12px;font-weight:600;padding:7px 13px;border-radius:8px 8px 0 0;cursor:pointer;
+        border:1px solid var(--line);border-bottom:none;background:var(--panel2);color:var(--dim)}
+  .tab.sel{background:var(--term);color:var(--accent);border-color:var(--accent)}
+  .tabbody{border:1px solid var(--line);border-radius:0 8px 8px 8px;background:var(--term);padding:12px 14px;margin:0 0 14px}
+  .tabbody .how{font-size:12.5px;color:#cdd6c2;margin:0 0 10px}
+  .cmd{display:flex;align-items:flex-start;gap:8px;margin:5px 0;padding:7px 9px;border:1px solid var(--line);
+        border-radius:7px;background:#0f120b}
+  .cmd code{flex:1;font:12px ui-monospace,SFMono-Regular,Menlo,monospace;color:#9fb8d4;
+        white-space:pre-wrap;word-break:break-all}
+  .cpy{font:10.5px inherit;font-weight:700;padding:3px 8px;border-radius:6px;cursor:pointer;
+        border:1px solid var(--line);background:var(--panel2);color:var(--dim);flex:0 0 auto}
+  .cpy:hover{border-color:var(--accent);color:var(--accent)}
+  .chip{display:inline-block;font:11px ui-monospace,Menlo,monospace;padding:3px 8px;border-radius:6px;
+        border:1px solid rgba(86,212,221,.4);color:var(--cyan);background:rgba(86,212,221,.08);margin:2px 4px 2px 0}
+  .epill{font:11px ui-monospace,Menlo,monospace;color:var(--green)}
+  /* run row + terminal */
+  .runrow{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;margin:0 0 10px}
+  .runrow textarea{flex:1;min-width:260px;min-height:52px;font:12.5px ui-monospace,SFMono-Regular,Menlo,monospace;
+        padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);
+        color:var(--txt);resize:vertical}
+  .runrow textarea:focus{outline:none;border-color:var(--accent)}
+  .runcol{display:flex;flex-direction:column;gap:6px;max-width:330px}
+  .term-wrap{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--term)}
+  .term-bar{display:flex;align-items:center;gap:8px;padding:6px 12px;background:#0f120b;border-bottom:1px solid var(--line);
+            font-size:11px;color:var(--dim)}
+  .term-bar .d{width:10px;height:10px;border-radius:50%} .term-bar .clr{margin-left:auto;cursor:pointer}
+  .term-bar .clr:hover{color:var(--txt)}
+  .term{padding:11px 13px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;
+        white-space:pre-wrap;word-break:break-word;min-height:84px;max-height:42vh;overflow:auto;color:#d6deca}
+  .term .simtag{color:var(--cyan)} .term .errtag{color:var(--red)}
+  .footer{padding:7px 13px;border-top:1px solid var(--line);font-size:12px;color:var(--dim);display:none}
+  .footer.show{display:block} .footer .pass{color:var(--green)} .footer .failc{color:var(--red)}
+  .actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}
+  .sp{width:11px;height:11px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;
+      display:inline-block;animation:rot .7s linear infinite;vertical-align:middle}
+  @keyframes rot{to{transform:rotate(360deg)}}
+  @media(max-width:760px){ .tourbar{top:96px} }
+</style>
+</head>
+<body>
+<header>
+  <h1>▣ Stack Navigator</h1>
+  <span class="sub">Week 23 hub · the Open Superintelligence Stack — hardware → runtime → model → harness → flywheel · Agent = Model + Harness · sovereign, $0 on your own box</span>
+  <span class="grow"></span>
+  <button class="tbtn" id="tour-start" onclick="startTour()">🧭 Start the tour</button>
+</header>
+
+<div class="connbar" id="connbar">
+  <span class="pill" id="pill-mode" title="current connection"><span class="dot"></span><span id="mode-txt">checking…</span></span>
+  <button class="tbtn" id="pb-local"  onclick="preset('local')"  title="scan this laptop's Ollama">💻 Local Ollama</button>
+  <button class="tbtn" id="pb-tunnel" onclick="preset('tunnel')" title="your DGX Spark over Tailscale / ngrok">🌐 DGX tunnel</button>
+  <button class="tbtn" id="pb-nvidia" onclick="preset('nvidia')" title="hosted NIMs — nvapi- key · usage billed, not sovereign">☁️ build.nvidia.com</button>
+  <button class="tbtn" id="pb-hf"     onclick="preset('hf')"     title="Hugging Face inference router">🤗 HF router</button>
+  <input id="cf-url" placeholder="base URL (include /v1)" spellcheck="false">
+  <input id="cf-key" type="password" placeholder="API key — nvapi-… / hf_… (optional)" spellcheck="false">
+  <button class="tbtn" onclick="probe()">🔌 Probe &amp; connect</button>
+  <select class="model-sel" id="model-sel" onchange="pickModel()" title="model used by every ▶ Ask button"></select>
+  <span class="cstat" id="conn-status"></span>
+</div>
+
+<div class="tourbar" id="tourbar">
+  <button class="tbtn" onclick="endTour()" title="exit tour (Esc)">✕</button>
+  <button class="tbtn" id="tour-prev" onclick="tourStep(-1)" title="previous stop (←)">◀</button>
+  <span class="dots" id="tour-dots"></span>
+  <button class="tbtn" id="tour-next" onclick="tourStep(1)" title="next stop (→)">▶</button>
+  <span class="cstat" id="tour-label"></span>
+  <span class="grow"></span>
+  <span class="cstat">← / → arrow keys navigate · Esc exits</span>
+</div>
+
+<main>
+  <section class="hero">
+    <h2>The Open Superintelligence Stack — bottom to top</h2>
+    <p class="desc" id="hero-sub">loading…</p>
+    <div class="herobox">
+      <div id="hero-svg"><div class="heromsg">⏳ loading the stack from the backend…</div></div>
+      <div class="vlegend">
+        <span><i style="background:var(--green)"></i>runs on 1 DGX Spark</span>
+        <span><i style="background:var(--amber)"></i>partial — 2 Sparks / caveats</span>
+        <span><i style="background:var(--cyan)"></i>cloud / hosted path</span>
+        <span><i style="background:#8f9a82"></i>SIM — real commands still shown</span>
+        <span class="dimtxt">·</span>
+        <span>tokens pulse <b>up</b> the stack — click any box to open its panel</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="appsstrip">
+    <h3>Week 23 apps — 01…12 on this laptop <span class="dimtxt" style="font-weight:400">· green dot = running · refreshed every 15 s</span></h3>
+    <div class="appgrid" id="appgrid"><span class="cstat">checking ports 8100–8111…</span></div>
+  </section>
+
+  <div id="panels"></div>
+</main>
+
+<script>
+"use strict";
+/* ── state ── */
+let STACK=null, LAYERS=[], JOURNEY=[], NODES={}, LAYER_OF={};
+let MODE="sim", CONN="local", MODEL=null, MODELS=[], BASE=null, DETAIL="";
+let SEL_CONN=null, APPS=[], tourIdx=-1;
+const CMDS=[];               // copy-button text store
+const RUNNING={};            // node_id -> streaming in progress
+const LS_KEY="nav_conn_v1", LS_MODEL="nav_model_v1";
+const PRESETS={
+  local :{conn:"local", url:"http://localhost:11434/v1"},
+  tunnel:{conn:"tunnel",url:"http://your-spark.your-tailnet.ts.net:11434/v1"},
+  nvidia:{conn:"cloud", url:"https://integrate.api.nvidia.com/v1"},
+  hf    :{conn:"cloud", url:"https://router.huggingface.co/v1"}
+};
+const LAYER_CLS={hardware:"r",runtime:"a",model:"s",harness:"f",flywheel:"w"};
+
+/* ── helpers ── */
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;")
+  .replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+async function jget(u){ const r=await fetch(u); if(!r.ok)throw new Error("HTTP "+r.status); return r.json(); }
+async function jpost(u,b){ const r=await fetch(u,{method:"POST",headers:{"Content-Type":"application/json"},
+  body:JSON.stringify(b||{})}); if(!r.ok)throw new Error("HTTP "+r.status); return r.json(); }
+function el(id){ return document.getElementById(id); }
+function keepCmd(txt){ CMDS.push(txt); return CMDS.length-1; }
+function copyCmd(btn,i){
+  const txt=CMDS[i]||"";
+  const done=()=>{ const old=btn.textContent; btn.textContent="✓"; setTimeout(()=>{btn.textContent=old;},900); };
+  if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(txt).then(done,()=>fallbackCopy(txt,done)); }
+  else fallbackCopy(txt,done);
+}
+function fallbackCopy(txt,done){
+  const t=document.createElement("textarea"); t.value=txt; t.style.position="fixed"; t.style.opacity="0";
+  document.body.appendChild(t); t.select();
+  try{ document.execCommand("copy"); }catch(e){}
+  document.body.removeChild(t); done();
+}
+
+/* ── boot (graceful retry — never a blank page) ── */
+let bootTries=0;
+async function boot(){
+  try{ STACK=await jget("/api/stack"); }
+  catch(e){
+    bootTries++;
+    el("hero-svg").innerHTML='<div class="heromsg">⚠ backend not reachable ('+esc(e.message)+
+      ') — retrying in 3 s… (attempt '+bootTries+')<br><span class="dimtxt">start it with: .venv/bin/python week23/00_stack_navigator/tutorial_server.py</span></div>';
+    setTimeout(boot,3000); return;
+  }
+  LAYERS=STACK.layers||[]; JOURNEY=STACK.journey||[];
+  LAYERS.forEach(L=>L.nodes.forEach(n=>{ NODES[n.id]=n; LAYER_OF[n.id]=L; }));
+  el("hero-sub").textContent=STACK.subtitle||"";
+  renderHero(); renderPanels(); renderDots();
+  await refreshStatus();
+  restoreConn();
+  refreshApps();
+}
+
+/* ── hero SVG — built entirely from /api/stack (bottom-up, tokens pulse upward) ── */
+function shortName(s){ return String(s||"").split(" (")[0].replace(/\s+/g," ").trim(); }
+function wrapTxt(s,mx){
+  const words=String(s).split(" "), lines=[]; let cur="";
+  for(let i=0;i<words.length;i++){
+    const w=words[i];
+    if((cur?cur.length+1:0)+w.length<=mx){ cur=cur?cur+" "+w:w; }
+    else{
+      if(cur)lines.push(cur);
+      cur=w;
+      if(lines.length===2)break;
+    }
+  }
+  if(cur&&lines.length<2)lines.push(cur);
+  if(lines.length===2&&lines[1].length>mx)lines[1]=lines[1].slice(0,mx-1)+"…";
+  else if(lines.length===2&&words.join(" ").length>lines[0].length+lines[1].length+1&&!lines[1].endsWith("…"))
+    lines[1]=lines[1].slice(0,Math.max(1,mx-1))+"…";
+  return lines;
+}
+function runnableColor(n){
+  const r=n.on_dgx_spark&&n.on_dgx_spark.runnable;
+  if(r===true)return "#76b900";
+  if(r==="partial")return "#d29922";
+  return (n.on_cloud&&n.on_cloud.available)?"#56d4dd":"#8f9a82";
+}
+function renderHero(){
+  const order=LAYERS.slice().reverse();       // flywheel on top, hardware at the bottom
+  const pitch=14, bandH=10.5, top=3, H=top+order.length*pitch;
+  let svg="";
+  // upward token-flow lines + slow pulses (the sovereign loop: tokens rise through the stack)
+  [30,55,80].forEach((x,k)=>{
+    const id="flow"+k;
+    svg+='<path id="'+id+'" class="flowline" d="M'+x+' '+(H-2)+' L'+x+' 2"/>';
+    for(let j=0;j<2;j++){
+      svg+='<circle class="pulse" r="0.8"><animateMotion dur="'+(4.6+k*0.9)+'s" begin="'+
+        (k*0.8+j*2.5)+'s" repeatCount="indefinite"><mpath href="#'+id+'"/></animateMotion></circle>';
+    }
+  });
+  let g=0;
+  order.forEach((L,li)=>{
+    const y=top+li*pitch, cls=LAYER_CLS[L.id]||"r", col=L.color_hint||"#8f9a82";
+    const lname=shortName(L.name.split(" — ")[0]);
+    svg+='<g class="gnode" style="animation-delay:'+(g++*0.07).toFixed(2)+'s">'+
+      '<text class="llabel" x="1" y="'+(y+bandH/2-1.4)+'" font-size="2.4" fill="'+col+
+        '" onclick="openLayer(\''+L.id+'\')">'+esc(lname)+'</text>'+
+      '<text class="lsub" x="1" y="'+(y+bandH/2+1.8)+'">layer '+(order.length-li)+' · '+L.nodes.length+
+        (L.nodes.length>1?" nodes":" node")+'</text>'+
+      '<rect x="1" y="'+(y+bandH-0.6)+'" width="12" height="0.5" fill="'+col+'" opacity="0.55" rx="0.25"/></g>';
+    const n=L.nodes.length, x0=16, x1=99, gap=1.4, w=(x1-x0-(n-1)*gap)/n;
+    const fs=w>22?2.2:(w>15?2.0:1.75);
+    const mx=Math.max(6,Math.floor((w-1.6)/(fs*0.52)));
+    L.nodes.forEach((nd,i)=>{
+      const x=x0+i*(w+gap), cx=x+w/2, cy=y+bandH/2;
+      const lines=wrapTxt(shortName(nd.name),mx);
+      let txt;
+      if(lines.length===1){
+        txt='<text class="nlabel" font-size="'+fs+'" x="'+cx.toFixed(1)+'" y="'+cy.toFixed(1)+'">'+esc(lines[0])+'</text>';
+      }else{
+        txt='<text class="nlabel" font-size="'+fs+'" x="'+cx.toFixed(1)+'" y="'+(cy-1.2).toFixed(1)+'">'+esc(lines[0])+'</text>'+
+            '<text class="nlabel" font-size="'+fs+'" x="'+cx.toFixed(1)+'" y="'+(cy+1.4).toFixed(1)+'">'+esc(lines[1])+'</text>';
+      }
+      svg+='<g class="gnode hnode" id="svg-node-'+esc(nd.id)+'" style="animation-delay:'+(g++*0.07).toFixed(2)+
+        's" onclick="openNode(\''+nd.id+'\')">'+
+        '<title>'+esc(nd.name)+' — '+esc(nd.tagline||"")+'</title>'+
+        '<rect class="n-'+cls+'" x="'+x.toFixed(1)+'" y="'+y+'" width="'+w.toFixed(1)+'" height="'+bandH+'" rx="1.6"/>'+
+        txt+
+        '<circle cx="'+(x+w-1.5).toFixed(1)+'" cy="'+(y+1.6)+'" r="0.7" fill="'+runnableColor(nd)+'"/></g>';
+    });
+  });
+  el("hero-svg").innerHTML='<svg class="stackmap" viewBox="0 0 100 '+H+
+    '" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">'+svg+'</svg>';
+}
+
+/* ── node panels (all content from /api/stack) ── */
+function runnableBadge(n){
+  const r=n.on_dgx_spark&&n.on_dgx_spark.runnable;
+  if(r===true)return '<span class="badge ok">SPARK ✓ runnable</span>';
+  if(r==="partial")return '<span class="badge part">SPARK ◐ partial</span>';
+  return '<span class="badge simb">◈ SIM — commands shown</span>';
+}
+function cloudBadge(n){
+  return (n.on_cloud&&n.on_cloud.available)?'<span class="badge cloudb">☁ hosted on build.nvidia.com</span>':"";
+}
+function cmdBlock(cmds){
+  return (cmds||[]).map(c=>{
+    const i=keepCmd(c);
+    return '<div class="cmd"><code>'+esc(c)+'</code><button class="cpy" onclick="copyCmd(this,'+i+')" title="copy">copy</button></div>';
+  }).join("");
+}
+function curlFor(n){
+  const c=n.on_cloud||{}, ep=c.endpoint||"https://integrate.api.nvidia.com/v1";
+  const model=(c.model_ids&&c.model_ids[0])||"<model-id — list live via GET /v1/models>";
+  let p=String(n.demo_prompt||"Hello from the Stack Navigator.");
+  if(p.length>160)p=p.slice(0,157)+"…";
+  return 'curl '+ep+'/chat/completions \\\n  -H "Authorization: Bearer $NVIDIA_API_KEY" -H "Content-Type: application/json" \\\n  -d \'{"model":'+JSON.stringify(model)+',"messages":[{"role":"user","content":'+JSON.stringify(p)+'}],"max_tokens":512,"stream":true}\'';
+}
+function renderPanels(){
+  let html="";
+  LAYERS.forEach(L=>{
+    html+='<div class="layerhead" id="layer-'+esc(L.id)+'" style="border-left-color:'+esc(L.color_hint||"#76b900")+'">'+
+      '<h3>'+esc(L.name)+'</h3><span class="lt">'+esc(L.tagline||"")+'</span></div>';
+    L.nodes.forEach(n=>{ html+=panelHtml(n,L); });
+  });
+  el("panels").innerHTML=html;
+  updateModeUI(); updateDotsUI();
+}
+function panelHtml(n,L){
+  const id=n.id, jix=JOURNEY.indexOf(id);
+  const cloud=n.on_cloud||{}, spark=n.on_dgx_spark||{};
+  const stop=jix>=0?'<span class="badge simb" style="letter-spacing:0">tour stop '+(jix+1)+"/"+JOURNEY.length+'</span>':"";
+  const curl=curlFor(n), ci=keepCmd(curl);
+  const cloudBody = cloud.available
+    ? '<p class="how">endpoint · <span class="epill">'+esc(cloud.endpoint||"")+'</span> — OpenAI-compatible, key starts <code>nvapi-</code>.</p>'+
+      '<p class="how">model IDs (verify live via <code>GET /v1/models</code> — never hardcode):<br>'+
+      (cloud.model_ids||[]).map(m=>'<span class="chip">'+esc(m)+'</span>').join("")+'</p>'+
+      '<div class="cmd"><code>'+esc(curl)+'</code><button class="cpy" onclick="copyCmd(this,'+ci+')">copy</button></div>'+
+      '<p class="how dimtxt">'+esc(cloud.how||"")+' <span class="note">⚠ cloud usage billed · off-box — convenient, not sovereign.</span></p>'
+    : '<p class="how">'+esc(cloud.how||"No hosted equivalent for this layer.")+'</p>'+
+      (cloud.endpoint?'<p class="how dimtxt">on-ramp endpoint for the rest of the stack · <span class="epill">'+esc(cloud.endpoint)+'</span></p>':"");
+  const appBtn=n.app
+    ? '<a class="tbtn" href="http://127.0.0.1:'+n.app.port+'/" target="_blank" rel="noopener">'+
+      '<span class="rdot" id="dot-'+esc(id)+'"></span>Open App '+esc(n.app.num)+' — '+esc(n.app.folder)+' →</a>'
+    : "";
+  const links=(n.links||[]).map(l=>'<a class="tbtn" href="'+esc(l.url)+'" target="_blank" rel="noopener">'+esc(l.label)+' ↗</a>').join("");
+  return '<section class="npanel" id="panel-'+esc(id)+'">'+
+    '<div class="phead"><span class="lchip" style="color:'+esc(L.color_hint||"#8f9a82")+';border-color:'+esc(L.color_hint||"#8f9a82")+
+      '">'+esc(L.name.split(" — ")[0])+'</span>'+stop+runnableBadge(n)+cloudBadge(n)+'</div>'+
+    '<h2>'+esc(n.name)+'</h2>'+
+    '<p class="tagline">'+esc(n.tagline||"")+'</p>'+
+    '<div class="desc">'+esc(n.what||"")+'</div>'+
+    '<div class="why"><b>Why it matters ·</b> '+esc(n.why_it_matters||"")+'</div>'+
+    '<div class="tabs">'+
+      '<button class="tab sel" id="tab-dgx-'+esc(id)+'" onclick="setTab(\''+id+'\',\'dgx\')">🖥️ Run on DGX Spark</button>'+
+      '<button class="tab" id="tab-cloud-'+esc(id)+'" onclick="setTab(\''+id+'\',\'cloud\')">☁️ Run on build.nvidia.com</button>'+
+    '</div>'+
+    '<div class="tabbody" id="tb-dgx-'+esc(id)+'">'+
+      '<p class="how">'+esc(spark.how||"")+'</p>'+cmdBlock(spark.commands)+
+      '<p class="how dimtxt">🖥️ these run <b>on the DGX</b> (SSH / DGX console) — this hub never executes them on your laptop.</p>'+
+    '</div>'+
+    '<div class="tabbody" id="tb-cloud-'+esc(id)+'" style="display:none">'+cloudBody+'</div>'+
+    '<div class="runrow">'+
+      '<textarea id="prompt-'+esc(id)+'" spellcheck="false">'+esc(n.demo_prompt||"")+'</textarea>'+
+      '<div class="runcol">'+
+        '<button class="run" id="run-'+esc(id)+'" onclick="runNode(\''+id+'\')">▶ Ask this layer</button>'+
+        '<span class="note" id="note-'+esc(id)+'"></span>'+
+      '</div>'+
+    '</div>'+
+    '<div class="term-wrap"><div class="term-bar">'+
+      '<span class="d" style="background:#f85149"></span><span class="d" style="background:#d29922"></span>'+
+      '<span class="d" style="background:#76b900"></span>'+
+      '<span id="tmode-'+esc(id)+'">idle</span>'+
+      '<span class="clr" onclick="clearTerm(\''+id+'\')">clear</span></div>'+
+      '<div class="term" id="term-'+esc(id)+'"><span style="color:#586049">— click “▶ Ask this layer” to stream the answer here —</span></div>'+
+      '<div class="footer" id="foot-'+esc(id)+'"></div>'+
+    '</div>'+
+    '<div class="actions">'+appBtn+links+'</div>'+
+    '</section>';
+}
+function setTab(id,which){
+  el("tab-dgx-"+id).classList.toggle("sel",which==="dgx");
+  el("tab-cloud-"+id).classList.toggle("sel",which==="cloud");
+  el("tb-dgx-"+id).style.display=which==="dgx"?"":"none";
+  el("tb-cloud-"+id).style.display=which==="cloud"?"":"none";
+}
+
+/* ── connection: /api/status + /api/probe, presets, localStorage ── */
+function pillText(){ return MODE==="real"?("REAL · "+CONN+(MODEL?" · "+MODEL:"")):("SIM · "+CONN); }
+function applyStatus(r){
+  MODE=r.mode||"sim"; CONN=r.conn||CONN||"local"; BASE=r.base_url||BASE;
+  MODEL=r.model||null; MODELS=r.models||[]; DETAIL=r.detail||"";
+  const saved=localStorage.getItem(LS_MODEL);
+  if(saved&&MODELS.indexOf(saved)>=0)MODEL=saved;
+  const p=el("pill-mode");
+  p.classList.toggle("real",MODE==="real"); p.classList.toggle("sim",MODE!=="real");
+  el("mode-txt").textContent=pillText();
+  fillModels(); updateModeUI(); markPresets();
+  const st=el("conn-status");
+  st.innerHTML=MODE==="real"
+    ? '<span class="ok">✓ '+esc(DETAIL||("connected · "+MODELS.length+" model(s)"))+'</span>'
+    : '<span class="warn">◈ '+esc(DETAIL||"endpoint not reachable — SIM mode (everything still works)")+'</span>';
+}
+function fillModels(){
+  const s=el("model-sel"); s.innerHTML="";
+  if(!MODELS.length){
+    const o=document.createElement("option"); o.textContent="(no models — SIM)"; s.appendChild(o); s.disabled=true; return;
+  }
+  s.disabled=false;
+  MODELS.forEach(m=>{ const o=document.createElement("option"); o.value=m; o.textContent=m;
+    if(m===MODEL)o.selected=true; s.appendChild(o); });
+}
+function pickModel(){
+  MODEL=el("model-sel").value||null;
+  if(MODEL)localStorage.setItem(LS_MODEL,MODEL);
+  el("mode-txt").textContent=pillText();
+  updateModeUI();
+}
+function updateModeUI(){
+  Object.keys(NODES).forEach(id=>{
+    const note=el("note-"+id); if(!note)return;
+    note.textContent=MODE==="real"
+      ? "▶ REAL — live streaming /chat/completions on "+(MODEL||"the endpoint")+" via "+CONN+
+        (CONN==="cloud"?" · cloud usage billed":" · on your box · $0")
+      : "◈ SIM — faithful canned answer at DGX-Spark-plausible tok/s · $0 · the commands above are always the real thing";
+  });
+}
+function markPresets(){
+  const url=(el("cf-url").value||BASE||"").trim();
+  [["pb-local","local"],["pb-tunnel","tunnel"],["pb-nvidia","nvidia"],["pb-hf","hf"]].forEach(pair=>{
+    const b=el(pair[0]), p=PRESETS[pair[1]];
+    b.classList.toggle("on", CONN===p.conn && (p.conn!=="cloud" || url.indexOf(p.url.replace("https://",""))>=0));
+  });
+}
+function preset(name){
+  const p=PRESETS[name]; SEL_CONN=p.conn;
+  el("cf-url").value=p.url;
+  if(p.conn==="local")el("cf-key").value="";
+  probe();
+}
+async function probe(){
+  const url=el("cf-url").value.trim()||null;
+  const key=el("cf-key").value.trim()||null;
+  const conn=SEL_CONN||CONN||"local";
+  el("conn-status").innerHTML='<span class="sp"></span> probing '+esc(url||conn)+' …';
+  let r;
+  try{ r=await jpost("/api/probe",{conn:conn,base_url:url,api_key:key}); }
+  catch(e){ el("conn-status").innerHTML='<span class="warn">⚠ backend unreachable — '+esc(e.message)+'</span>'; return; }
+  applyStatus(r);
+  try{ localStorage.setItem(LS_KEY,JSON.stringify({conn:conn,base_url:url,api_key:key})); }catch(e){}
+}
+async function refreshStatus(){
+  try{ applyStatus(await jget("/api/status")); }
+  catch(e){ el("mode-txt").textContent="backend down";
+    el("conn-status").innerHTML='<span class="warn">⚠ /api/status unreachable</span>'; }
+}
+function restoreConn(){
+  let saved=null;
+  try{ saved=JSON.parse(localStorage.getItem(LS_KEY)||"null"); }catch(e){}
+  if(!saved){ el("cf-url").value=BASE||""; return; }
+  SEL_CONN=saved.conn||null;
+  if(saved.base_url)el("cf-url").value=saved.base_url;
+  if(saved.api_key)el("cf-key").value=saved.api_key;
+  probe();  // re-apply the user's last choice
+}
+setInterval(refreshStatus,30000);
+
+/* ── RUN: POST /api/run → NDJSON stream (meta | token | done | error) ── */
+function clearTerm(id){ el("term-"+id).innerHTML=""; const f=el("foot-"+id); f.classList.remove("show"); f.innerHTML="";
+  el("tmode-"+id).textContent="idle"; }
+function termAppend(id,html){ const t=el("term-"+id); t.innerHTML+=html; t.scrollTop=t.scrollHeight; }
+function pickField(o,names){ for(const k of names){ if(o[k]!=null)return o[k]; } return null; }
+function handleLine(id,line,st){
+  let o=null;
+  try{ o=JSON.parse(line); }catch(e){ termAppend(id,esc(line)+"\n"); return; }
+  if(!o||typeof o!=="object"){ termAppend(id,esc(line)+"\n"); return; }
+  if(o.type==="meta"){
+    st.sim=(o.mode==="sim");
+    const m=pickField(o,["model","name"])||MODEL||"";
+    el("tmode-"+id).innerHTML=st.sim
+      ? '<span class="simtag">◈ SIM · simulated DGX Spark'+(m?" · "+esc(m):"")+'</span>'
+      : '<span style="color:var(--green)">▣ REAL'+(m?" · "+esc(m):"")+" · "+esc(CONN)+'</span>';
+    termAppend(id,st.sim?'<span class="simtag">◈ [sim] streaming a faithful canned answer — real commands live in the tabs above\n\n</span>':"");
+  }else if(o.type==="token"){
+    const t=pickField(o,["text","token","content","delta","t"]);
+    if(t!=null){
+      if(o.channel==="reasoning"){
+        if(!st.reason){ st.reason=true; termAppend(id,'<span class="dimtxt">〔thinking〕 </span>'); }
+        termAppend(id,'<span class="dimtxt">'+esc(t)+"</span>");
+      }else{
+        if(st.reason){ st.reason=false; termAppend(id,"\n\n"); }
+        termAppend(id,esc(t));
+      }
+    }
+  }else if(o.type==="done"){
+    st.done=true;
+    const tok=pickField(o,["tokens","n_tokens","tok","count"]);
+    const tps=pickField(o,["tok_s","tokens_per_s","tps","rate"]);
+    const dur=pickField(o,["duration","seconds","elapsed","dur"]);
+    const cost=st.sim?"simulated · $0 cloud cost":(CONN==="cloud"?"via cloud · cloud usage billed":"on your box · $0 cloud cost");
+    const f=el("foot-"+id); f.classList.add("show");
+    f.innerHTML='<span class="pass">✓ done</span>'+
+      (tok!=null?" · "+esc(tok)+" tok":"")+(tps!=null?" · "+esc(tps)+" tok/s":"")+
+      (dur!=null?" · "+esc(dur)+" s":"")+" · "+cost;
+  }else if(o.type==="error"){
+    st.done=true;
+    const msg=pickField(o,["error","detail","message"])||"unknown error";
+    termAppend(id,'\n<span class="errtag">✕ '+esc(msg)+"</span>\n");
+    const f=el("foot-"+id); f.classList.add("show");
+    f.innerHTML='<span class="failc">✕ error</span> · '+esc(msg);
+  }
+}
+async function runNode(id){
+  if(RUNNING[id])return;
+  RUNNING[id]=true;
+  const btn=el("run-"+id); btn.disabled=true; btn.innerHTML='<span class="sp"></span> streaming…';
+  el("term-"+id).innerHTML=""; const f=el("foot-"+id); f.classList.remove("show"); f.innerHTML="";
+  el("tmode-"+id).textContent="connecting…";
+  const prompt=(el("prompt-"+id).value||"").trim()||null;
+  const st={sim:MODE!=="real",done:false};
+  try{
+    const body={node_id:id,prompt:prompt,model:MODEL||null};
+    if(MODE==="real"){ // stream to the connection shown in the 🔌 panel, not the launch default
+      body.conn=SEL_CONN||CONN||null;
+      body.base_url=(el("cf-url").value||"").trim()||null;
+      body.api_key=(el("cf-key").value||"").trim()||null;
+    }
+    const resp=await fetch("/api/run",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(body)});
+    if(!resp.ok||!resp.body)throw new Error("HTTP "+resp.status);
+    const reader=resp.body.getReader(), dec=new TextDecoder(); let buf="";
+    for(;;){
+      const {done,value}=await reader.read(); if(done)break;
+      buf+=dec.decode(value,{stream:true});
+      let nl;
+      while((nl=buf.indexOf("\n"))>=0){
+        const line=buf.slice(0,nl).trim(); buf=buf.slice(nl+1);
+        if(line)handleLine(id,line,st);
+      }
+    }
+    if(buf.trim())handleLine(id,buf.trim(),st);
+    if(!st.done){ f.classList.add("show"); f.innerHTML='<span class="pass">✓ stream ended</span>'; }
+  }catch(e){
+    termAppend(id,'\n<span class="errtag">✕ '+esc(e.message)+' — is the backend up?</span>\n');
+    f.classList.add("show"); f.innerHTML='<span class="failc">✕ '+esc(e.message)+'</span>';
+  }
+  btn.disabled=false; btn.textContent="▶ Ask this layer";
+  RUNNING[id]=false;
+}
+
+/* ── apps strip: GET /api/apps, refreshed every 15 s ── */
+async function refreshApps(){
+  try{ APPS=await jget("/api/apps"); }catch(e){
+    if(!APPS.length)el("appgrid").innerHTML='<span class="cstat">⚠ /api/apps unreachable — app status unknown</span>';
+    return;
+  }
+  renderApps(); updateDotsUI();
+}
+function renderApps(){
+  el("appgrid").innerHTML=APPS.map(a=>
+    '<a class="appcard'+(a.running?" on":"")+'" href="http://127.0.0.1:'+a.port+'/" target="_blank" rel="noopener" '+
+    'title="'+esc(a.folder)+(a.running?" · running":" · not running — launch: .venv/bin/python week23/"+a.folder+"/tutorial_server.py")+'">'+
+    '<span class="rdot'+(a.running?" on":"")+'"></span><span class="anum">'+esc(a.num)+'</span>'+
+    '<span class="atitle">'+esc(a.title)+'</span><span class="aport">:'+a.port+'</span></a>').join("");
+}
+function updateDotsUI(){
+  Object.keys(NODES).forEach(id=>{
+    const n=NODES[id]; if(!n.app)return;
+    const d=el("dot-"+id); if(!d)return;
+    const a=APPS.find(x=>x.port===n.app.port||x.folder===n.app.folder);
+    d.classList.toggle("on",!!(a&&a.running));
+  });
+}
+setInterval(refreshApps,15000);
+
+/* ── guided tour: journey[] order, dots, ←/→ keys, SVG highlight ── */
+function renderDots(){
+  el("tour-dots").innerHTML=JOURNEY.map((nid,i)=>
+    '<span class="d2" id="td-'+i+'" onclick="tourGo('+i+')" title="'+(i+1)+"/"+JOURNEY.length+" · "+
+    esc(NODES[nid]?NODES[nid].name:nid)+'"></span>').join("");
+}
+function clearFocus(){
+  document.querySelectorAll(".hnode.hl").forEach(x=>x.classList.remove("hl"));
+  document.querySelectorAll(".npanel.tourfocus").forEach(x=>x.classList.remove("tourfocus"));
+}
+function startTour(){
+  if(!STACK)return;
+  el("tourbar").classList.add("show");
+  tourGo(0);
+}
+function endTour(){
+  tourIdx=-1;
+  el("tourbar").classList.remove("show");
+  clearFocus();
+}
+function tourStep(d){
+  if(tourIdx<0)return;
+  tourGo(Math.max(0,Math.min(JOURNEY.length-1,tourIdx+d)));
+}
+function tourGo(i){
+  tourIdx=i;
+  el("tourbar").classList.add("show");
+  const nid=JOURNEY[i], n=NODES[nid];
+  JOURNEY.forEach((_,j)=>{
+    const d=el("td-"+j); if(!d)return;
+    d.classList.toggle("cur",j===i); d.classList.toggle("seen",j<i);
+  });
+  el("tour-prev").disabled=(i===0); el("tour-next").disabled=(i===JOURNEY.length-1);
+  el("tour-label").textContent="stop "+(i+1)+"/"+JOURNEY.length+" · "+(n?n.name:nid);
+  focusNode(nid);
+}
+function focusNode(nid){
+  clearFocus();
+  const g=el("svg-node-"+nid); if(g)g.classList.add("hl");
+  const p=el("panel-"+nid);
+  if(p){ p.classList.add("tourfocus"); p.scrollIntoView({behavior:"smooth",block:"start"}); }
+}
+function openNode(nid){
+  if(tourIdx>=0){
+    const j=JOURNEY.indexOf(nid);
+    if(j>=0){ tourGo(j); return; }
+  }
+  focusNode(nid);
+}
+function openLayer(lid){
+  const h=el("layer-"+lid);
+  if(h)h.scrollIntoView({behavior:"smooth",block:"start"});
+}
+addEventListener("keydown",e=>{
+  if(tourIdx<0)return;
+  const tag=(e.target&&e.target.tagName)||"";
+  if(tag==="INPUT"||tag==="TEXTAREA"||tag==="SELECT")return;
+  if(e.key==="ArrowRight"){ e.preventDefault(); tourStep(1); }
+  else if(e.key==="ArrowLeft"){ e.preventDefault(); tourStep(-1); }
+  else if(e.key==="Escape")endTour();
+});
+
+boot();
+</script>
+</body>
+</html>
