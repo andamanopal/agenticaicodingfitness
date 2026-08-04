@@ -1,0 +1,88 @@
+{
+  "hero": "05-aiq-research-lab.jpg",
+  "architecture": {
+    "title": "AI-Q Open Agent Blueprint — route → plan → fan out → tools",
+    "caption": "A cheap Nemotron Nano router answers shallow queries directly and escalates hard ones to a Deep Agent, which writes an explicit plan and fans out parallel researcher sub-agents over the NeMo Agent Toolkit tool bus. Route small, escalate rarely, fan out in parallel — that routing decision is the ~50%-cost lever.",
+    "lanes": [
+      {"id": "client", "label": "Your laptop — query in"},
+      {"id": "route-tier", "label": "Route tier — Nemotron Nano"},
+      {"id": "deep-tier", "label": "Deep tier — Nemotron Super"},
+      {"id": "tool-bus", "label": "Tool bus — NeMo Agent Toolkit"}
+    ],
+    "nodes": [
+      {"id": "user-query", "label": "User query", "lane": "client", "sub": "'Compare 3-yr TCO: DGX Spark vs frontier API'"},
+      {"id": "intent-router", "label": "Intent Router", "lane": "route-tier", "sub": "one-word verdict: shallow | deep — the cost lever", "accent": "green"},
+      {"id": "shallow-answer", "label": "Shallow answer", "lane": "route-tier", "sub": "single-source lookup ≈ 1 cost unit"},
+      {"id": "deep-agent", "label": "Deep Agent (orchestrator)", "lane": "deep-tier", "sub": "a deep run ≈ 9× a shallow answer", "accent": "cyan"},
+      {"id": "planner", "label": "Planning sub-agent", "lane": "deep-tier", "sub": "JSON plan with parallel_ok flags → .sandbox/todo.md"},
+      {"id": "researchers", "label": "Researcher sub-agents ×2", "lane": "deep-tier", "sub": "concurrent Super agents · ~1.9× wall-clock speedup", "accent": "violet"},
+      {"id": "nat-tools", "label": "NAT tool registry", "lane": "tool-bus", "sub": "web search · NeMo Retriever RAG · MCP · sandbox skills", "accent": "amber"},
+      {"id": "memory", "label": "Memory / findings", "lane": "tool-bus", "sub": "observations ground the cited synthesis"}
+    ],
+    "edges": [
+      {"from": "user-query", "to": "intent-router", "label": "classify", "animated": true},
+      {"from": "intent-router", "to": "shallow-answer", "label": "shallow — answer cheap"},
+      {"from": "intent-router", "to": "deep-agent", "label": "deep — escalate", "animated": true},
+      {"from": "deep-agent", "to": "planner", "label": "decompose first"},
+      {"from": "planner", "to": "researchers", "label": "dispatch parallel_ok steps"},
+      {"from": "researchers", "to": "nat-tools", "label": "tool calls", "animated": true},
+      {"from": "nat-tools", "to": "memory", "label": "observations"},
+      {"from": "memory", "to": "deep-agent", "label": "synthesize cited answer"}
+    ]
+  },
+  "sequence": {
+    "title": "One deep query through the blueprint",
+    "caption": "The runtime flow the labs make you drive by hand: the router's one-word verdict, the written plan, the concurrent researcher fan-out, and findings returning through Memory to a cited answer.",
+    "actors": [
+      {"id": "user", "label": "You"},
+      {"id": "router", "label": "Intent Router (Nano)"},
+      {"id": "deep-agent", "label": "Deep Agent"},
+      {"id": "researchers", "label": "Researchers A + B (Super)"},
+      {"id": "tools", "label": "NAT tool bus"}
+    ],
+    "steps": [
+      {"from": "user", "to": "router", "label": "3-yr TCO: DGX Spark vs frontier API for 10 analysts?", "kind": "call"},
+      {"from": "router", "to": "router", "label": "multi-source, cost modeling over time → verdict: deep", "kind": "note"},
+      {"from": "router", "to": "deep-agent", "label": "escalate", "kind": "call"},
+      {"from": "deep-agent", "to": "deep-agent", "label": "plan written to .sandbox/todo.md — parallel_ok flagged per step", "kind": "note"},
+      {"from": "deep-agent", "to": "researchers", "label": "DISPATCH A: 'DGX 3-yr hardware + power TCO' ∥ B: 'API $/1M tok + volume'", "kind": "call"},
+      {"from": "researchers", "to": "tools", "label": "ACT web_search('DGX Spark price power draw depreciation')", "kind": "call"},
+      {"from": "tools", "to": "researchers", "label": "OBSERVE grounded evidence", "kind": "return"},
+      {"from": "researchers", "to": "deep-agent", "label": "A + B findings → Memory", "kind": "return"},
+      {"from": "deep-agent", "to": "user", "label": "synthesized, cited answer", "kind": "return"},
+      {"from": "deep-agent", "to": "deep-agent", "label": "lab02 measures it: 12.9 s of research in 6.9 s wall clock — ~1.9×", "kind": "note"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Routing economics on a 6-query mix",
+      "type": "bars",
+      "unit": "cost units per query",
+      "labels": ["all-deep (no router)", "routed — 3/6 stayed shallow"],
+      "series": [
+        {"name": "blended cost", "values": [9.0, 5.0], "color": "green"}
+      ],
+      "caption": "labs/lab01_router_economics.py: with a deep run ≈ 9× a shallow answer and 3 of 6 queries staying shallow, blended cost drops 9.0 → 5.0 units (~44% saved). NVIDIA's '~50% cheaper' claim is exactly this math on THEIR workload mix — swap in your queries and the saving is your number."
+    },
+    {
+      "title": "Researcher fan-out — sum of latencies vs wall clock",
+      "type": "hbars",
+      "unit": "seconds",
+      "labels": ["sum of researcher latencies", "wall clock (2 concurrent)"],
+      "series": [
+        {"name": "sample run", "values": [12.9, 6.9], "color": "cyan"}
+      ],
+      "caption": "labs/lab02_plan_fanout.py sample trace: A ~6.1 s + B ~6.8 s of research finish in ~6.9 s of wall clock — a ~1.9× fan-out speedup. Your numbers vary with the endpoint; single-instance Ollama can serialize to ~1.0×."
+    },
+    {
+      "title": "Query mix behind the saving",
+      "type": "donut",
+      "unit": "queries",
+      "labels": ["shallow (Nano answers)", "deep (escalated to Super)"],
+      "series": [
+        {"name": "lab01 mix", "values": [3, 3], "color": "violet"}
+      ],
+      "caption": "The lab01 QUERIES set: 3 lookups ('Who founded NVIDIA?', Ollama's port, Spark memory) stay shallow; 3 multi-step questions (TCO comparison, on-prem legal research, routing analysis) go deep. The saving depends entirely on this ratio."
+    }
+  ]
+}

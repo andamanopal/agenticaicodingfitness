@@ -1,0 +1,83 @@
+{
+  "hero": "10-nemo-gym-rl.jpg",
+  "architecture": {
+    "title": "NeMo Gym + NeMo RL — the verifiable-reward learning layer",
+    "caption": "NeMo Gym supplies environments (task + deterministic reward_fn); NeMo RL runs GRPO against them on the Spark. Your laptop's labs sample rollouts from any OpenAI-compatible endpoint and score them with the exact 1.0/0.0 signal the trainer consumes.",
+    "lanes": [
+      {"id": "laptop", "label": "Your laptop"},
+      {"id": "spark", "label": "DGX Spark"},
+      {"id": "cloud", "label": "Cloud (build.nvidia.com)"}
+    ],
+    "nodes": [
+      {"id": "labs", "label": "Labs 01–03 + explainer :8109", "lane": "laptop", "sub": "verifier · rollout group · multi-env eval gate"},
+      {"id": "environment", "label": "Environment = task + reward_fn", "lane": "laptop", "sub": "deterministic 1.0/0.0 — code, not a reward model", "accent": "green"},
+      {"id": "ollama", "label": "Ollama endpoint :11434/v1", "lane": "spark", "sub": "samples rollouts at temperature 1.0", "accent": "cyan"},
+      {"id": "nemo-gym", "label": "NeMo Gym", "lane": "spark", "sub": "environment library — the env=… flags"},
+      {"id": "nemo-rl", "label": "NeMo RL — GRPO trainer", "lane": "spark", "sub": "batch job, no serving port — verify via nvidia-smi", "accent": "violet"},
+      {"id": "policy", "label": "Policy weights", "lane": "spark", "sub": "1–8B trains on 1 Spark; 30B LoRA borderline; bigger → cluster.tp=2", "accent": "amber"},
+      {"id": "cloud-nim", "label": "Hosted NIM endpoints", "lane": "cloud", "sub": "nvapi- key · usage-billed, same OpenAI API"}
+    ],
+    "edges": [
+      {"from": "labs", "to": "ollama", "label": "prompt × G rollouts", "animated": true},
+      {"from": "ollama", "to": "environment", "label": "completions"},
+      {"from": "environment", "to": "labs", "label": "rewards 1.0/0.0 → advantages", "animated": true},
+      {"from": "labs", "to": "cloud-nim", "label": "Path B — same API"},
+      {"from": "nemo-gym", "to": "nemo-rl", "label": "environments"},
+      {"from": "policy", "to": "nemo-rl", "label": "rollout samples"},
+      {"from": "nemo-rl", "to": "policy", "label": "GRPO weight update", "animated": true}
+    ]
+  },
+  "sequence": {
+    "title": "One GRPO step — rollout → reward → advantage → update",
+    "caption": "Lab 02 runs everything here except the final weight update: a group of completions is scored by the verifier, and the group mean IS the baseline — no value network, no critic.",
+    "actors": [
+      {"id": "trainer", "label": "Lab / NeMo RL loop"},
+      {"id": "endpoint", "label": "Policy endpoint (Ollama/NIM)"},
+      {"id": "verifier", "label": "reward_fn verifier"},
+      {"id": "weights", "label": "Policy weights"}
+    ],
+    "steps": [
+      {"from": "trainer", "to": "endpoint", "label": "one prompt × G=4 completions @ temperature 1.0", "kind": "call"},
+      {"from": "endpoint", "to": "trainer", "label": "4 rollouts ('437', '23 × 19 = 437…', '447', …)", "kind": "return"},
+      {"from": "trainer", "to": "verifier", "label": "score each rollout", "kind": "call"},
+      {"from": "verifier", "to": "trainer", "label": "rewards = [1.0, 1.0, 0.0, 1.0]", "kind": "return"},
+      {"from": "trainer", "to": "trainer", "label": "baseline = group mean 0.75 — GRPO uses no critic network", "kind": "note"},
+      {"from": "trainer", "to": "weights", "label": "advantage = reward − mean: +0.25 ↑ reinforce · −0.75 ↓ suppress", "kind": "call"},
+      {"from": "weights", "to": "trainer", "label": "updated policy", "kind": "return"},
+      {"from": "trainer", "to": "trainer", "label": "all-pass or all-fail group → all advantages 0 — keep tasks at the model's edge of ability", "kind": "note"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "GRPO training curve — mean verifiable reward per round",
+      "type": "line",
+      "unit": "reward",
+      "labels": ["r0", "r2", "r4", "r6", "r8", "r10", "r12", "r14", "r16", "r18", "r19"],
+      "series": [
+        {"name": "mean reward (SIM run)", "values": [0.30, 0.43, 0.54, 0.60, 0.67, 0.68, 0.74, 0.73, 0.77, 0.76, 0.79], "color": "green"}
+      ],
+      "caption": "Values from demos/step03_grpo_training.py (sim.reward_curve, 20 rounds, base 0.30 → trained 0.79) — an illustrative simulation of the loop's shape, not a measured GPU run."
+    },
+    {
+      "title": "Lab 03 — multi-env pass-rate and the promotion gate",
+      "type": "bars",
+      "unit": "%",
+      "labels": ["math_verify", "tool_call", "constraint", "OVERALL"],
+      "series": [
+        {"name": "pass-rate", "values": [100, 50, 100, 83], "color": "cyan"},
+        {"name": "gate (≥60% → PROMOTE)", "values": [60, 60, 60, 60], "color": "amber"}
+      ],
+      "caption": "Sample run from TUTORIAL.md §6 (labs/lab03_multienv_passrate.py) — your model's numbers will differ; the weakest environment is where GRPO training data should come from."
+    },
+    {
+      "title": "Base vs GRPO-trained policy — multi-env pass-rate",
+      "type": "bars",
+      "unit": "%",
+      "labels": ["base model", "GRPO-trained"],
+      "series": [
+        {"name": "pass-rate", "values": [41, 68], "color": "violet"}
+      ],
+      "caption": "The Ch 5 multi-environment eval figure (tutorial_server STEPS / step04 demo): 41% → 68% — illustrative simulation of the uplift a promotion gate measures."
+    }
+  ]
+}

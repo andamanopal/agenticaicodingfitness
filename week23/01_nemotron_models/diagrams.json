@@ -1,0 +1,82 @@
+{
+  "hero": "01-nemotron-models.jpg",
+  "architecture": {
+    "title": "One OpenAI API, three ways to reach a Nemotron",
+    "caption": "Everything in this folder resolves its endpoint from config.py, so the same labs and demos hit your Spark's Ollama, a NIM container, a 2-Spark TP=2 rig, or build.nvidia.com — the model moves, your code doesn't.",
+    "lanes": [
+      {"id": "your-laptop", "label": "Your laptop"},
+      {"id": "dgx-spark", "label": "DGX Spark (GB10, 128 GB unified)"},
+      {"id": "cloud", "label": "Cloud (build.nvidia.com)"}
+    ],
+    "nodes": [
+      {"id": "labs-demos", "label": "Labs & demos", "lane": "your-laptop", "sub": "lab01 reasoning tax · lab02 tool-call wire · lab03 fit math", "accent": "cyan"},
+      {"id": "config-resolver", "label": "config.py resolver", "lane": "your-laptop", "sub": "DGX_CONN / DGX_BASE_URL → one OpenAI-compatible base_url", "accent": "cyan"},
+      {"id": "ollama-spark", "label": "Ollama :11434/v1", "lane": "dgx-spark", "sub": "ollama pull nemotron-3-nano (~20 GB) — the default REAL path", "accent": "green"},
+      {"id": "nim-spark", "label": "NIM container :8000/v1", "lane": "dgx-spark", "sub": "only -dgx-spark (ARM64) tags run on the GB10", "accent": "amber"},
+      {"id": "tp2-sparks", "label": "2-Spark TP=2 :8355", "lane": "dgx-spark", "sub": "mpirun + trtllm-serve --tp_size 2 over QSFP 200GbE", "accent": "violet"},
+      {"id": "cloud-nim", "label": "integrate.api.nvidia.com/v1", "lane": "cloud", "sub": "hosted NIMs · nvapi- key · usage-billed, not sovereign", "accent": "amber"}
+    ],
+    "edges": [
+      {"from": "labs-demos", "to": "config-resolver", "label": "resolve endpoint once"},
+      {"from": "config-resolver", "to": "ollama-spark", "label": "path A — Tailscale/LAN", "animated": true},
+      {"from": "config-resolver", "to": "cloud-nim", "label": "path B — Bearer nvapi-", "animated": true},
+      {"from": "config-resolver", "to": "nim-spark", "label": "path A alt — verified ARM64 NIM"},
+      {"from": "config-resolver", "to": "tp2-sparks", "label": "~200–400B-class models"}
+    ]
+  },
+  "sequence": {
+    "title": "The four wire shapes of one tool-calling round trip",
+    "caption": "lab02_toolcall_wire.py on the wire: the model only emits JSON — at finish_reason='tool_calls' it is paused, waiting for YOUR code to execute the tool and append the result.",
+    "actors": [
+      {"id": "lab-script", "label": "lab02 script"},
+      {"id": "endpoint", "label": "OpenAI-compatible endpoint"},
+      {"id": "nemotron", "label": "Nemotron 3 (RLM)"},
+      {"id": "tool-code", "label": "Your tool code"}
+    ],
+    "steps": [
+      {"from": "lab-script", "to": "endpoint", "label": "POST /v1/chat/completions + tools schema (shape 1 of 4)", "kind": "call"},
+      {"from": "endpoint", "to": "nemotron", "label": "prompt + tool schemas", "kind": "call"},
+      {"from": "nemotron", "to": "endpoint", "label": "private REASON channel streams before the ANSWER (RLM)", "kind": "note"},
+      {"from": "endpoint", "to": "lab-script", "label": "assistant tool_calls · finish_reason='tool_calls' (shape 2)", "kind": "return"},
+      {"from": "lab-script", "to": "tool-code", "label": "execute get_chiller_status('3') — your Python runs", "kind": "call"},
+      {"from": "tool-code", "to": "lab-script", "label": "{\"cop\": 3.8, \"state\": \"fault\"}", "kind": "return"},
+      {"from": "lab-script", "to": "endpoint", "label": "append role:\"tool\" result (shape 3)", "kind": "call"},
+      {"from": "endpoint", "to": "nemotron", "label": "resume with the tool result", "kind": "call"},
+      {"from": "endpoint", "to": "lab-script", "label": "final answer: \"Chiller 3 is faulted — low refrigerant…\" (shape 4)", "kind": "return"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Fit math — NVFP4 weights ×1.18 vs Spark budgets",
+      "type": "hbars",
+      "unit": "GB",
+      "labels": ["Nano 30B", "Super 120B", "Ultra 550B"],
+      "series": [
+        {"name": "needed (params × 0.55 × 1.18)", "values": [19.5, 77.9, 357], "color": "cyan"},
+        {"name": "1-Spark usable (128 × 0.9)", "values": [115, 115, 115], "color": "green"},
+        {"name": "2-Spark usable (TP=2)", "values": [230, 230, 230], "color": "amber"}
+      ],
+      "caption": "Computed with lab03_fit_math.py from the runbook formula (§1.2): Nano ≈19.5 GB and Super ≈77.9 GB fit one 115 GB-usable Spark at NVFP4; Ultra ≈357 GB exceeds even two Sparks (230 GB) — cloud-only."
+    },
+    {
+      "title": "What one 128 GB Spark can hold, by precision",
+      "type": "bars",
+      "unit": "B params",
+      "labels": ["FP16", "Q8/FP8", "Q4", "NVFP4"],
+      "series": [
+        {"name": "max params on 1 Spark", "values": [48, 92, 160, 177], "color": "violet"}
+      ],
+      "caption": "Runbook §1.2 memory rule of thumb (weights ×1.18 overhead, ~90% usable): quantization is why Super needs Q4/NVFP4 while Nano is comfortable at Q8. Long agentic contexts eat another 10–30 GB of KV-cache."
+    },
+    {
+      "title": "Family reference throughput on a Spark",
+      "type": "bars",
+      "unit": "tok/s",
+      "labels": ["Nano 30B-A3B", "Super 120B-A12B", "Ultra 550B-A55B"],
+      "series": [
+        {"name": "tok/s (sim reference)", "values": [54, 20, 9], "color": "green"}
+      ],
+      "caption": "From the demos/step01_family.py reference table — simulated GB10 figures, illustrative; single-stream decode on a Spark is bounded by its 273 GB/s memory bandwidth, so measure your own endpoint."
+    }
+  ]
+}

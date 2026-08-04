@@ -21,14 +21,17 @@ Launch (auto-picks a free port if 8113 is taken):
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 import re
+import signal
 import socket
 import sys
+import threading
 import time
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.responses import FileResponse, PlainTextResponse, StreamingResponse
 from pydantic import BaseModel
 
@@ -42,6 +45,8 @@ PY = str(ROOT / ".venv" / "bin" / "python")
 if not Path(PY).exists():
     PY = sys.executable
 STATIC = PKG / "static"
+MEDIA = WEEK20 / "media"                              # …/week23/media
+MEDIA_RE = re.compile(r"^[a-z0-9-]+\.(jpg|png|mp4)$")
 
 GUIDE_PORT = int(os.environ.get("LAB_GUIDE_PORT", "8113"))
 
@@ -77,8 +82,10 @@ FOLDERS: list[tuple[str, str, int]] = [
 FOLDER_SET = {f for _, f, _ in FOLDERS}
 
 LAB_RE = re.compile(r"^lab\d\d_[a-z0-9_]+\.py$")
-RUN_ENV_KEYS = ("DGX_CONN", "DGX_BASE_URL", "DGX_API_KEY", "DGX_MODE")
-RUN_TIMEOUT = 150.0                                    # hard cap per lab run
+RUN_ENV_KEYS = ("DGX_CONN", "DGX_BASE_URL", "DGX_API_KEY", "DGX_MODE", "DGX_MODEL")
+# Hard cap per lab run. 150s suits local endpoints; big models over a tunnel
+# stream slower — override with LAB_RUN_TIMEOUT (seconds) at launch.
+RUN_TIMEOUT = float(os.environ.get("LAB_RUN_TIMEOUT", "150"))
 
 
 # ── TUTORIAL.md parser — pure-stdlib line scanner over H2 headings ─────────────
@@ -191,10 +198,49 @@ def _next_folder(sections: list[dict]) -> str | None:
     return None
 
 
+# ── diagrams.json — optional per-folder visuals (hero + architecture/sequence/charts)
+DIAGRAM_KEYS = ("architecture", "sequence", "charts")
+
+
+def _load_diagrams(folder: str) -> tuple[str | None, dict | None]:
+    """(hero, diagrams) from <folder>/diagrams.json.
+
+    Missing or invalid file → (None, None) plus a server-log warning — the
+    course must never crash over a bad visuals file.
+    """
+    path = WEEK20 / folder / "diagrams.json"
+    if not path.is_file():
+        return None, None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if not isinstance(data, dict):
+            raise ValueError("top level is not a JSON object")
+    except Exception as e:                              # OSError / JSONDecodeError / …
+        print(f"  ⚠ {folder}/diagrams.json ignored: {e}", file=sys.stderr, flush=True)
+        return None, None
+    hero = data.get("hero")
+    diagrams = {k: data.get(k) for k in DIAGRAM_KEYS}
+    return (hero if isinstance(hero, str) and hero else None), diagrams
+
+
+def _insert_visualize(sections: list[dict]) -> None:
+    """Insert the synthetic diagrams section just before 'labs' (or at the end)."""
+    sec = {"id": "visualize", "kind": "diagrams",
+           "title": "📊 Visualize it — architecture · sequence · numbers",
+           "md": ""}
+    for i, s in enumerate(sections):
+        if s.get("kind") == "labs":
+            sections.insert(i, sec)
+            return
+    sections.append(sec)
+
+
 def _build_entry(num: str, folder: str, port: int, path: Path) -> dict:
+    hero, diagrams = _load_diagrams(folder)
     entry: dict = {"num": num, "folder": folder, "port": port, "title": folder,
                    "meta": {"time": None, "difficulty": None},
-                   "sections": [], "labs": [], "next": None}
+                   "sections": [], "labs": [], "next": None,
+                   "hero": hero, "diagrams": diagrams}
     try:
         text = path.read_text(encoding="utf-8")
     except OSError as e:
@@ -202,6 +248,8 @@ def _build_entry(num: str, folder: str, port: int, path: Path) -> dict:
         entry["sections"] = [{"id": "intro", "kind": "intro",
                               "title": "Introduction", "md": ""}]
         entry["labs"] = _list_labs(folder, "")
+        if diagrams is not None:
+            _insert_visualize(entry["sections"])
         return entry
     try:
         sections = _split_sections(text)
@@ -216,24 +264,31 @@ def _build_entry(num: str, folder: str, port: int, path: Path) -> dict:
             entry["labs"] = _list_labs(folder, text)
         except Exception:
             pass
+    if diagrams is not None:
+        _insert_visualize(entry["sections"])
     return entry
 
 
-# parse once at startup; re-read a TUTORIAL.md only if its mtime changed
-_CACHE: dict[str, tuple[float, dict]] = {}
+# parse once at startup; re-read a folder's TUTORIAL.md / diagrams.json only if
+# either file's mtime changed (same pattern for both)
+_CACHE: dict[str, tuple[tuple[float, float], dict]] = {}
+
+
+def _mtime(path: Path) -> float:
+    try:
+        return path.stat().st_mtime
+    except OSError:
+        return -1.0
 
 
 def _course_entry(num: str, folder: str, port: int) -> dict:
     path = WEEK20 / folder / "TUTORIAL.md"
-    try:
-        mtime = path.stat().st_mtime
-    except OSError:
-        mtime = -1.0
+    key = (_mtime(path), _mtime(WEEK20 / folder / "diagrams.json"))
     hit = _CACHE.get(folder)
-    if hit and hit[0] == mtime:
+    if hit and hit[0] == key:
         return hit[1]
     entry = _build_entry(num, folder, port, path)
-    _CACHE[folder] = (mtime, entry)
+    _CACHE[folder] = (key, entry)
     return entry
 
 
@@ -260,7 +315,8 @@ async def index():
         "  GET  /api/course   — the parsed 12-tutorial course\n"
         "  GET  /api/source?folder=<folder>&lab=<labNN_x.py>\n"
         "  POST /api/run      — {\"folder\",\"lab\",\"env\"} → streamed output\n"
-        "  GET  /api/status   — REAL/SIM connection status\n")
+        "  GET  /api/status   — REAL/SIM connection status\n"
+        "  GET  /media/<f>    — week23/media images & clips (allowlisted)\n")
 
 
 @app.get("/static/{fname:path}")
@@ -270,6 +326,18 @@ async def static_file(fname: str):
     if not str(target).startswith(str(base) + os.sep) or not target.is_file():
         raise HTTPException(status_code=404, detail="not found")
     return FileResponse(target, headers={"Cache-Control": "no-store, max-age=0"})
+
+
+@app.get("/media/{fname}")
+async def media_file(fname: str):
+    """Serve week23/media assets — strict allowlist, traversal-safe, cacheable."""
+    if not MEDIA_RE.match(fname):
+        raise HTTPException(status_code=404, detail="not found")
+    base = MEDIA.resolve()
+    target = (base / fname).resolve()
+    if not str(target).startswith(str(base) + os.sep) or not target.is_file():
+        raise HTTPException(status_code=404, detail="not found")
+    return FileResponse(target, headers={"Cache-Control": "max-age=3600"})
 
 
 @app.get("/api/course")
@@ -299,14 +367,43 @@ class RunRequest(BaseModel):
     env: dict[str, str] | None = None
 
 
+# ── run history — feeds the per-lab sparklines in the UI ─────────────────────
+HISTORY_PATH = PKG / ".run_history.json"               # gitignored, last 50/lab
+HISTORY_MAX = 50
+_TOKS_RE = re.compile(r"(\d+(?:\.\d+)?)\s*tok/s")
+
+
+def _load_history() -> dict:
+    try:
+        data = json.loads(HISTORY_PATH.read_text(encoding="utf-8"))
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+def _record_run(folder: str, lab: str, model: str, code: int,
+                secs: float, tok_s: float | None) -> None:
+    try:
+        hist = _load_history()
+        runs = hist.setdefault(f"{folder}/{lab}", [])
+        runs.append({"ts": int(time.time()), "model": model, "code": code,
+                     "seconds": round(secs, 1), "tok_s": tok_s})
+        del runs[:-HISTORY_MAX]
+        HISTORY_PATH.write_text(json.dumps(hist), encoding="utf-8")
+    except Exception as e:  # noqa: BLE001 — history must never break a run
+        print(f"⚠ run history not saved: {e}", file=sys.stderr)
+
+
 def _stream_lab(folder: str, lab: str, extra_env: dict[str, str]):
     async def gen():
         start = time.time()
         env = {**os.environ, "PYTHONUNBUFFERED": "1"}
-        for k in RUN_ENV_KEYS:                          # ONLY the 4 whitelisted keys
+        for k in RUN_ENV_KEYS:                          # ONLY the whitelisted keys
             v = extra_env.get(k)
             if v is not None:
                 env[k] = str(v)
+        model = env.get("DGX_MODEL") or config.MODEL
+        tok_s: float | None = None                      # last 'NN tok/s' a lab prints
         proc = await asyncio.create_subprocess_exec(
             PY, str(WEEK20 / folder / "labs" / lab), cwd=str(ROOT), env=env,
             stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT)
@@ -318,18 +415,30 @@ def _stream_lab(folder: str, lab: str, extra_env: dict[str, str]):
                         timeout=max(1, start + RUN_TIMEOUT - time.time()))
                 except asyncio.TimeoutError:
                     proc.kill()
+                    _record_run(folder, lab, model, 124, time.time() - start, tok_s)
                     yield (f"\n⏱  lab exceeded {RUN_TIMEOUT:.0f}s — killed.\n"
                            f"__EXIT__ 124 {time.time()-start:.1f}\n")
                     return
                 if not line:
                     break
-                yield line.decode(errors="replace")
+                text = line.decode(errors="replace")
+                m = _TOKS_RE.search(text)
+                if m:
+                    tok_s = float(m.group(1))
+                yield text
             await proc.wait()
+            _record_run(folder, lab, model, proc.returncode or 0,
+                        time.time() - start, tok_s)
             yield f"__EXIT__ {proc.returncode} {time.time()-start:.1f}\n"
         finally:
             if proc.returncode is None:
                 proc.kill()
     return gen()
+
+
+@app.get("/api/history")
+async def api_history() -> dict:
+    return _load_history()
 
 
 @app.post("/api/run")
@@ -348,6 +457,138 @@ async def api_run(req: RunRequest):
     return StreamingResponse(body(), media_type="text/plain")
 
 
+# ── checkpoint progress — server-side so it survives a browser switch ─────────
+PROGRESS_PATH = PKG / "progress.json"                  # gitignored
+_progress_lock = threading.Lock()
+_CKEY_RE = re.compile(r"^[0-9a-z_]+/[a-z0-9-]+/\d+$")   # "<folder>/<section-id>/<n>"
+
+
+def _load_progress() -> dict:
+    try:
+        data = json.loads(PROGRESS_PATH.read_text(encoding="utf-8"))
+        return data if isinstance(data, dict) else {}
+    except Exception:
+        return {}
+
+
+class ProgressRequest(BaseModel):
+    key: str
+    done: bool
+
+
+@app.get("/api/progress")
+async def api_progress_get() -> dict:
+    return {"checkpoints": _load_progress()}
+
+
+@app.post("/api/progress")
+async def api_progress_set(req: ProgressRequest) -> dict:
+    if not _CKEY_RE.match(req.key or ""):
+        raise HTTPException(400, "bad checkpoint key")
+    with _progress_lock:                                # serialize read-modify-write
+        cks = _load_progress()
+        if req.done:
+            cks[req.key] = True
+        else:
+            cks.pop(req.key, None)
+        try:
+            PROGRESS_PATH.write_text(json.dumps(cks), encoding="utf-8")
+        except Exception as e:  # noqa: BLE001 — never 500 over a save miss
+            raise HTTPException(500, f"could not save progress: {e}")
+    return {"ok": True, "count": len(cks)}
+
+
+# ── built-in terminal: run any shell command without leaving the web app ──────
+# This server binds 127.0.0.1 only; the Host-header check below additionally
+# guards against DNS-rebinding. It executes arbitrary commands BY DESIGN — it is
+# a local, single-user learning console (same trust model as Jupyter).
+SHELL_TIMEOUT = 600.0                        # docker/NIM pulls take a while
+SHELL_BIN = os.environ.get("SHELL") or "/bin/zsh"
+_shell_lock = asyncio.Lock()
+_shell_proc: asyncio.subprocess.Process | None = None
+
+
+class ShellRequest(BaseModel):
+    cmd: str
+    env: dict[str, str] | None = None
+
+
+def _local_only(request: Request) -> None:
+    host = (request.headers.get("host") or "").split(":")[0].lower()
+    if host not in ("127.0.0.1", "localhost", "[::1]", "::1"):
+        raise HTTPException(403, "the terminal is available on localhost only")
+
+
+def _kill_tree(proc: asyncio.subprocess.Process) -> None:
+    """Kill the whole process group — shell commands spawn children."""
+    try:
+        os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+    except Exception:
+        try:
+            proc.kill()
+        except Exception:
+            pass
+
+
+@app.post("/api/shell")
+async def api_shell(req: ShellRequest, request: Request):
+    _local_only(request)
+    cmd = (req.cmd or "").strip()
+    extra_env = req.env or {}
+
+    async def body():
+        global _shell_proc
+        if not cmd:
+            yield "type a command first.\n__EXIT__ 1 0\n"
+            return
+        if _shell_lock.locked():
+            yield "⚠  another command is already running — wait for it or hit ■ Stop.\n__EXIT__ 1 0\n"
+            return
+        async with _shell_lock:
+            start = time.time()
+            env = {**os.environ, "PYTHONUNBUFFERED": "1", "TERM": "dumb"}
+            for k in RUN_ENV_KEYS:                       # same whitelist as labs
+                v = extra_env.get(k)
+                if v is not None:
+                    env[k] = str(v)
+            proc = await asyncio.create_subprocess_exec(
+                SHELL_BIN, "-lc", cmd, cwd=str(ROOT), env=env,
+                stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT,
+                start_new_session=True)
+            _shell_proc = proc
+            try:
+                while True:
+                    try:
+                        line = await asyncio.wait_for(
+                            proc.stdout.readline(),
+                            timeout=max(1, start + SHELL_TIMEOUT - time.time()))
+                    except asyncio.TimeoutError:
+                        _kill_tree(proc)
+                        yield (f"\n⏱  command exceeded {SHELL_TIMEOUT:.0f}s — killed.\n"
+                               f"__EXIT__ 124 {time.time()-start:.1f}\n")
+                        return
+                    if not line:
+                        break
+                    yield line.decode(errors="replace")
+                await proc.wait()
+                yield f"__EXIT__ {proc.returncode} {time.time()-start:.1f}\n"
+            finally:
+                _shell_proc = None
+                if proc.returncode is None:
+                    _kill_tree(proc)
+    return StreamingResponse(body(), media_type="text/plain")
+
+
+@app.post("/api/shell/stop")
+async def api_shell_stop(request: Request) -> dict:
+    _local_only(request)
+    proc = _shell_proc
+    if proc is None or proc.returncode is not None:
+        return {"stopped": False, "detail": "nothing is running"}
+    _kill_tree(proc)
+    return {"stopped": True, "detail": "killed the command's process group"}
+
+
 @app.get("/api/status")
 async def api_status() -> dict:
     real = config.MODE == "real"
@@ -357,9 +598,16 @@ async def api_status() -> dict:
     else:
         detail = (f"SIM — no endpoint reachable via {config.conn_human()}; labs "
                   "degrade gracefully and print expected-output samples ($0, no GPU)")
+    models: list[str] = []
+    if real:
+        try:
+            models = await asyncio.to_thread(config.list_local_models)
+        except Exception:
+            models = []
     return {"mode": config.MODE, "conn": config.CONN,
             "base_url": config.safe_base_url(),
-            "model": config.MODEL if real else None, "detail": detail}
+            "model": config.MODEL if real else None, "models": models,
+            "run_timeout": RUN_TIMEOUT, "detail": detail}
 
 
 if __name__ == "__main__":

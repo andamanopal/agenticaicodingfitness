@@ -1,0 +1,81 @@
+{
+  "hero": "04-agent-skills.jpg",
+  "architecture": {
+    "title": "Agent Skills — portable know-how any frontier agent can load",
+    "caption": "A Skill is a directory with a SKILL.md: cheap frontmatter the agent always reads, and a body it loads only when a task matches. The same file rides MCP (agent→tools) and A2A (agent→agent) unchanged — the capability lives in the file, not the model.",
+    "lanes": [
+      {"id": "agent-host", "label": "Your laptop — agent host"},
+      {"id": "skill-files", "label": "Skill files — the catalog"},
+      {"id": "transports", "label": "Open transports — MCP & A2A"},
+      {"id": "endpoint", "label": "Model endpoint — Spark / cloud / local"}
+    ],
+    "nodes": [
+      {"id": "frontier-agent", "label": "Frontier agent", "lane": "agent-host", "sub": "Claude · GPT · Nemotron — never modified", "accent": "green"},
+      {"id": "skills-catalog", "label": "NVIDIA skills catalog", "lane": "skill-files", "sub": "github.com/NVIDIA/skills — one dir per skill"},
+      {"id": "skill-frontmatter", "label": "SKILL.md frontmatter", "lane": "skill-files", "sub": "name + when-to-use · ~55 tok, always read", "accent": "cyan"},
+      {"id": "skill-body", "label": "Skill body + tool surface", "lane": "skill-files", "sub": "~507 tok — loaded only when a task matches", "accent": "cyan"},
+      {"id": "mcp-server", "label": "MCP server", "lane": "transports", "sub": "JSON-RPC: initialize → tools/list → tools/call", "accent": "violet"},
+      {"id": "a2a-card", "label": "A2A Agent Card", "lane": "transports", "sub": "/.well-known/agent.json · 6-state task lifecycle", "accent": "violet"},
+      {"id": "hotel-tools", "label": "Business tools", "lane": "transports", "sub": "query_room_telemetry · file_work_order (CMMS)"},
+      {"id": "model-endpoint", "label": "OpenAI-compatible endpoint", "lane": "endpoint", "sub": "Ollama :11434/v1 · NIM :8000/v1 · build.nvidia.com", "accent": "amber"}
+    ],
+    "edges": [
+      {"from": "skills-catalog", "to": "skill-frontmatter", "label": "contains"},
+      {"from": "frontier-agent", "to": "skill-frontmatter", "label": "discover — metadata only", "animated": true},
+      {"from": "skill-frontmatter", "to": "skill-body", "label": "task matches → load on demand", "animated": true},
+      {"from": "frontier-agent", "to": "model-endpoint", "label": "prompt + tool schema", "animated": true},
+      {"from": "skill-body", "to": "hotel-tools", "label": "exposes"},
+      {"from": "frontier-agent", "to": "mcp-server", "label": "same capability as tools"},
+      {"from": "mcp-server", "to": "hotel-tools", "label": "tools/call dispatch"},
+      {"from": "a2a-card", "to": "frontier-agent", "label": "peer delegates a task"}
+    ]
+  },
+  "sequence": {
+    "title": "Lab 02 — discover → invoke → answer, live",
+    "caption": "The agent reads the skill file first, then runs the genuine tool-call loop: the model decides the skill applies, queries telemetry, files the work order exactly as the SKILL.md instructs, and answers from the results.",
+    "actors": [
+      {"id": "user", "label": "You"},
+      {"id": "agent", "label": "Agent loop (lab02)"},
+      {"id": "skill", "label": "hotel-telemetry SKILL.md"},
+      {"id": "model", "label": "Model endpoint"},
+      {"id": "tools", "label": "Business tools"}
+    ],
+    "steps": [
+      {"from": "user", "to": "agent", "label": "Room 1203 is reading 29.4°C — investigate", "kind": "call"},
+      {"from": "agent", "to": "skill", "label": "DISCOVER — scan frontmatter (~55 tok)", "kind": "call"},
+      {"from": "skill", "to": "agent", "label": "match → load body (~507 tok); other skill stays cold", "kind": "return"},
+      {"from": "agent", "to": "model", "label": "system prompt + tool schema", "kind": "call"},
+      {"from": "model", "to": "agent", "label": "ACT query_room_telemetry({'room': '1203'})", "kind": "return"},
+      {"from": "agent", "to": "tools", "label": "execute tool", "kind": "call"},
+      {"from": "tools", "to": "agent", "label": "OBSERVE temp 29.4 vs setpoint 23.0 · alarm HIGH_TEMP", "kind": "return"},
+      {"from": "agent", "to": "model", "label": "observation → next decision", "kind": "call"},
+      {"from": "model", "to": "agent", "label": "ACT file_work_order — per the SKILL.md", "kind": "return"},
+      {"from": "agent", "to": "tools", "label": "execute → WO-4211 filed per SOP-HVAC-07", "kind": "call"},
+      {"from": "agent", "to": "user", "label": "ANSWER · 2 tool hops in 38.2 s · $0.0000 sovereign", "kind": "return"},
+      {"from": "agent", "to": "agent", "label": "same capability replays over MCP frames and an A2A task (lab03)", "kind": "note"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Progressive disclosure — metadata vs full body",
+      "type": "bars",
+      "unit": "tokens (~4 chars/tok)",
+      "labels": ["hotel-telemetry", "ipmvp-savings", "catalog total"],
+      "series": [
+        {"name": "metadata only (discovery)", "values": [55, 52, 107], "color": "cyan"},
+        {"name": "full body (loaded on demand)", "values": [507, 106, 613], "color": "amber"}
+      ],
+      "caption": "Measured by labs/lab01_author_a_skill.py on the two SKILL.md files it writes: discovery costs ~tens of tokens per skill; the catalog's bodies (613 tok) load only when a task matches."
+    },
+    {
+      "title": "Can metadata alone pick the right skill?",
+      "type": "donut",
+      "unit": "tasks",
+      "labels": ["metadata pick correct", "miss (synonym gap in description)"],
+      "series": [
+        {"name": "6-task triage", "values": [5, 1], "color": "green"}
+      ],
+      "caption": "Illustrative — the TUTORIAL.md 'skill triage' exercise: a keyword matcher over frontmatter descriptions picks correctly ~5/6 operationally-worded tasks, which is why the 'Use when…' line is the most load-bearing sentence in a SKILL.md."
+    }
+  ]
+}
