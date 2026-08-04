@@ -1,0 +1,387 @@
+#!/usr/bin/env python3
+"""Lab Runner — the step-by-step web app for Week 23's hands-on tutorial track.
+
+A small control plane that parses the 12 TUTORIAL.md files (01–12), serves them
+as a structured course (static/guide.html renders it), and runs each folder's
+labs/*.py scripts server-side, streaming their output to the browser line-by-line.
+
+Two modes, auto-detected (see config.py):
+  • REAL — a live OpenAI-compatible endpoint (Ollama / vLLM / NIM on this laptop,
+    or a DGX you point DGX_BASE_URL at). Labs make genuine on-device inference.
+  • SIM  — no endpoint reachable → every lab degrades gracefully and prints the
+    real commands plus a labeled expected-output sample. Nobody is blocked.
+
+Either way cloud cost is $0.00.
+
+Launch (auto-picks a free port if 8113 is taken):
+
+    .venv/bin/python week23/00_lab_runner/tutorial_server.py
+    # → http://127.0.0.1:8113
+"""
+from __future__ import annotations
+
+import asyncio
+import os
+import re
+import socket
+import sys
+import time
+from pathlib import Path
+
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.responses import FileResponse, PlainTextResponse, StreamingResponse
+from pydantic import BaseModel
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import config  # noqa: E402
+
+PKG = Path(__file__).resolve().parent                 # …/week23/00_lab_runner
+WEEK20 = PKG.parent                                   # …/week23
+ROOT = PKG.parents[1]                                 # …/agenticaicodingfitness
+PY = str(ROOT / ".venv" / "bin" / "python")
+if not Path(PY).exists():
+    PY = sys.executable
+STATIC = PKG / "static"
+
+GUIDE_PORT = int(os.environ.get("LAB_GUIDE_PORT", "8113"))
+
+
+def _port_busy(port: int) -> bool:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.settimeout(0.3)
+        return s.connect_ex(("127.0.0.1", port)) == 0
+
+
+def _pick_free_port(preferred: int, span: int = 40) -> int:
+    for p in range(preferred, preferred + span):
+        if not _port_busy(p):
+            return p
+    return preferred
+
+
+# ── the 12 hands-on tutorials (num, folder, companion-app port) ────────────────
+FOLDERS: list[tuple[str, str, int]] = [
+    ("01", "01_nemotron_models", 8100),
+    ("02", "02_nim_microservices", 8101),
+    ("03", "03_dynamo_serving", 8102),
+    ("04", "04_agent_skills", 8103),
+    ("05", "05_aiq_research_lab", 8104),
+    ("06", "06_nemoclaw", 8105),
+    ("07", "07_guardrails_openshell", 8106),
+    ("08", "08_nemo_relay", 8107),
+    ("09", "09_inference_economics", 8108),
+    ("10", "10_nemo_gym_rl", 8109),
+    ("11", "11_data_flywheel", 8110),
+    ("12", "12_capstone_smart_hotel", 8111),
+]
+FOLDER_SET = {f for _, f, _ in FOLDERS}
+
+LAB_RE = re.compile(r"^lab\d\d_[a-z0-9_]+\.py$")
+RUN_ENV_KEYS = ("DGX_CONN", "DGX_BASE_URL", "DGX_API_KEY", "DGX_MODE")
+RUN_TIMEOUT = 150.0                                    # hard cap per lab run
+
+
+# ── TUTORIAL.md parser — pure-stdlib line scanner over H2 headings ─────────────
+def _slug(text: str) -> str:
+    s = re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-")
+    return s or "section"
+
+
+def _kind_of(title: str) -> str:
+    t = title.strip()
+    if re.match(r"^0\s*·", t):
+        return "paths"
+    if re.match(r"^\d+\s*·", t):
+        return "step"
+    if t.startswith("Labs"):
+        return "labs"
+    if t.startswith("Try it yourself"):
+        return "exercises"
+    if t.startswith("Troubleshooting"):
+        return "troubleshooting"
+    if t.startswith("Next"):
+        return "next"
+    return "step"
+
+
+def _split_sections(text: str) -> list[dict]:
+    """Split RAW markdown on top-level '## ' headings, fence-aware.
+
+    Everything before the first H2 becomes the intro section. Each section's
+    `md` is the verbatim slice of the file, heading line included.
+    """
+    lines = text.splitlines(keepends=True)
+    bounds: list[tuple[int, str]] = []                 # (line index, H2 title)
+    fence = False
+    for i, ln in enumerate(lines):
+        if ln.lstrip().startswith("```"):
+            fence = not fence
+            continue
+        if not fence and ln.startswith("## "):
+            bounds.append((i, ln[3:].strip()))
+
+    first = bounds[0][0] if bounds else len(lines)
+    sections = [{"id": "intro", "kind": "intro", "title": "Introduction",
+                 "md": "".join(lines[:first])}]
+    seen: dict[str, int] = {"intro": 1}
+    for j, (i, title) in enumerate(bounds):
+        end = bounds[j + 1][0] if j + 1 < len(bounds) else len(lines)
+        sid = _slug(title)
+        seen[sid] = seen.get(sid, 0) + 1
+        if seen[sid] > 1:
+            sid = f"{sid}-{seen[sid]}"
+        sections.append({"id": sid, "kind": _kind_of(title), "title": title,
+                         "md": "".join(lines[i:end])})
+    return sections
+
+
+def _doc_title(text: str, folder: str) -> str:
+    """The H1 text after the em-dash: '# ▶ Hands-on Lab NN — <title>'."""
+    m = re.search(r"^#\s+(.+)$", text, re.M)
+    if not m:
+        return folder
+    h1 = m.group(1).strip()
+    if "—" in h1:
+        return h1.split("—", 1)[1].strip()
+    return h1
+
+
+def _doc_meta(text: str) -> dict:
+    """Parse the '**Time** … · **Difficulty** …' line if present."""
+    t = re.search(r"\*\*Time\*\*\s*([^·\n]+)", text)
+    d = re.search(r"\*\*Difficulty\*\*\s*([^·\n]+)", text)
+    return {"time": t.group(1).strip() if t else None,
+            "difficulty": d.group(1).strip() if d else None}
+
+
+def _lab_title(text: str, fname: str) -> str:
+    """Title for a lab file: the TUTORIAL.md '**labs/<file>** — …' blurb,
+    else a prettified filename."""
+    fallback = fname[:-3].replace("_", " ")
+    m = re.search(r"\*\*labs/" + re.escape(fname), text)
+    if not m:
+        return fallback
+    line = text[m.end():].splitlines()[0]
+    line = line.lstrip("*").strip().lstrip("—–-·").strip()
+    # cut at the first sentence-ish boundary
+    cuts = [p for p in (line.find(".**"), line.find(". "), line.find(" Run:"))
+            if p > 0]
+    if cuts:
+        line = line[:min(cuts)]
+    line = line.rstrip("*").rstrip(".").strip()
+    if len(line) > 110:
+        line = line[:107].rstrip() + "…"
+    return line or fallback
+
+
+def _list_labs(folder: str, text: str) -> list[dict]:
+    labs_dir = WEEK20 / folder / "labs"
+    if not labs_dir.is_dir():
+        return []
+    return [{"file": p.name, "title": _lab_title(text, p.name)}
+            for p in sorted(labs_dir.glob("lab*.py")) if LAB_RE.match(p.name)]
+
+
+def _next_folder(sections: list[dict]) -> str | None:
+    for s in sections:
+        if s["kind"] == "next":
+            m = re.search(r"\.\./(\d\d_[a-z0-9_]+)/", s["md"])
+            if m:
+                return m.group(1)
+    return None
+
+
+def _build_entry(num: str, folder: str, port: int, path: Path) -> dict:
+    entry: dict = {"num": num, "folder": folder, "port": port, "title": folder,
+                   "meta": {"time": None, "difficulty": None},
+                   "sections": [], "labs": [], "next": None}
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as e:
+        entry["parse_warning"] = f"could not read {path.name}: {e}"
+        entry["sections"] = [{"id": "intro", "kind": "intro",
+                              "title": "Introduction", "md": ""}]
+        entry["labs"] = _list_labs(folder, "")
+        return entry
+    try:
+        sections = _split_sections(text)
+        entry.update(title=_doc_title(text, folder), meta=_doc_meta(text),
+                     sections=sections, labs=_list_labs(folder, text),
+                     next=_next_folder(sections))
+    except Exception as e:                              # never crash the course
+        entry["parse_warning"] = f"parse failed: {e}"
+        entry["sections"] = [{"id": "intro", "kind": "intro",
+                              "title": "Introduction", "md": text}]
+        try:
+            entry["labs"] = _list_labs(folder, text)
+        except Exception:
+            pass
+    return entry
+
+
+# parse once at startup; re-read a TUTORIAL.md only if its mtime changed
+_CACHE: dict[str, tuple[float, dict]] = {}
+
+
+def _course_entry(num: str, folder: str, port: int) -> dict:
+    path = WEEK20 / folder / "TUTORIAL.md"
+    try:
+        mtime = path.stat().st_mtime
+    except OSError:
+        mtime = -1.0
+    hit = _CACHE.get(folder)
+    if hit and hit[0] == mtime:
+        return hit[1]
+    entry = _build_entry(num, folder, port, path)
+    _CACHE[folder] = (mtime, entry)
+    return entry
+
+
+def course() -> list[dict]:
+    return [_course_entry(num, folder, port) for num, folder, port in FOLDERS]
+
+
+course()                                                # warm the cache at startup
+
+
+# ── the app ────────────────────────────────────────────────────────────────────
+app = FastAPI(title="Lab Runner — Week 23 hands-on tutorial track")
+_run_lock = asyncio.Lock()
+
+
+@app.get("/")
+async def index():
+    guide = STATIC / "guide.html"
+    if guide.exists():
+        return FileResponse(guide, headers={"Cache-Control": "no-store, max-age=0"})
+    return PlainTextResponse(
+        "▣ Lab Runner backend is up — static/guide.html is not built yet.\n\n"
+        "API is live:\n"
+        "  GET  /api/course   — the parsed 12-tutorial course\n"
+        "  GET  /api/source?folder=<folder>&lab=<labNN_x.py>\n"
+        "  POST /api/run      — {\"folder\",\"lab\",\"env\"} → streamed output\n"
+        "  GET  /api/status   — REAL/SIM connection status\n")
+
+
+@app.get("/static/{fname:path}")
+async def static_file(fname: str):
+    base = STATIC.resolve()
+    target = (base / fname).resolve()
+    if not str(target).startswith(str(base) + os.sep) or not target.is_file():
+        raise HTTPException(status_code=404, detail="not found")
+    return FileResponse(target, headers={"Cache-Control": "no-store, max-age=0"})
+
+
+@app.get("/api/course")
+async def api_course() -> list[dict]:
+    return course()
+
+
+def _lab_path(folder: str, lab: str) -> Path:
+    """Strict allowlist: folder ∈ the 12, lab matches ^lab\\d\\d_[a-z0-9_]+\\.py$."""
+    if folder not in FOLDER_SET or not LAB_RE.match(lab):
+        raise HTTPException(status_code=404, detail="not found")
+    path = WEEK20 / folder / "labs" / lab
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="not found")
+    return path
+
+
+@app.get("/api/source")
+async def api_source(folder: str = Query(...), lab: str = Query(...)):
+    path = _lab_path(folder, lab)
+    return PlainTextResponse(path.read_text(encoding="utf-8", errors="replace"))
+
+
+class RunRequest(BaseModel):
+    folder: str
+    lab: str
+    env: dict[str, str] | None = None
+
+
+def _stream_lab(folder: str, lab: str, extra_env: dict[str, str]):
+    async def gen():
+        start = time.time()
+        env = {**os.environ, "PYTHONUNBUFFERED": "1"}
+        for k in RUN_ENV_KEYS:                          # ONLY the 4 whitelisted keys
+            v = extra_env.get(k)
+            if v is not None:
+                env[k] = str(v)
+        proc = await asyncio.create_subprocess_exec(
+            PY, str(WEEK20 / folder / "labs" / lab), cwd=str(ROOT), env=env,
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT)
+        try:
+            while True:
+                try:
+                    line = await asyncio.wait_for(
+                        proc.stdout.readline(),
+                        timeout=max(1, start + RUN_TIMEOUT - time.time()))
+                except asyncio.TimeoutError:
+                    proc.kill()
+                    yield (f"\n⏱  lab exceeded {RUN_TIMEOUT:.0f}s — killed.\n"
+                           f"__EXIT__ 124 {time.time()-start:.1f}\n")
+                    return
+                if not line:
+                    break
+                yield line.decode(errors="replace")
+            await proc.wait()
+            yield f"__EXIT__ {proc.returncode} {time.time()-start:.1f}\n"
+        finally:
+            if proc.returncode is None:
+                proc.kill()
+    return gen()
+
+
+@app.post("/api/run")
+async def api_run(req: RunRequest):
+    _lab_path(req.folder, req.lab)                      # 404 outside the allowlist
+    extra_env = req.env or {}
+
+    async def body():
+        if _run_lock.locked():
+            yield "⚠  another lab is already running — wait for it to finish.\n__EXIT__ 1 0\n"
+            return
+        async with _run_lock:
+            yield f"$ {Path(PY).name} week23/{req.folder}/labs/{req.lab}\n\n"
+            async for chunk in _stream_lab(req.folder, req.lab, extra_env):
+                yield chunk
+    return StreamingResponse(body(), media_type="text/plain")
+
+
+@app.get("/api/status")
+async def api_status() -> dict:
+    real = config.MODE == "real"
+    if real:
+        detail = (f"REAL — {config.conn_human()} · labs run genuine inference "
+                  f"against {config.safe_base_url()}")
+    else:
+        detail = (f"SIM — no endpoint reachable via {config.conn_human()}; labs "
+                  "degrade gracefully and print expected-output samples ($0, no GPU)")
+    return {"mode": config.MODE, "conn": config.CONN,
+            "base_url": config.safe_base_url(),
+            "model": config.MODEL if real else None, "detail": detail}
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    port = _pick_free_port(GUIDE_PORT)
+    banner = ["", "  ▣  Lab Runner — Week 23's hands-on track, one lab at a time"]
+    if config.MODE == "real":
+        banner += [f"      ✓ REAL endpoint: {config.MODEL} @ {config.safe_base_url()}",
+                   "        labs run for real, fully on-device — cloud cost $0.00."]
+    else:
+        banner += ["      ◈ SIM mode — no endpoint reachable; every lab degrades",
+                   "        gracefully and still teaches. Go REAL anytime:",
+                   "        ollama serve   (or set DGX_BASE_URL / use the 🔌 panel)"]
+    parsed = course()
+    warn = sum(1 for e in parsed if e.get("parse_warning"))
+    banner += [f"      ▤ course: {len(parsed)} tutorials · "
+               f"{sum(len(e['sections']) for e in parsed)} sections · "
+               f"{sum(len(e['labs']) for e in parsed)} labs"
+               + (f" · ⚠ {warn} parse warning(s)" if warn else "")]
+    if port != GUIDE_PORT:
+        banner += [f"      ⚠ port {GUIDE_PORT} busy — using {port} (set LAB_GUIDE_PORT)."]
+    banner += [f"      open  →  http://127.0.0.1:{port}", ""]
+    print("\n".join(banner), flush=True)
+    uvicorn.run(app, host="127.0.0.1", port=port)
