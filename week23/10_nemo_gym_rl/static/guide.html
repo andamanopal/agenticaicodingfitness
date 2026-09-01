@@ -501,16 +501,16 @@ const VIZ={
      {from:"reward",to:"grpo"},
      {from:"grpo",to:"policy",label:"update",dashed:true},
    ],"Sample a group of rollouts, score each with an objective verifier, compute the group-relative advantage, and update the policy — verifiable-reward RL, how Nemotron itself was forged.",{h:50})+vpipe("The verifiable-reward RL loop (the LEARNING layer)",[
-     {label:"prompt / task",cls:a},
-     {label:"policy rollout (Nemotron)",cls:s},
-     {label:"verifier → reward 0/1",cls:r},
-     {label:"policy update (GRPO)",cls:f},
+     {label:"prompt / task",cls:'a'},
+     {label:"policy rollout (Nemotron)",cls:'s'},
+     {label:"verifier → reward 0/1",cls:'r'},
+     {label:"policy update (GRPO)",cls:'f'},
    ],"A training loop, not a one-shot: the updated policy feeds the next round's rollouts — reward → advantage → update, repeat until the reward saturates."),
  step01: vpipe("Environment = task + verifier reward",[
-     {label:"task / prompt",cls:a},
-     {label:"policy answer",cls:s},
-     {label:"verifier (checks answer)",cls:r},
-     {label:"reward 0/1",cls:f},
+     {label:"task / prompt",cls:'a'},
+     {label:"policy answer",cls:'s'},
+     {label:"verifier (checks answer)",cls:'r'},
+     {label:"reward 0/1",cls:'f'},
    ],"Outcome-based (verifiable) rewards — did the code/math/tool-call actually PASS? — are objective and hard to game, unlike subjective human preference ratings."),
  step02: vseq("One rollout being scored by reward_fn (illustrative)",
    ["env","policy","reward_fn"],[
@@ -535,11 +535,11 @@ const VIZ={
      {label:"OVERALL · trained",value:68,color:VC.v},
    ],"%","Multi-environment RL lifts overall pass-rate ~41% → ~68% — evaluation on held-out tasks is the promotion gate, then the Data Flywheel (App 11) keeps it improving."),
  outro: vpipe("Where this sits in the Week 23 stack",[
-     {label:"Nemotron — model",cls:s},
-     {label:"NIM — serve",cls:r},
-     {label:"Dynamo — scale",cls:r},
-     {label:"Gym+RL — learn",cls:a},
-     {label:"OpenShell — guard",cls:f},
+     {label:"Nemotron — model",cls:'s'},
+     {label:"NIM — serve",cls:'r'},
+     {label:"Dynamo — scale",cls:'r'},
+     {label:"Gym+RL — learn",cls:'a'},
+     {label:"OpenShell — guard",cls:'f'},
    ],"NeMo Gym + NeMo RL is the LEARNING layer of Agent = Model + Harness — verifiable rewards turn agent outcomes into a better policy."),
 };
 

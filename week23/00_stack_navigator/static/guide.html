@@ -44,15 +44,25 @@
   #cf-url{flex:1;min-width:220px} #cf-key{width:190px}
   .cstat{font-size:11.5px;color:var(--dim)}
   .cstat .ok{color:var(--green)} .cstat .warn{color:var(--amber)}
-  /* ── tour bar ── */
-  .tourbar{position:sticky;top:52px;z-index:49;display:none;align-items:center;gap:10px;flex-wrap:wrap;
-        padding:8px 20px;background:var(--panel2);border-bottom:1px solid var(--line)}
-  .tourbar.show{display:flex}
-  .dots{display:inline-flex;gap:5px;align-items:center}
-  .dots .d2{width:9px;height:9px;border-radius:50%;background:var(--line);cursor:pointer;border:1px solid var(--line)}
-  .dots .d2:hover{border-color:var(--accent)}
-  .dots .d2.seen{background:rgba(118,185,0,.45)}
-  .dots .d2.cur{background:var(--accent);box-shadow:0 0 6px rgba(118,185,0,.8)}
+  /* ── slide-over detail drawer ── */
+  body.noscroll{overflow:hidden}
+  .scrim{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;
+        transition:opacity .18s;z-index:90}
+  .scrim.show{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:0;bottom:0;width:min(820px,94vw);background:var(--bg);z-index:95;
+        transform:translateX(103%);transition:transform .22s ease;display:flex;flex-direction:column;
+        border-left:1px solid var(--line);box-shadow:-10px 0 34px rgba(0,0,0,.6)}
+  .drawer.open{transform:none}
+  .drawer-top{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--panel);
+        border-bottom:1px solid var(--line)}
+  .drtitle{font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  .drpos{font-size:11.5px;color:var(--dim);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .drawer-body{flex:1;overflow-y:auto;padding:14px 16px}
+  .drawer-hint{font-size:11px;color:var(--dim);padding:6px 16px;border-top:1px solid var(--line);
+        background:var(--panel)}
+  .tbtn:disabled{opacity:.4;cursor:not-allowed}
+  .sechead{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--dim);
+        margin:18px 0 7px;padding-top:12px;border-top:1px dashed var(--line)}
   /* ── hero ── */
   main{max-width:1120px;margin:0 auto;padding:20px 22px 60px}
   .hero h2{font-size:20px;margin:4px 0 6px}
@@ -76,6 +86,7 @@
   .stackmap .n-a{fill:rgba(86,212,221,.13);stroke:rgba(86,212,221,.55)}
   .stackmap .n-f{fill:rgba(188,140,255,.13);stroke:rgba(188,140,255,.55)}
   .stackmap .n-w{fill:rgba(210,153,34,.13);stroke:rgba(210,153,34,.55)}
+  .stackmap .n-cap{fill:rgba(227,179,65,.10);stroke:#e3b341;stroke-width:.55}
   .stackmap .flowline{stroke:#2c3322;stroke-width:.3;stroke-dasharray:1.2 1.6;fill:none}
   .stackmap .pulse{fill:var(--cyan);opacity:.9}
   .stackmap .gnode{opacity:0;animation:vpop .45s ease-out forwards}
@@ -96,13 +107,8 @@
   .appcard .aport{font-size:10.5px;color:var(--dim);font-variant-numeric:tabular-nums}
   .rdot{width:8px;height:8px;border-radius:50%;background:#3a4230;flex:0 0 8px}
   .rdot.on{background:var(--green);box-shadow:0 0 6px rgba(118,185,0,.8)}
-  /* ── node panels ── */
-  .layerhead{margin:34px 0 6px;padding:10px 14px;border:1px solid var(--line);border-left:4px solid var(--accent);
-        border-radius:8px;background:var(--panel);scroll-margin-top:130px}
-  .layerhead h3{margin:0;font-size:14px} .layerhead .lt{font-size:11.5px;color:var(--dim)}
-  .npanel{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:18px 20px;
-        margin:14px 0;scroll-margin-top:130px}
-  .npanel.tourfocus{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 0 22px rgba(118,185,0,.25)}
+  /* ── node panels (inside the drawer) ── */
+  .npanel{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:18px 20px;margin:0}
   .phead{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:10.5px;text-transform:uppercase;
         letter-spacing:.06em;color:var(--dim)}
   .lchip{font-weight:700;padding:2px 8px;border-radius:6px;border:1px solid var(--line)}
@@ -155,7 +161,6 @@
   .sp{width:11px;height:11px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;
       display:inline-block;animation:rot .7s linear infinite;vertical-align:middle}
   @keyframes rot{to{transform:rotate(360deg)}}
-  @media(max-width:760px){ .tourbar{top:96px} }
 </style>
 </head>
 <body>
@@ -177,16 +182,6 @@
   <button class="tbtn" onclick="probe()">🔌 Probe &amp; connect</button>
   <select class="model-sel" id="model-sel" onchange="pickModel()" title="model used by every ▶ Ask button"></select>
   <span class="cstat" id="conn-status"></span>
-</div>
-
-<div class="tourbar" id="tourbar">
-  <button class="tbtn" onclick="endTour()" title="exit tour (Esc)">✕</button>
-  <button class="tbtn" id="tour-prev" onclick="tourStep(-1)" title="previous stop (←)">◀</button>
-  <span class="dots" id="tour-dots"></span>
-  <button class="tbtn" id="tour-next" onclick="tourStep(1)" title="next stop (→)">▶</button>
-  <span class="cstat" id="tour-label"></span>
-  <span class="grow"></span>
-  <span class="cstat">← / → arrow keys navigate · Esc exits</span>
 </div>
 
 <main>
@@ -211,17 +206,31 @@
     <div class="appgrid" id="appgrid"><span class="cstat">checking ports 8100–8111…</span></div>
   </section>
 
-  <div id="panels"></div>
 </main>
+
+<div class="scrim" id="scrim" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer" aria-label="stack node details">
+  <div class="drawer-top">
+    <button class="tbtn" id="dr-prev" onclick="drawerNav(-1)" title="previous stop (←)">◀</button>
+    <span class="drpos" id="dr-pos"></span>
+    <button class="tbtn" id="dr-next" onclick="drawerNav(1)" title="next stop (→)">▶</button>
+    <span class="drtitle" id="dr-title"></span>
+    <span class="grow"></span>
+    <button class="tbtn" onclick="closeDrawer()" title="close (Esc)">✕ Close</button>
+  </div>
+  <div class="drawer-body" id="drawer-body"></div>
+  <div class="drawer-hint">← / → walk the 16 stops in learning order · Esc closes · the map stays where you left it</div>
+</aside>
 
 <script>
 "use strict";
 /* ── state ── */
 let STACK=null, LAYERS=[], JOURNEY=[], NODES={}, LAYER_OF={};
 let MODE="sim", CONN="local", MODEL=null, MODELS=[], BASE=null, DETAIL="";
-let SEL_CONN=null, APPS=[], tourIdx=-1;
+let SEL_CONN=null, APPS=[], curNode=null;
 const CMDS=[];               // copy-button text store
 const RUNNING={};            // node_id -> streaming in progress
+const BUILT={};              // node_id -> lazily built drawer panel (kept so a streaming run survives nav)
 const LS_KEY="nav_conn_v1", LS_MODEL="nav_model_v1";
 const PRESETS={
   local :{conn:"local", url:"http://localhost:11434/v1"},
@@ -265,7 +274,7 @@ async function boot(){
   LAYERS=STACK.layers||[]; JOURNEY=STACK.journey||[];
   LAYERS.forEach(L=>L.nodes.forEach(n=>{ NODES[n.id]=n; LAYER_OF[n.id]=L; }));
   el("hero-sub").textContent=STACK.subtitle||"";
-  renderHero(); renderPanels(); renderDots();
+  renderHero();
   await refreshStatus();
   restoreConn();
   refreshApps();
@@ -273,21 +282,18 @@ async function boot(){
 
 /* ── hero SVG — built entirely from /api/stack (bottom-up, tokens pulse upward) ── */
 function shortName(s){ return String(s||"").split(" (")[0].replace(/\s+/g," ").trim(); }
-function wrapTxt(s,mx){
+function wrapTxt(s,mx,maxLines){
+  maxLines=maxLines||3;
   const words=String(s).split(" "), lines=[]; let cur="";
-  for(let i=0;i<words.length;i++){
-    const w=words[i];
-    if((cur?cur.length+1:0)+w.length<=mx){ cur=cur?cur+" "+w:w; }
-    else{
-      if(cur)lines.push(cur);
-      cur=w;
-      if(lines.length===2)break;
-    }
+  for(const w of words){
+    if(!cur||cur.length+1+w.length<=mx){ cur=cur?cur+" "+w:w; }
+    else{ lines.push(cur); cur=w; }
   }
-  if(cur&&lines.length<2)lines.push(cur);
-  if(lines.length===2&&lines[1].length>mx)lines[1]=lines[1].slice(0,mx-1)+"…";
-  else if(lines.length===2&&words.join(" ").length>lines[0].length+lines[1].length+1&&!lines[1].endsWith("…"))
-    lines[1]=lines[1].slice(0,Math.max(1,mx-1))+"…";
+  if(cur)lines.push(cur);
+  if(lines.length>maxLines){
+    lines.length=maxLines;
+    lines[maxLines-1]=lines[maxLines-1].slice(0,Math.max(1,mx-1))+"…";
+  }
   return lines;
 }
 function runnableColor(n){
@@ -298,49 +304,69 @@ function runnableColor(n){
 }
 function renderHero(){
   const order=LAYERS.slice().reverse();       // flywheel on top, hardware at the bottom
-  const pitch=14, bandH=10.5, top=3, H=top+order.length*pitch;
+  // full-width bands: the layer caption sits ABOVE each band, boxes span x=1..99
+  const cap=4, bandH=12, gapY=3, top=2.5, pitch=cap+bandH+gapY;
+  const H=top+(order.length+1)*pitch-gapY+2;   // +1: the synthetic capstone band on top
   let svg="";
   // upward token-flow lines + slow pulses (the sovereign loop: tokens rise through the stack)
-  [30,55,80].forEach((x,k)=>{
+  [25,50,75].forEach((x,k)=>{
     const id="flow"+k;
-    svg+='<path id="'+id+'" class="flowline" d="M'+x+' '+(H-2)+' L'+x+' 2"/>';
+    svg+='<path id="'+id+'" class="flowline" d="M'+x+' '+(H-1)+' L'+x+' 1"/>';
     for(let j=0;j<2;j++){
       svg+='<circle class="pulse" r="0.8"><animateMotion dur="'+(4.6+k*0.9)+'s" begin="'+
         (k*0.8+j*2.5)+'s" repeatCount="indefinite"><mpath href="#'+id+'"/></animateMotion></circle>';
     }
   });
-  let g=0;
+  // the capstone is the application of every layer — pull it out of its content layer
+  // and render it as its own full-width band ABOVE the stack (mirror of the hardware base).
+  const CAP_ID="capstone_smart_hotel";
+  const bandsSrc=[];
+  if(NODES[CAP_ID])
+    bandsSrc.push({synth:true,label:"CAPSTONE",col:"#e3b341",cls:"cap",
+      sub:"every layer below, combined into one application",nodes:[NODES[CAP_ID]]});
   order.forEach((L,li)=>{
-    const y=top+li*pitch, cls=LAYER_CLS[L.id]||"r", col=L.color_hint||"#8f9a82";
-    const lname=shortName(L.name.split(" — ")[0]);
+    const nodes=L.nodes.filter(nd=>nd.id!==CAP_ID);
+    if(nodes.length)bandsSrc.push({L,layerNum:order.length-li,nodes});
+  });
+  let g=0;
+  bandsSrc.forEach((B,li)=>{
+    const yCap=top+li*pitch+2.4, y=top+li*pitch+cap;
+    const L=B.L, cls=B.synth?B.cls:(LAYER_CLS[L.id]||"r");
+    const col=B.synth?B.col:(L.color_hint||"#8f9a82");
+    const lname=B.synth?B.label:shortName(L.name.split(" — ")[0]);
+    const subTxt=B.synth?B.sub
+      :"layer "+B.layerNum+" · "+B.nodes.length+(B.nodes.length>1?" nodes":" node");
+    const capClick=B.synth?'openNode(\''+CAP_ID+'\')':'openLayer(\''+L.id+'\')';
     svg+='<g class="gnode" style="animation-delay:'+(g++*0.07).toFixed(2)+'s">'+
-      '<text class="llabel" x="1" y="'+(y+bandH/2-1.4)+'" font-size="2.4" fill="'+col+
-        '" onclick="openLayer(\''+L.id+'\')">'+esc(lname)+'</text>'+
-      '<text class="lsub" x="1" y="'+(y+bandH/2+1.8)+'">layer '+(order.length-li)+' · '+L.nodes.length+
-        (L.nodes.length>1?" nodes":" node")+'</text>'+
-      '<rect x="1" y="'+(y+bandH-0.6)+'" width="12" height="0.5" fill="'+col+'" opacity="0.55" rx="0.25"/></g>';
-    const n=L.nodes.length, x0=16, x1=99, gap=1.4, w=(x1-x0-(n-1)*gap)/n;
-    const fs=w>22?2.2:(w>15?2.0:1.75);
-    const mx=Math.max(6,Math.floor((w-1.6)/(fs*0.52)));
-    L.nodes.forEach((nd,i)=>{
+      '<text class="llabel" x="1" y="'+yCap.toFixed(1)+'" font-size="2.1" fill="'+col+
+        '" onclick="'+capClick+'" letter-spacing="0.12">'+esc(lname.toUpperCase())+
+        '<tspan fill="#586049" font-size="1.7" letter-spacing="0">  ·  '+esc(subTxt)+'</tspan></text></g>';
+    const n=B.nodes.length, x0=1, x1=99, gap=1.4, w=(x1-x0-(n-1)*gap)/n;
+    const fs=n===1?2.4:(w>20?2.0:1.85);
+    const mx=Math.max(6,Math.floor((w-1.4)/(fs*0.5)));
+    B.nodes.forEach((nd,i)=>{
       const x=x0+i*(w+gap), cx=x+w/2, cy=y+bandH/2;
-      const lines=wrapTxt(shortName(nd.name),mx);
-      let txt;
-      if(lines.length===1){
-        txt='<text class="nlabel" font-size="'+fs+'" x="'+cx.toFixed(1)+'" y="'+cy.toFixed(1)+'">'+esc(lines[0])+'</text>';
+      let txt="";
+      if(n===1&&nd.tagline){                       // wide band: full name + tagline subtitle
+        let sub=String(nd.tagline); if(sub.length>110)sub=sub.slice(0,107)+"…";
+        txt='<text class="nlabel" font-size="'+fs+'" x="'+cx.toFixed(1)+'" y="'+(cy-1.6).toFixed(1)+'">'+esc(nd.name)+'</text>'+
+            '<text class="nsub" font-size="1.6" x="'+cx.toFixed(1)+'" y="'+(cy+2.1).toFixed(1)+'">'+esc(sub)+'</text>';
       }else{
-        txt='<text class="nlabel" font-size="'+fs+'" x="'+cx.toFixed(1)+'" y="'+(cy-1.2).toFixed(1)+'">'+esc(lines[0])+'</text>'+
-            '<text class="nlabel" font-size="'+fs+'" x="'+cx.toFixed(1)+'" y="'+(cy+1.4).toFixed(1)+'">'+esc(lines[1])+'</text>';
+        const lines=wrapTxt(shortName(nd.name),mx,3);
+        const y0=cy-(lines.length-1)*1.25;
+        lines.forEach((ln,k2)=>{
+          txt+='<text class="nlabel" font-size="'+fs+'" x="'+cx.toFixed(1)+'" y="'+(y0+k2*2.5).toFixed(1)+'">'+esc(ln)+'</text>';
+        });
       }
       svg+='<g class="gnode hnode" id="svg-node-'+esc(nd.id)+'" style="animation-delay:'+(g++*0.07).toFixed(2)+
         's" onclick="openNode(\''+nd.id+'\')">'+
         '<title>'+esc(nd.name)+' — '+esc(nd.tagline||"")+'</title>'+
-        '<rect class="n-'+cls+'" x="'+x.toFixed(1)+'" y="'+y+'" width="'+w.toFixed(1)+'" height="'+bandH+'" rx="1.6"/>'+
+        '<rect class="n-'+cls+'" x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+bandH+'" rx="1.6"/>'+
         txt+
-        '<circle cx="'+(x+w-1.5).toFixed(1)+'" cy="'+(y+1.6)+'" r="0.7" fill="'+runnableColor(nd)+'"/></g>';
+        '<circle cx="'+(x+w-1.4).toFixed(1)+'" cy="'+(y+1.5).toFixed(1)+'" r="0.65" fill="'+runnableColor(nd)+'"/></g>';
     });
   });
-  el("hero-svg").innerHTML='<svg class="stackmap" viewBox="0 0 100 '+H+
+  el("hero-svg").innerHTML='<svg class="stackmap" viewBox="0 0 100 '+H.toFixed(1)+
     '" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">'+svg+'</svg>';
 }
 
@@ -367,15 +393,15 @@ function curlFor(n){
   if(p.length>160)p=p.slice(0,157)+"…";
   return 'curl '+ep+'/chat/completions \\\n  -H "Authorization: Bearer $NVIDIA_API_KEY" -H "Content-Type: application/json" \\\n  -d \'{"model":'+JSON.stringify(model)+',"messages":[{"role":"user","content":'+JSON.stringify(p)+'}],"max_tokens":512,"stream":true}\'';
 }
-function renderPanels(){
-  let html="";
-  LAYERS.forEach(L=>{
-    html+='<div class="layerhead" id="layer-'+esc(L.id)+'" style="border-left-color:'+esc(L.color_hint||"#76b900")+'">'+
-      '<h3>'+esc(L.name)+'</h3><span class="lt">'+esc(L.tagline||"")+'</span></div>';
-    L.nodes.forEach(n=>{ html+=panelHtml(n,L); });
-  });
-  el("panels").innerHTML=html;
+function ensurePanel(nid){
+  if(BUILT[nid])return BUILT[nid];
+  const wrap=document.createElement("div");
+  wrap.innerHTML=panelHtml(NODES[nid],LAYER_OF[nid]);
+  const p=wrap.firstChild;
+  el("drawer-body").appendChild(p);
+  BUILT[nid]=p;
   updateModeUI(); updateDotsUI();
+  return p;
 }
 function panelHtml(n,L){
   const id=n.id, jix=JOURNEY.indexOf(id);
@@ -402,15 +428,7 @@ function panelHtml(n,L){
     '<p class="tagline">'+esc(n.tagline||"")+'</p>'+
     '<div class="desc">'+esc(n.what||"")+'</div>'+
     '<div class="why"><b>Why it matters ·</b> '+esc(n.why_it_matters||"")+'</div>'+
-    '<div class="tabs">'+
-      '<button class="tab sel" id="tab-dgx-'+esc(id)+'" onclick="setTab(\''+id+'\',\'dgx\')">🖥️ Run on DGX Spark</button>'+
-      '<button class="tab" id="tab-cloud-'+esc(id)+'" onclick="setTab(\''+id+'\',\'cloud\')">☁️ Run on build.nvidia.com</button>'+
-    '</div>'+
-    '<div class="tabbody" id="tb-dgx-'+esc(id)+'">'+
-      '<p class="how">'+esc(spark.how||"")+'</p>'+cmdBlock(spark.commands)+
-      '<p class="how dimtxt">🖥️ these run <b>on the DGX</b> (SSH / DGX console) — this hub never executes them on your laptop.</p>'+
-    '</div>'+
-    '<div class="tabbody" id="tb-cloud-'+esc(id)+'" style="display:none">'+cloudBody+'</div>'+
+    '<div class="sechead">Try it right here — SIM or REAL, $0</div>'+
     '<div class="runrow">'+
       '<textarea id="prompt-'+esc(id)+'" spellcheck="false">'+esc(n.demo_prompt||"")+'</textarea>'+
       '<div class="runcol">'+
@@ -426,6 +444,16 @@ function panelHtml(n,L){
       '<div class="term" id="term-'+esc(id)+'"><span style="color:#586049">— click “▶ Ask this layer” to stream the answer here —</span></div>'+
       '<div class="footer" id="foot-'+esc(id)+'"></div>'+
     '</div>'+
+    '<div class="sechead">Run it for real — the actual commands</div>'+
+    '<div class="tabs">'+
+      '<button class="tab sel" id="tab-dgx-'+esc(id)+'" onclick="setTab(\''+id+'\',\'dgx\')">🖥️ Run on DGX Spark</button>'+
+      '<button class="tab" id="tab-cloud-'+esc(id)+'" onclick="setTab(\''+id+'\',\'cloud\')">☁️ Run on build.nvidia.com</button>'+
+    '</div>'+
+    '<div class="tabbody" id="tb-dgx-'+esc(id)+'">'+
+      '<p class="how">'+esc(spark.how||"")+'</p>'+cmdBlock(spark.commands)+
+      '<p class="how dimtxt">🖥️ these run <b>on the DGX</b> (SSH / DGX console) — this hub never executes them on your laptop.</p>'+
+    '</div>'+
+    '<div class="tabbody" id="tb-cloud-'+esc(id)+'" style="display:none">'+cloudBody+'</div>'+
     '<div class="actions">'+appBtn+links+'</div>'+
     '</section>';
 }
@@ -519,7 +547,7 @@ setInterval(refreshStatus,30000);
 /* ── RUN: POST /api/run → NDJSON stream (meta | token | done | error) ── */
 function clearTerm(id){ el("term-"+id).innerHTML=""; const f=el("foot-"+id); f.classList.remove("show"); f.innerHTML="";
   el("tmode-"+id).textContent="idle"; }
-function termAppend(id,html){ const t=el("term-"+id); t.innerHTML+=html; t.scrollTop=t.scrollHeight; }
+function termAppend(id,html){ const t=el("term-"+id); if(!t)return; t.innerHTML+=html; t.scrollTop=t.scrollHeight; }
 function pickField(o,names){ for(const k of names){ if(o[k]!=null)return o[k]; } return null; }
 function handleLine(id,line,st){
   let o=null;
@@ -624,66 +652,45 @@ function updateDotsUI(){
 }
 setInterval(refreshApps,15000);
 
-/* ── guided tour: journey[] order, dots, ←/→ keys, SVG highlight ── */
-function renderDots(){
-  el("tour-dots").innerHTML=JOURNEY.map((nid,i)=>
-    '<span class="d2" id="td-'+i+'" onclick="tourGo('+i+')" title="'+(i+1)+"/"+JOURNEY.length+" · "+
-    esc(NODES[nid]?NODES[nid].name:nid)+'"></span>').join("");
-}
-function clearFocus(){
-  document.querySelectorAll(".hnode.hl").forEach(x=>x.classList.remove("hl"));
-  document.querySelectorAll(".npanel.tourfocus").forEach(x=>x.classList.remove("tourfocus"));
-}
-function startTour(){
-  if(!STACK)return;
-  el("tourbar").classList.add("show");
-  tourGo(0);
-}
-function endTour(){
-  tourIdx=-1;
-  el("tourbar").classList.remove("show");
-  clearFocus();
-}
-function tourStep(d){
-  if(tourIdx<0)return;
-  tourGo(Math.max(0,Math.min(JOURNEY.length-1,tourIdx+d)));
-}
-function tourGo(i){
-  tourIdx=i;
-  el("tourbar").classList.add("show");
-  const nid=JOURNEY[i], n=NODES[nid];
-  JOURNEY.forEach((_,j)=>{
-    const d=el("td-"+j); if(!d)return;
-    d.classList.toggle("cur",j===i); d.classList.toggle("seen",j<i);
-  });
-  el("tour-prev").disabled=(i===0); el("tour-next").disabled=(i===JOURNEY.length-1);
-  el("tour-label").textContent="stop "+(i+1)+"/"+JOURNEY.length+" · "+(n?n.name:nid);
-  focusNode(nid);
-}
-function focusNode(nid){
-  clearFocus();
-  const g=el("svg-node-"+nid); if(g)g.classList.add("hl");
-  const p=el("panel-"+nid);
-  if(p){ p.classList.add("tourfocus"); p.scrollIntoView({behavior:"smooth",block:"start"}); }
-}
+/* ── drawer nav: journey[] order, ←/→ keys, SVG highlight — click a box, no page scrolling ── */
 function openNode(nid){
-  if(tourIdx>=0){
-    const j=JOURNEY.indexOf(nid);
-    if(j>=0){ tourGo(j); return; }
-  }
-  focusNode(nid);
+  const n=NODES[nid]; if(!n)return;
+  ensurePanel(nid);
+  Object.keys(BUILT).forEach(k=>{ BUILT[k].style.display=(k===nid)?"":"none"; });
+  curNode=nid;
+  const j=JOURNEY.indexOf(nid);
+  el("dr-pos").textContent=j>=0?("stop "+(j+1)+" / "+JOURNEY.length):"";
+  el("dr-prev").disabled=(j<=0); el("dr-next").disabled=(j<0||j>=JOURNEY.length-1);
+  el("dr-title").textContent=n.name;
+  el("drawer").classList.add("open"); el("scrim").classList.add("show");
+  document.body.classList.add("noscroll");
+  document.querySelectorAll(".hnode.hl").forEach(x=>x.classList.remove("hl"));
+  const g=el("svg-node-"+nid); if(g)g.classList.add("hl");
+  el("drawer-body").scrollTop=0;
 }
+function drawerNav(d){
+  const j=JOURNEY.indexOf(curNode); if(j<0)return;
+  const k=j+d; if(k<0||k>=JOURNEY.length)return;
+  openNode(JOURNEY[k]);
+}
+function closeDrawer(){
+  curNode=null;
+  el("drawer").classList.remove("open"); el("scrim").classList.remove("show");
+  document.body.classList.remove("noscroll");
+  document.querySelectorAll(".hnode.hl").forEach(x=>x.classList.remove("hl"));
+}
+function startTour(){ if(STACK&&JOURNEY.length)openNode(JOURNEY[0]); }
 function openLayer(lid){
-  const h=el("layer-"+lid);
-  if(h)h.scrollIntoView({behavior:"smooth",block:"start"});
+  const L=LAYERS.find(x=>x.id===lid);
+  if(L&&L.nodes.length)openNode(L.nodes[0].id);
 }
 addEventListener("keydown",e=>{
-  if(tourIdx<0)return;
+  if(!curNode)return;
   const tag=(e.target&&e.target.tagName)||"";
   if(tag==="INPUT"||tag==="TEXTAREA"||tag==="SELECT")return;
-  if(e.key==="ArrowRight"){ e.preventDefault(); tourStep(1); }
-  else if(e.key==="ArrowLeft"){ e.preventDefault(); tourStep(-1); }
-  else if(e.key==="Escape")endTour();
+  if(e.key==="ArrowRight"){ e.preventDefault(); drawerNav(1); }
+  else if(e.key==="ArrowLeft"){ e.preventDefault(); drawerNav(-1); }
+  else if(e.key==="Escape")closeDrawer();
 });
 
 boot();
