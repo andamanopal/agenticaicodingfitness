@@ -26,3 +26,20 @@ altoplayground/
 # local clone of NVIDIA DGX playbooks (source material, not our content)
 dgx-spark-playbooks/
 .gstack/
+
+# ── never publish: secrets, AltoTech-confidential material, personal/local files ──
+# local Claude Code settings (can hold API keys / permissions) — also in personal global ignore
+**/.claude/settings.local.json
+# any env file except checked-in templates (e.g. week23/connect-remote.env names the private tailnet)
+*.env
+!*.env.example
+# alto-slide-generator build output: Greenify GTM / business-model deck (confidential)
+tools/alto-slide-generator/output/
+# personal scratch (YouTube screenshots etc.)
+temp/
+
+# generated runtime output
+**/.sandbox/
+week_agentic_robotic/02_record_replay/trajectories/
+# personal notes, not course content
+week21/test.html
