@@ -1,0 +1,70 @@
+{
+  "architecture": {
+    "title": "Jev decides, your LLM writes, Jev checks — code owns every rule",
+    "caption": "Jev makes the fast typed decisions (route, then verify the draft). Code keeps exact facts (language, room number), picks the approved prompt and applies the review policy. The LLM you choose in the runner's LLM picker only writes prose. Keys are read server-side (env → week24/.env.local → repo .env) and never reach the browser.",
+    "lanes": [
+      {"id": "in", "label": "Guest message"},
+      {"id": "jev", "label": "Jev — System One (typed)"},
+      {"id": "code", "label": "Your code — facts · prompts · policy"},
+      {"id": "llm", "label": "Your LLM — System Two (prose)"},
+      {"id": "out", "label": "People"}
+    ],
+    "nodes": [
+      {"id": "msg", "label": "Guest message", "lane": "in", "sub": "EN / TH / mixed", "accent": "cyan"},
+      {"id": "route", "label": "Jev route", "lane": "jev", "sub": "department · urgency · wants refund", "accent": "violet"},
+      {"id": "facts", "label": "Exact facts + gate", "lane": "code", "sub": "Thai regex · room regex · p ≥ 0.70", "accent": "green"},
+      {"id": "prompt", "label": "Approved prompt", "lane": "code", "sub": "APPROVED_PROMPTS[team] + house rules", "accent": "green"},
+      {"id": "writer", "label": "LLM of your choice", "lane": "llm", "sub": "Claude · ChatGPT · Gemini · DeepSeek · Kimi · GLM · OpenRouter · Ollama", "accent": "amber"},
+      {"id": "check", "label": "Jev checks the draft", "lane": "jev", "sub": "promises? invents? language? on-topic?", "accent": "violet"},
+      {"id": "policy", "label": "Review policy", "lane": "code", "sub": "+ room-number string check", "accent": "green"},
+      {"id": "staff", "label": "Staff approval / human review", "lane": "out", "sub": "execute: False — a person sends", "accent": "red"}
+    ],
+    "edges": [
+      {"from": "msg", "to": "route", "label": "one typed call", "animated": true},
+      {"from": "route", "to": "facts", "label": "typed answers"},
+      {"from": "facts", "to": "prompt", "label": "team → prompt"},
+      {"from": "prompt", "to": "writer", "label": "system + facts only", "animated": true},
+      {"from": "writer", "to": "check", "label": "draft", "animated": true},
+      {"from": "check", "to": "policy", "label": "typed checks"},
+      {"from": "policy", "to": "staff", "label": "approval or review"}
+    ]
+  },
+  "sequence": {
+    "title": "Lab 11-4 — a planted bad draft gets caught",
+    "caption": "Measured live: Jev routed in ~0.5 s, Claude drafted in ~2.3 s, Jev checked each draft in ~0.4 s. The planted draft (refund + invented technician + no room number) scored 0.98 / 0.98 and was sent to human review with three reasons.",
+    "actors": [
+      {"id": "lab", "label": "lab04 (code)"},
+      {"id": "jev", "label": "Jev"},
+      {"id": "llm", "label": "your LLM"},
+      {"id": "human", "label": "staff"}
+    ],
+    "steps": [
+      {"from": "lab", "to": "jev", "label": "route: 'Room 1203 is freezing…'", "kind": "call"},
+      {"from": "jev", "to": "lab", "label": "hvac · urgency 2.1 · refund 0.03", "kind": "return"},
+      {"from": "lab", "to": "llm", "label": "approved hvac prompt + facts", "kind": "call"},
+      {"from": "llm", "to": "lab", "label": "draft A (mentions room 1203, no promises)", "kind": "return"},
+      {"from": "lab", "to": "jev", "label": "check draft A · check planted draft B", "kind": "call"},
+      {"from": "jev", "to": "lab", "label": "A: 0.03 / 0.15 · B: 0.98 / 0.98", "kind": "return"},
+      {"from": "lab", "to": "human", "label": "A → staff approval · B → human review (3 reasons)", "kind": "call"},
+      {"from": "lab", "to": "lab", "label": "room-number rule is a plain string check — no model", "kind": "note"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Same reply, eight providers — latency (English guest)",
+      "type": "hbars",
+      "unit": "ms",
+      "labels": ["openrouter · gpt-5.4-mini", "chatgpt · gpt-5.4-mini", "claude · sonnet-5", "gemini · 3.5-flash", "glm · 5.3", "deepseek · flash", "kimi · k3", "ollama · gemma4 (local)"],
+      "series": [{"name": "draft latency", "values": [1616, 1622, 2304, 2350, 2355, 3865, 18649, 21694], "color": "amber"}],
+      "caption": "Single live observations from labs/lab03_compare_models.py (2026-09-27), parallel calls from this Mac — not a benchmark. Jev's routing decision for the same message took 520 ms. Kimi varied 12–23 s across runs; Ollama ran on a laptop GPU at $0."
+    },
+    {
+      "title": "Output tokens for one ~2-sentence reply",
+      "type": "bars",
+      "unit": "tokens",
+      "labels": ["openrouter", "gemini", "glm", "claude", "chatgpt", "kimi", "deepseek", "ollama"],
+      "series": [{"name": "English", "values": [44, 76, 79, 108, 123, 562, 583, 594], "color": "violet"}],
+      "caption": "Same prompt, same facts (labs/lab03_compare_models.py). Reasoning models count hidden 'thinking' as output tokens, so a 225-character reply can cost 583 tokens. Compare cost with each provider's own pricing page."
+    }
+  ]
+}

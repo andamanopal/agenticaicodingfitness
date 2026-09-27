@@ -1,0 +1,74 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "model": "jev-1.13.0",
+  "state": {
+   "operator_note": "แขกแจ้งว่าห้องชั้น 3 ร้อน เครื่อง AHU-3 ยังทำงานอยู่",
+   "computed": {
+    "stale": false,
+    "bad_quality": false,
+    "warm_deviation": true,
+    "deviation_c": 5.1
+   }
+  },
+  "questions": {
+   "queue": {
+    "type": "choice",
+    "instructions": "Using `operator_note` and the `computed` flags, select the next investigation queue. Do not claim a proven root cause.",
+    "criteria": {
+     "cooling": "Comfort or cooling-performance investigation.",
+     "sensor": "Sensor plausibility or calibration investigation.",
+     "connectivity": "Offline gateway, missing or stale telemetry investigation.",
+     "other": "Insufficient or conflicting evidence; engineer triage."
+    }
+   },
+   "severity": {
+    "type": "score",
+    "instructions": "How severe is the reported operational impact?",
+    "criteria": [
+     "Informational or no impact stated.",
+     "Localized discomfort or limited degradation.",
+     "Significant service disruption.",
+     "Possible immediate safety incident."
+    ]
+   }
+  }
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "queue": {
+    "type": "choice",
+    "choice": "cooling",
+    "confidence": 0.99,
+    "probabilities": {
+     "cooling": 1.0,
+     "connectivity": 0.0,
+     "sensor": 0.0,
+     "other": 0.0
+    }
+   },
+   "severity": {
+    "type": "score",
+    "score": 1.0,
+    "confidence": 0.99,
+    "legend": {
+     "0": "Informational or no impact stated.",
+     "1": "Localized discomfort or limited degradation.",
+     "2": "Significant service disruption.",
+     "3": "Possible immediate safety incident."
+    },
+    "probabilities": {
+     "0": 0.0,
+     "1": 1.0,
+     "2": 0.0,
+     "3": 0.0
+    }
+   }
+  },
+  "usage": {
+   "input_tokens": 543,
+   "output_tokens": 65
+  }
+ }
+}

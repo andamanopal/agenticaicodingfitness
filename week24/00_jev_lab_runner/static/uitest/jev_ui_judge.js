@@ -162,6 +162,13 @@ async function auditInline() {
                      got, want, err: (o.querySelector(".jwarn.bad") || {}).innerText || ""});
       S.calls++;
     }
+    for (let n = 0; n < (typeof LB !== "undefined" ? LB.length : 0); n++) {   // ```llm blocks → the chosen LLM
+      await askLlm(n);
+      const o = document.getElementById("lb-out-" + n);
+      const txt = (o.querySelector(".llmtext") || {}).innerText || "";
+      S.inline.push({key: LB[n].key, kind: "llm", ok: txt.trim().length > 0 && !o.querySelector(".jwarn.bad") && /LIVE/.test(o.innerText),
+                     chars: txt.length, err: (o.querySelector(".jwarn.bad,.jwarn") || {}).innerText || ""});
+    }
     S.done = i;
   }
 }
@@ -181,12 +188,13 @@ async function auditStarters() {
   setMode("live");
 }
 
-export function start({labMode = "live", only = null} = {}) {
+export function start({labMode = "live", only = null, lang = "en"} = {}) {
   if (S.phase !== "idle" && S.phase !== "done") return "already running";
   Object.assign(S, {phase: "starting", done: 0, calls: 0, tokens: 0, cost: 0, started: Date.now(),
                     sections: [], labs: [], inline: [], starters: [], errors: []});
   (async () => {
     try {
+      if (typeof setLang === "function" && lang !== LANG) await setLang(lang);   // audit the Thai course with lang:"th"
       const want = p => !only || only.includes(p);
       if (want("sections")) await auditSections();
       if (want("labs")) await auditLabs(labMode);

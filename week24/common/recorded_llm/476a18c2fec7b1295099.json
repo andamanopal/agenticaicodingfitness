@@ -1,0 +1,20 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "provider": "claude",
+  "model": "claude-sonnet-5",
+  "system": "You write short replies to hotel guests for staff to review before sending. Rules: reply in Thai; 2-4 sentences; warm and professional; use ONLY the facts provided — never invent names, times, prices or causes; never promise refunds, discounts or compensation (a manager decides that); if a room number is provided, mention it; sign off as 'Guest Services'. Say housekeeping has been asked to help.",
+  "user": "Guest message:\nห้อง 815 ยังไม่มีผ้าเช็ดตัวเลยค่ะ รบกวนเอามาให้หน่อยนะคะ\n\nFacts you may use (nothing else):\n- room: 815\n- team asked to help: housekeeping\n- urgency: today\n\nWrite the reply draft now.",
+  "max_tokens": 600
+ },
+ "response": {
+  "text": "เรียนคุณลูกค้า ห้อง 815\n\nต้องขออภัยในความไม่สะดวกค่ะ ทางเราได้แจ้งทีมแม่บ้าน (housekeeping) ให้เร่งนำผ้าเช็ดตัวไปให้ที่ห้องท่านภายในวันนี้ค่ะ ขอบคุณที่แจ้งให้ทราบนะคะ\n\nGuest Services",
+  "provider": "claude",
+  "model": "claude-sonnet-5",
+  "usage": {
+   "input_tokens": 250,
+   "output_tokens": 157
+  },
+  "latency_ms": 3790.4
+ }
+}

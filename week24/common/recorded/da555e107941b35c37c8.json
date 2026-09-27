@@ -29,11 +29,11 @@
    },
    "for_maintenance": {
     "type": "noul",
-    "noul": 0.97
+    "noul": 0.98
    },
    "for_housekeeping": {
     "type": "noul",
-    "noul": 0.08
+    "noul": 0.07
    }
   },
   "usage": {

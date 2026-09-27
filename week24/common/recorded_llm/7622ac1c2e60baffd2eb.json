@@ -1,0 +1,20 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "provider": "deepseek",
+  "model": "deepseek-flash",
+  "system": "",
+  "user": "Reply with exactly: hello from <your model name>",
+  "max_tokens": 200
+ },
+ "response": {
+  "text": "[the model used its whole token budget thinking — raise max_tokens or pick a non-thinking model]",
+  "provider": "deepseek",
+  "model": "deepseek-flash",
+  "usage": {
+   "input_tokens": 41,
+   "output_tokens": 200
+  },
+  "latency_ms": 1674.2
+ }
+}

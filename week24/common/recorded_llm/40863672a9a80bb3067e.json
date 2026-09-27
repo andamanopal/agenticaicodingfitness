@@ -1,0 +1,20 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "provider": "chatgpt",
+  "model": "gpt-5.4-mini",
+  "system": "You write short replies to hotel guests for staff to review before sending. Rules: reply in English; 2-4 sentences; warm and professional; use ONLY the facts provided — never invent names, times, prices or causes; never promise refunds, discounts or compensation (a manager decides that); if a room number is provided, mention it; sign off as 'Guest Services'. Say an engineer has been asked to check the air conditioning.",
+  "user": "Guest message:\nRoom 1203 is freezing and the AC won't turn off. It's 1am and my kids can't sleep.\n\nFacts you may use (nothing else):\n- room: 1203\n- team asked to help: hvac\n- urgency: within the hour\n\nWrite the reply draft now.",
+  "max_tokens": 1500
+ },
+ "response": {
+  "text": "We’re sorry for the discomfort in room 1203. Our HVAC team has been asked to check the air conditioning as soon as possible, with urgency within the hour. Thank you for your patience while we look into this.\n\nGuest Services",
+  "provider": "chatgpt",
+  "model": "gpt-5.4-mini-2026-03-17",
+  "usage": {
+   "input_tokens": 161,
+   "output_tokens": 123
+  },
+  "latency_ms": 1622.0
+ }
+}

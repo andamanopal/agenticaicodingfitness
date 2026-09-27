@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Solution · Exercise 11 — plug the reference copilot's pieces into the exercise."""
+"""Solution · Exercise 12 — plug the reference copilot's pieces into the exercise."""
 import sys
 from pathlib import Path
 
@@ -8,7 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))           # copilot_reference.py
 
 import copilot_reference as ref       # noqa: E402
-import ex11_build_the_copilot as ex   # noqa: E402
+import ex12_build_the_copilot as ex   # noqa: E402
 
 ex.QUESTIONS = ref.QUESTIONS           # TODO 1 — five questions, guarded
 ex.extract_room = ref.extract_room     # TODO 2 — keyword regex, then a lone 3-4 digit number

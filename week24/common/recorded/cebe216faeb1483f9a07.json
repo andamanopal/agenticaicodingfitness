@@ -1,0 +1,96 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "model": "jev-1.13.0",
+  "state": {
+   "message": "ห้อง 1203 แอร์ไม่เย็นเลย ร้อนมากจนนอนไม่หลับ ช่วยส่งช่างมาดูด่วนด้วยค่ะ"
+  },
+  "questions": {
+   "department": {
+    "type": "choice",
+    "instructions": "Which hotel team should handle the request in `message`?",
+    "criteria": {
+     "hvac": "Room too hot or too cold, air-conditioning, ventilation, a noisy or leaking AC unit",
+     "housekeeping": "Cleaning, making up the room, towels, linen, pillows, toiletries, amenities",
+     "maintenance": "Plumbing, toilet, shower, hot water, electrical, lights, TV, door lock, broken furniture",
+     "front_desk": "Bookings, billing, check-out, room keys, general information",
+     "food_beverage": "Room service, restaurant, breakfast, minibar, food orders",
+     "unknown": "No identifiable request, or none of the teams above"
+    }
+   },
+   "severity": {
+    "type": "score",
+    "instructions": "How much does the problem in `message` affect the guest's stay?",
+    "criteria": [
+     "No problem: a question or a simple request",
+     "Minor inconvenience",
+     "A service failure that disrupts the stay",
+     "Possible danger to people or property"
+    ]
+   },
+   "safety": {
+    "type": "noul",
+    "instructions": "Does `message` explicitly mention smoke, fire, a burning smell, sparks, gas, water flooding the floor, electric shock or an injury?"
+   },
+   "needs_human": {
+    "type": "noul",
+    "instructions": "Does `message` ask for a manager or a person, express strong anger, or ask for a refund or compensation?"
+   },
+   "mentions_room": {
+    "type": "noul",
+    "instructions": "Does `message` state the guest's room number?"
+   }
+  }
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "department": {
+    "type": "choice",
+    "choice": "hvac",
+    "confidence": 1.0,
+    "probabilities": {
+     "front_desk": 0.0,
+     "unknown": 0.0,
+     "food_beverage": 0.0,
+     "maintenance": 0.0,
+     "housekeeping": 0.0,
+     "hvac": 1.0
+    }
+   },
+   "severity": {
+    "type": "score",
+    "score": 2.0,
+    "confidence": 1.0,
+    "legend": {
+     "0": "No problem: a question or a simple request",
+     "1": "Minor inconvenience",
+     "2": "A service failure that disrupts the stay",
+     "3": "Possible danger to people or property"
+    },
+    "probabilities": {
+     "0": 0.0,
+     "1": 0.0,
+     "2": 1.0,
+     "3": 0.0
+    }
+   },
+   "safety": {
+    "type": "noul",
+    "noul": 0.01
+   },
+   "needs_human": {
+    "type": "noul",
+    "noul": 0.39
+   },
+   "mentions_room": {
+    "type": "noul",
+    "noul": 0.99
+   }
+  },
+  "usage": {
+   "input_tokens": 696,
+   "output_tokens": 136
+  }
+ }
+}

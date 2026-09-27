@@ -50,12 +50,12 @@
     "choice": "hvac",
     "confidence": 0.92,
     "probabilities": {
-     "front_desk": 0.0,
-     "hvac": 0.9400000000000001,
      "food_beverage": 0.0,
-     "housekeeping": 0.0,
+     "maintenance": 0.06,
      "unknown": 0.0,
-     "maintenance": 0.06
+     "hvac": 0.94,
+     "front_desk": 0.0,
+     "housekeeping": 0.0
     }
    },
    "severity": {
@@ -81,11 +81,11 @@
    },
    "needs_human": {
     "type": "noul",
-    "noul": 0.08
+    "noul": 0.09
    },
    "mentions_room": {
     "type": "noul",
-    "noul": 0.88
+    "noul": 0.78
    }
   },
   "usage": {

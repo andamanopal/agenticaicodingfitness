@@ -39,6 +39,7 @@ WEEK = PKG.parent                                     # …/week24
 ROOT = WEEK.parent                                    # …/agenticaicodingfitness
 sys.path.insert(0, str(WEEK / "common"))
 import jevkit  # noqa: E402
+import llmkit  # noqa: E402
 
 PY = str(ROOT / ".venv" / "bin" / "python")
 if not Path(PY).exists():
@@ -46,13 +47,14 @@ if not Path(PY).exists():
 STATIC = PKG / "static"
 GUIDE_PORT = int(os.environ.get("JEV_GUIDE_PORT", "8124"))
 
-# The key lives server-side only: export it into THIS process so lab
-# subprocesses and the built-in terminal inherit it (jev_lab.py needs the env).
-if not os.environ.get("TYPESAFE_API_KEY") and jevkit.api_key():
-    os.environ["TYPESAFE_API_KEY"] = jevkit.api_key()
+# Keys live server-side only. They are looked up fresh for every run (env →
+# week24/.env.local, which the 🔑 Keys dialog writes → repo-root .env) and
+# injected into lab subprocesses; the browser only ever sees "set / missing".
 
 MODELS = ["jev-1.13.0", "jev-latest", "jev-preview"]  # pinned first — the course default
-RUN_ENV_KEYS = ("JEV_MODE", "JEV_MODEL")              # the ONLY env a browser may set
+RUN_ENV_KEYS = ("JEV_MODE", "JEV_MODEL", "JEV_LLM_PROVIDER", "JEV_LLM_MODEL")  # the ONLY env a browser may set
+LANGS = ("en", "th")
+KEY_NAMES = {"jev": "TYPESAFE_API_KEY", **{pid: p["keys"][0] for pid, p in llmkit.PROVIDERS.items() if p["keys"]}}
 RUN_TIMEOUT = float(os.environ.get("LAB_RUN_TIMEOUT", "150"))
 MODULE_RE = re.compile(r"^\d\d_[a-z0-9_]+$")
 FILE_RE = re.compile(r"^(labs/lab\d\d_[a-z0-9_]+|exercises/ex\d\d_[a-z0-9_]+|"
@@ -208,9 +210,10 @@ def _load_diagrams(folder: str) -> dict | None:
     return {k: data.get(k) for k in DIAGRAM_KEYS}
 
 
-def _insert_visualize(sections: list[dict]) -> None:
-    sec = {"id": "visualize", "kind": "diagrams",
-           "title": "📊 Visualize it — architecture · sequence · numbers", "md": ""}
+def _insert_visualize(sections: list[dict], lang: str = "en") -> None:
+    title = ("📊 ภาพรวม — สถาปัตยกรรม · ลำดับขั้น · ตัวเลข" if lang == "th"
+             else "📊 Visualize it — architecture · sequence · numbers")
+    sec = {"id": "visualize", "kind": "diagrams", "title": title, "md": ""}
     for i, s in enumerate(sections):
         if s.get("kind") == "labs":
             sections.insert(i, sec)
@@ -218,10 +221,12 @@ def _insert_visualize(sections: list[dict]) -> None:
     sections.append(sec)
 
 
-def _build_entry(folder: str) -> dict:
+def _build_entry(folder: str, lang: str = "en") -> dict:
     path = WEEK / folder / "TUTORIAL.md"
+    th_path = WEEK / folder / "TUTORIAL.th.md"
     diagrams = _load_diagrams(folder)
-    entry: dict = {"num": folder[:2], "folder": folder, "title": folder,
+    entry: dict = {"num": folder[:2], "folder": folder, "title": folder, "lang": "en",
+                   "has_th": th_path.is_file(),
                    "meta": {"time": None, "difficulty": None, "cost": None},
                    "sections": [], "labs": [], "exercises": [], "next": None, "diagrams": diagrams}
     try:
@@ -230,15 +235,35 @@ def _build_entry(folder: str) -> dict:
         labs, exercises = _list_files(folder, text)
         entry.update(title=_doc_title(text, folder), meta=_doc_meta(text), sections=sections,
                      labs=labs, exercises=exercises, next=_next_folder(sections))
+        if lang == "th" and th_path.is_file():
+            th_text = th_path.read_text(encoding="utf-8")
+            th_secs = _split_sections(th_text)
+            if len(th_secs) != len(sections):
+                entry["parse_warning"] = (f"Thai translation has {len(th_secs)} sections, English has "
+                                          f"{len(sections)} — showing English")
+            else:
+                # Pair by position: ids + kinds (and so progress keys and lab cards) stay English.
+                for en_s, th_s in zip(sections, th_secs):
+                    en_s["title_en"] = en_s["title"]
+                    en_s["md"] = th_s["md"]
+                    if en_s["kind"] != "intro":
+                        en_s["title"] = th_s["title"]
+                th_labs, th_ex = _list_files(folder, th_text)
+                for dst, src in ((labs, th_labs), (exercises, th_ex)):
+                    for a, b in zip(dst, src):
+                        if b["title"]:
+                            a["title"] = b["title"]
+                sections[0]["title"] = "บทนำ"
+                entry.update(title=_doc_title(th_text, folder), meta=_doc_meta(th_text), lang="th")
     except Exception as e:  # noqa: BLE001 — never crash the course
         entry["parse_warning"] = f"parse failed: {e}"
         entry["sections"] = [{"id": "intro", "kind": "intro", "title": "Introduction", "md": ""}]
     if diagrams is not None:
-        _insert_visualize(entry["sections"])
+        _insert_visualize(entry["sections"], entry["lang"])
     return entry
 
 
-_CACHE: dict[str, tuple[tuple, dict]] = {}
+_CACHE: dict[tuple[str, str], tuple[tuple, dict]] = {}
 
 
 def _mtime(path: Path) -> float:
@@ -252,17 +277,18 @@ def _dir_sig(path: Path) -> tuple:
     return tuple(sorted(p.name for p in path.glob("*.py"))) if path.is_dir() else ()
 
 
-def course() -> list[dict]:
+def course(lang: str = "en") -> list[dict]:
+    lang = lang if lang in LANGS else "en"
     out = []
     for folder in modules():
         base = WEEK / folder
-        key = (_mtime(base / "TUTORIAL.md"), _mtime(base / "diagrams.json"),
+        key = (_mtime(base / "TUTORIAL.md"), _mtime(base / "TUTORIAL.th.md"), _mtime(base / "diagrams.json"),
                _dir_sig(base / "labs"), _dir_sig(base / "exercises"),
                _dir_sig(base / "exercises" / "solutions"))
-        hit = _CACHE.get(folder)
+        hit = _CACHE.get((folder, lang))
         if not hit or hit[0] != key:
-            hit = (key, _build_entry(folder))
-            _CACHE[folder] = hit
+            hit = (key, _build_entry(folder, lang))
+            _CACHE[(folder, lang)] = hit
         out.append(hit[1])
     return out
 
@@ -272,11 +298,24 @@ app = FastAPI(title="Jev Lab Runner — Week 24")
 _run_lock = asyncio.Lock()
 
 
+_LOCAL_HOSTS = ("127.0.0.1", "localhost", "[::1]", "::1")
+
+
 def _local_only(request: Request) -> None:
-    """Guard against DNS rebinding: only accept requests addressed to localhost."""
+    """Only this app, from this machine, may call state-changing endpoints.
+
+    Host check → blocks DNS rebinding. Origin check → blocks any other website
+    open in the same browser from POSTing to 127.0.0.1 (it would carry its own
+    Origin). Scripts/curl on this machine send no Origin and are allowed.
+    """
     host = (request.headers.get("host") or "").rsplit(":", 1)[0].lower()
-    if host not in ("127.0.0.1", "localhost", "[::1]", "::1"):
+    if host not in _LOCAL_HOSTS:
         raise HTTPException(403, "available on localhost only")
+    origin = request.headers.get("origin")
+    if origin and origin != "null":
+        o_host = re.sub(r"^https?://", "", origin.lower()).split("/")[0].rsplit(":", 1)[0]
+        if o_host not in _LOCAL_HOSTS:
+            raise HTTPException(403, "cross-site request refused")
 
 
 @app.get("/")
@@ -297,8 +336,8 @@ async def static_file(fname: str):
 
 
 @app.get("/api/course")
-async def api_course() -> list[dict]:
-    return course()
+async def api_course(lang: str = "en") -> list[dict]:
+    return course(lang)
 
 
 def _file_path(folder: str, rel: str) -> Path:
@@ -353,6 +392,12 @@ def _child_env(extra: dict[str, str]) -> dict[str, str]:
         env.pop("JEV_MODE", None)
     if env.get("JEV_MODEL") and env["JEV_MODEL"] not in MODELS:
         env.pop("JEV_MODEL", None)
+    if env.get("JEV_LLM_PROVIDER") and env["JEV_LLM_PROVIDER"] not in llmkit.PROVIDERS:
+        env.pop("JEV_LLM_PROVIDER", None)
+    if env.get("JEV_LLM_MODEL") and not llmkit.MODEL_RE.match(env["JEV_LLM_MODEL"]):
+        env.pop("JEV_LLM_MODEL", None)
+    if not env.get("TYPESAFE_API_KEY") and jevkit.api_key():   # jev_lab.py reads the env only
+        env["TYPESAFE_API_KEY"] = jevkit.api_key()
     return env
 
 
@@ -448,6 +493,109 @@ async def api_jev(req: JevRequest, request: Request) -> dict:
             raise HTTPException(502, str(e))
     resp["_cost_usd"] = jevkit.cost_usd(resp)
     return resp
+
+
+# ── your choice of generative LLM (Jev decides, the LLM writes) ───────────────
+class LLMRequest(BaseModel):
+    user: str
+    system: str | None = ""
+    max_tokens: int | None = 400
+    provider: str | None = None
+    model: str | None = None
+    mode: str | None = None
+
+
+_llm_sem = asyncio.Semaphore(2)
+_MODELS_CACHE: dict[str, tuple[float, list[str]]] = {}
+
+
+def _key_status() -> list[dict]:
+    jev_src = jevkit.key_source()
+    rows = [{"id": "jev", "label": "Jev (TypeSafe)", "key_names": ["TYPESAFE_API_KEY"],
+             "has_key": bool(jev_src), "key_source": jev_src, "key_optional": False,
+             "get_key": "https://console.typesafe.ai/settings/keys", "role": "decides"}]
+    for p in llmkit.providers():
+        rows.append({**p, "role": "writes"})
+    return rows
+
+
+@app.get("/api/llm/providers")
+async def api_llm_providers() -> dict:
+    return {"providers": _key_status(), "default_provider": llmkit.DEFAULT_PROVIDER}
+
+
+@app.get("/api/llm/models")
+async def api_llm_models(provider: str, request: Request) -> dict:
+    _local_only(request)
+    if provider not in llmkit.PROVIDERS:
+        raise HTTPException(404, "unknown provider")
+    hit = _MODELS_CACHE.get(provider)
+    if hit and time.time() - hit[0] < 600:
+        return {"models": hit[1], "cached": True}
+    try:
+        ids = await asyncio.to_thread(llmkit.list_models, provider)
+    except Exception as e:  # noqa: BLE001
+        return {"models": [], "error": f"{type(e).__name__}: {str(e)[:160]}"}
+    _MODELS_CACHE[provider] = (time.time(), ids)
+    return {"models": ids, "cached": False}
+
+
+@app.post("/api/llm")
+async def api_llm(req: LLMRequest, request: Request) -> dict:
+    _local_only(request)
+    provider = req.provider if req.provider in llmkit.PROVIDERS else llmkit.DEFAULT_PROVIDER
+    model = req.model if req.model and llmkit.MODEL_RE.match(req.model) else llmkit.default_model(provider)
+    if not (req.user or "").strip():
+        raise HTTPException(422, "\"user\" (the prompt) is required")
+    if len(req.user) + len(req.system or "") > 20_000:
+        raise HTTPException(413, "keep inline prompts under 20,000 characters")
+    mode = req.mode if req.mode in ("live", "dry") else None
+    async with _llm_sem:
+        try:
+            return await asyncio.to_thread(llmkit.generate, provider, system=req.system or "", user=req.user,
+                                           model=model, max_tokens=max(16, min(int(req.max_tokens or 400), 2000)),
+                                           mode_override=mode)
+        except llmkit.LLMError as e:
+            raise HTTPException(502, str(e))
+
+
+class KeyRequest(BaseModel):
+    provider: str
+    value: str = ""
+
+
+LOCAL_KEYS = WEEK / ".env.local"
+_keys_lock = threading.Lock()
+
+
+@app.post("/api/keys")
+async def api_keys(req: KeyRequest, request: Request) -> dict:
+    """Save (or with value "" remove) one key in week24/.env.local — gitignored, mode 0600.
+    The value is never echoed back; the response only says whether a key is now set."""
+    _local_only(request)
+    name = KEY_NAMES.get(req.provider)
+    if not name:
+        raise HTTPException(404, "unknown provider")
+    value = (req.value or "").strip()
+    if value and not re.fullmatch(r"[A-Za-z0-9._\-:+/=]{8,400}", value):
+        raise HTTPException(422, "that does not look like an API key (unexpected characters or length)")
+    with _keys_lock:
+        lines = []
+        if LOCAL_KEYS.is_file():
+            lines = [l for l in LOCAL_KEYS.read_text(encoding="utf-8").splitlines()
+                     if l.strip() and not l.startswith("#") and not re.match(rf"\s*(?:export\s+)?{name}\s*=", l)]
+        if value:
+            lines.append(f"{name}={value}")
+        LOCAL_KEYS.write_text("# Saved by the Jev Lab Runner 🔑 Keys dialog. Gitignored — never commit this file.\n"
+                              + "".join(l + "\n" for l in lines), encoding="utf-8")
+        try:
+            os.chmod(LOCAL_KEYS, 0o600)
+        except OSError:
+            pass
+    _MODELS_CACHE.pop(req.provider, None)
+    _KEY_CHECK["checked"] = 0.0
+    row = next(r for r in _key_status() if r["id"] == req.provider)
+    return {"ok": True, "name": name, "has_key": row["has_key"], "key_source": row["key_source"]}
 
 
 # ── checkpoint progress — server-side so it survives a browser switch ─────────
@@ -587,7 +735,11 @@ async def api_status() -> dict:
         detail = "DRY only — no TYPESAFE_API_KEY in the environment or repo-root .env"
     return {"has_key": has_key, "key_ok": _KEY_CHECK["ok"], "default_mode": jevkit.mode(),
             "models": MODELS, "default_model": jevkit.DEFAULT_MODEL, "recorded": recorded,
-            "price_per_mtok": jevkit.PRICE_PER_MTOK, "run_timeout": RUN_TIMEOUT, "detail": detail}
+            "price_per_mtok": jevkit.PRICE_PER_MTOK, "run_timeout": RUN_TIMEOUT, "detail": detail,
+            "jev_key_source": jevkit.key_source(),
+            "llm": [{"id": p["id"], "label": p["label"], "has_key": p["has_key"] or p["key_optional"],
+                     "default": p["default"], "suggested": p["suggested"]} for p in llmkit.providers()],
+            "default_llm": llmkit.DEFAULT_PROVIDER}
 
 
 if __name__ == "__main__":
@@ -601,6 +753,8 @@ if __name__ == "__main__":
                    "        ≈ $0.00002 per lab call. Flip to DRY in the header for $0 replays."]
     else:
         banner += ["      ◈ DRY mode — no TYPESAFE_API_KEY; labs replay recorded jev-1.13.0 answers."]
+    llm_ok = [p["id"] for p in llmkit.providers() if p["has_key"]]
+    banner += [f"      ✍ LLMs with keys: {', '.join(llm_ok) or 'none yet — use the 🔑 Keys dialog'} (+ ollama, local)"]
     banner += [f"      ▤ course: {len(parsed)} modules · {sum(len(e['sections']) for e in parsed)} sections · "
                f"{sum(len(e['labs']) for e in parsed)} labs · {sum(len(e['exercises']) for e in parsed)} exercises"]
     if port != GUIDE_PORT:

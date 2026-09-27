@@ -12,7 +12,7 @@ the same call with *no* helper at all, so nothing is hidden.
 
 Two modes (the Jev Lab Runner's LIVE / DRY switch sets JEV_MODE for you):
 
-  • LIVE — TYPESAFE_API_KEY found (env or the repo-root .env) → a real call to
+  • LIVE — TYPESAFE_API_KEY found (env, week24/.env.local or the repo-root .env) → a real call to
     https://api.typesafe.ai/v1/systemone. Costs $0.042 per million input tokens
     (a typical lab call is ~400-900 tokens → about $0.00002).
   • DRY  — no key, or JEV_MODE=dry → no network. If this exact request was
@@ -28,6 +28,7 @@ import hashlib
 import json
 import math
 import os
+import re
 import sys
 import time
 from pathlib import Path
@@ -57,6 +58,14 @@ if hasattr(sys.stdout, "reconfigure"):              # Thai text on any terminal
 
 
 # ── configuration ─────────────────────────────────────────────────────────────
+def _clean_value(raw: str) -> str:
+    """Quoted → inside the quotes; unquoted → drop an inline '# comment'."""
+    v = raw.strip()
+    if v[:1] in ("'", '"'):
+        return v[1:].split(v[0], 1)[0]
+    return re.split(r"\s+#", v, 1)[0].strip()
+
+
 def _dotenv_key(name: str) -> str:
     """Read ONE variable from the repo-root .env without exporting anything else."""
     env_file = ROOT / ".env"
@@ -66,14 +75,35 @@ def _dotenv_key(name: str) -> str:
             if line.startswith("export "):
                 line = line[7:].lstrip()
             if line.startswith(name + "="):
-                return line.split("=", 1)[1].strip().strip('"').strip("'")
+                return _clean_value(line.split("=", 1)[1])
+    except OSError:
+        pass
+    return ""
+
+
+def _local_key(name: str) -> str:
+    """week24/.env.local — what the Lab Runner's 🔑 Keys dialog saves (gitignored)."""
+    try:
+        for line in (WEEK24 / ".env.local").read_text(encoding="utf-8").splitlines():
+            if line.strip().startswith(name + "="):
+                return _clean_value(line.split("=", 1)[1])
     except OSError:
         pass
     return ""
 
 
 def api_key() -> str:
-    return os.environ.get("TYPESAFE_API_KEY", "").strip() or _dotenv_key("TYPESAFE_API_KEY")
+    """Environment → week24/.env.local (🔑 Keys dialog) → repo-root .env."""
+    return (os.environ.get("TYPESAFE_API_KEY", "").strip() or _local_key("TYPESAFE_API_KEY")
+            or _dotenv_key("TYPESAFE_API_KEY"))
+
+
+def key_source() -> str:
+    if os.environ.get("TYPESAFE_API_KEY", "").strip():
+        return "env"
+    if _local_key("TYPESAFE_API_KEY"):
+        return "week24/.env.local"
+    return "repo .env" if _dotenv_key("TYPESAFE_API_KEY") else ""
 
 
 def model() -> str:

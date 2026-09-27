@@ -1,6 +1,6 @@
-# ▶ Jev Lab 11 — Capstone: a smart-hotel guest-request copilot
+# ▶ Jev Lab 12 — Capstone: a smart-hotel guest-request copilot
 
-> Part of Week 24 · Typed AI decisions with Jev. Everything from Labs 01–10 in one small, real-shaped system. A guest message (EN / TH / mixed) becomes a routed, prioritized, safety-checked **ticket proposal**, and nothing is ever executed on its own.
+> Part of Week 24 · Typed AI decisions with Jev. Everything from Labs 01–11 in one small, real-shaped system. A guest message (EN / TH / mixed) becomes a routed, prioritized, safety-checked **ticket proposal**, and nothing is ever executed on its own.
 
 **In plain words:** a guest writes *"The toilet in 1507 is overflowing!"*. Jev answers five quick questions about it: which team, how serious, any danger, does a person need to look, is a room number mentioned. Your Python code then does the exact parts itself (it finds `1507` with a regex and detects Thai vs English), applies simple written rules, and prints a ticket that a human approves. You build that whole path in this lab.
 
@@ -95,7 +95,7 @@ In the reference, the labs send these same questions wrapped by `guarded()` from
 `copilot_reference.py` is the complete answer, about 150 readable lines. Lab 01 runs it on nine fictional messages, including the hard cases.
 
 ```bash
-.venv/bin/python week24/11_capstone_hotel_copilot/labs/lab01_capstone_demo.py
+.venv/bin/python week24/12_capstone_hotel_copilot/labs/lab01_capstone_demo.py
 ```
 
 **Expected output**
@@ -178,7 +178,7 @@ The thresholds (0.20 / 0.70 / 0.20) are **illustrative and uncalibrated**. In a 
 Before a new router touches guests, it runs **in the shadow**. The current system keeps routing, and you only log what the new one *would* have done. Here the incumbent is a typical first-keyword-wins router.
 
 ```bash
-.venv/bin/python week24/11_capstone_hotel_copilot/labs/lab02_shadow_mode.py
+.venv/bin/python week24/12_capstone_hotel_copilot/labs/lab02_shadow_mode.py
 ```
 
 **Expected output**
@@ -242,7 +242,7 @@ Both use `copilot_reference.py` — open it; it's the answer key for the exercis
 
 ## Try it yourself
 
-**Exercise 11 — build the copilot.** Open `week24/11_capstone_hotel_copilot/exercises/ex11_build_the_copilot.py`. It has four TODOs, each checked **offline** before any API call:
+**Exercise 12 — build the copilot.** Open `week24/12_capstone_hotel_copilot/exercises/ex12_build_the_copilot.py`. It has four TODOs, each checked **offline** before any API call:
 
 1. **TODO 1 — `QUESTIONS`**: the five questions, with exact keys. The department options need the five teams plus `unknown`.
 2. **TODO 2 — `extract_room()`**: a regex that finds `room 1203`, `Room 402.`, `ห้อง 815` and a lone `— 610.`, but not `40 minutes`, `29 degrees`, `1500 baht` or `11:30`.
@@ -250,7 +250,7 @@ Both use `copilot_reference.py` — open it; it's the answer key for the exercis
 4. **TODO 4 — `build_ticket()`**: the proposal, with `follow_ups` and `execute: False`.
 
 ```bash
-.venv/bin/python week24/11_capstone_hotel_copilot/exercises/ex11_build_the_copilot.py
+.venv/bin/python week24/12_capstone_hotel_copilot/exercises/ex12_build_the_copilot.py
 ```
 
 **Expected output**

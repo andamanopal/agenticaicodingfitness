@@ -145,6 +145,8 @@ Lab 02 asks Jev about one operator note **once**, then runs four different telem
 ◆ compare STEP 1: lab 01 asks whether the note 'explicitly MENTIONS smoke…' → 0.61 on the SAME 'No smoke' note.
 ```
 
+Why does the keyword backstop say **HIT** on *"No smoke…"*? Because it is a deliberately dumb regex: it sees the word `smoke` and fires, negation or not. That is the point. The backstop is allowed to over-trigger, because a false alarm costs one engineer's glance, while a missed fire costs far more. Jev's 0.02 shows it read the negation correctly; the policy still sends the note to safety review because *either* signal is enough.
+
 This is the most important finding of the lab. The note says **"No smoke or unusual noise reported."**
 
 - Lab 01's question asks whether the note *"explicitly **mention**s smoke, electrical burning, fire…"* → **0.61**. Jev read it literally: "No smoke" *does* mention smoke.

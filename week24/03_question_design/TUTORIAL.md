@@ -160,7 +160,7 @@ Jev is a judgment model, not a calculator. Lab 03 asks it ten arithmetic-style q
 ◆ Python: 10/10 exact, every time, $0 — and a threshold rule needs every time
 ```
 
-Honest result: Jev did **well** here — 9 of 10 clear and right on the recorded run, and on some live runs all 10. But the borderline rows move between runs: `22.9 vs 21.0` scored 0.23 here — not clearly "no" — and "exactly 2.0" got 0.14 rather than ~0. Run the lab twice and you may see a different row wobble. A rule that is right *most* runs is not a rule: Python gives the same exact answer every time. Harder cases (long lists, many digits, relative dates like "next Tuesday") get worse. A threshold alarm that is right *most of the time* is a broken alarm. The pattern is:
+Honest result: Jev did **well** here — 9 of 10 clear and right on the recorded run, and on some live runs all 10. But the borderline rows move between runs: `22.9 vs 21.0` scored 0.23 here — not clearly "no" — and "exactly 2.0" got 0.14 rather than ~0. Run the lab twice and you may see a different row wobble. Harder cases (long lists, many digits, relative dates like "next Tuesday") get worse. A threshold alarm that is right *most of the time* is a broken alarm. The pattern is:
 
 ```text
 code computes:   deviation_c = 2.1,  warm_deviation = true,  high_temp_alarm_count = 7

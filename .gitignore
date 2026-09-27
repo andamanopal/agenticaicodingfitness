@@ -43,3 +43,6 @@ temp/
 week_agentic_robotic/02_record_replay/trajectories/
 # personal notes, not course content
 week21/test.html
+
+# Jev Lab Runner 🔑 Keys dialog output (real keys)
+**/.env.local

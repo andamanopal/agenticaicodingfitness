@@ -15,7 +15,8 @@
        background:var(--bg);color:var(--txt);display:flex;flex-direction:column}
   header{display:flex;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid var(--line);
          background:var(--panel);flex-wrap:wrap}
-  header h1{font-size:15px;margin:0;font-weight:650} header .sub{color:var(--dim);font-size:12px}
+  header h1{font-size:15px;margin:0;font-weight:650;white-space:nowrap}
+  header .sub{color:var(--dim);font-size:12px;flex:1 1 120px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .grow{flex:1}
   .pill{font-size:11px;padding:4px 9px;border-radius:999px;border:1px solid var(--line);color:var(--dim);
         display:inline-flex;align-items:center;gap:6px}
@@ -298,6 +299,34 @@
     font:11.5px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;color:#cdd3df}
   @media(max-width:640px){.jrow{grid-template-columns:minmax(70px,120px) 1fr 36px}.content{padding:18px 14px}}
   @media (prefers-reduced-motion: reduce){.jfill,.jdot{transition:none}}
+  /* ── language switch, LLM picker, keys dialog, ```llm blocks ── */
+  .lbtn{padding:5px 10px;font-size:11.5px}
+  #llm-sel,#llm-model{font:inherit;font-size:12px;padding:6px 9px;border-radius:8px;border:1px solid var(--line);
+    background:var(--panel2);color:var(--txt);max-width:220px}
+  .llmblk{border-color:rgba(188,140,255,.5)}
+  .llmblk .jevbar{background:rgba(188,140,255,.08)}
+  .jevtag.llm{color:var(--violet)}
+  .run.llmask{border-color:var(--violet);background:rgba(188,140,255,.16)}
+  .run.llmask:hover:not(:disabled){background:rgba(188,140,255,.3)}
+  .llmtext{white-space:pre-wrap;font-size:13px;line-height:1.6;color:var(--txt);background:var(--term);border:1px solid var(--line);
+    border-radius:8px;padding:10px 12px;margin:6px 0 8px}
+  dialog#keysdlg{border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--txt);padding:0;
+    width:min(760px,94vw);max-height:86vh}
+  dialog#keysdlg::backdrop{background:rgba(0,0,0,.55)}
+  .khead{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line)}
+  .khead h3{margin:0;font-size:15px}
+  .kbody{padding:6px 16px 4px;overflow:auto;max-height:62vh}
+  .krow{padding:9px 0;border-bottom:1px solid var(--line)}
+  .kname{display:flex;gap:9px;align-items:center;flex-wrap:wrap;font-size:13px}
+  .kname code{font-size:11px;color:var(--dim)}
+  .krole{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--dim)}
+  .kb{font-size:10.5px;font-weight:650;padding:2px 7px;border-radius:6px}
+  .kb.ok{background:rgba(63,185,80,.14);color:var(--green)} .kb.no{background:rgba(248,81,73,.12);color:var(--red)}
+  .kin{display:flex;gap:8px;align-items:center;margin-top:6px;flex-wrap:wrap}
+  .kin input{font:inherit;font-size:12px;padding:6px 9px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);
+    color:var(--txt);width:340px;max-width:70vw}
+  .kfoot{padding:10px 16px;font-size:11.5px;color:var(--dim);border-top:1px solid var(--line);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  #keysmsg{color:var(--cyan)}
 </style>
 </head>
 <body>
@@ -311,16 +340,23 @@
   <button class="tbtn" id="nav-prev" onclick="nav(-1)" aria-label="Previous section">◀</button>
   <span id="nav-pos" aria-live="polite" style="font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums"></span>
   <button class="tbtn" id="nav-next" onclick="nav(1)" aria-label="Next section">▶</button>
-  <button class="tbtn" id="sh-toggle" onclick="termToggle()" aria-expanded="false" aria-controls="shdrawer" title="built-in terminal — run any command without leaving the app">⌨ Terminal</button>
+  <button class="pbtn lbtn" data-l="en" onclick="setLang('en')" aria-label="English">EN</button>
+  <button class="pbtn lbtn" data-l="th" onclick="setLang('th')" aria-label="ภาษาไทย">ไทย</button>
+  <button class="tbtn" id="sh-toggle" onclick="termToggle()" aria-expanded="false" aria-controls="shdrawer" title="built-in terminal — run any command without leaving the app" data-i18n="terminal">⌨ Terminal</button>
 </header>
 <div class="progress"><div id="bar"></div></div>
 <div class="pathbar">
-  <span>Mode:</span>
-  <button class="pbtn mbtn" data-m="live" onclick="setMode('live')">⚡ Live</button>
-  <button class="pbtn mbtn" data-m="dry" onclick="setMode('dry')">📄 Dry run</button>
+  <span data-i18n="mode">Mode:</span>
+  <button class="pbtn mbtn" data-m="live" onclick="setMode('live')" data-i18n="live">⚡ Live</button>
+  <button class="pbtn mbtn" data-m="dry" onclick="setMode('dry')" data-i18n="dry">📄 Dry run</button>
   <span style="width:1px;height:20px;background:var(--line);display:inline-block"></span>
-  <span>Model:</span>
+  <span data-i18n="model">Jev model:</span>
   <select id="model-sel" onchange="pickModel()" aria-label="Jev model id for live calls"><option>jev-1.13.0</option></select>
+  <span style="width:1px;height:20px;background:var(--line);display:inline-block"></span>
+  <span data-i18n="llm">LLM:</span>
+  <select id="llm-sel" onchange="pickLlm()" aria-label="Generative LLM paired with Jev"></select>
+  <select id="llm-model" onchange="pickLlmModel()" aria-label="LLM model id"></select>
+  <button class="tbtn sm" onclick="openKeys()" data-i18n="keys">🔑 Keys</button>
   <span class="pfhint" id="modehint"></span>
 </div>
 
@@ -328,6 +364,14 @@
   <nav class="side" id="side" aria-label="Course outline — Week 24 modules"></nav>
   <main class="content" id="content" aria-label="Current section"><div class="waitmsg">loading the course…</div></main>
 </div>
+
+<dialog id="keysdlg" aria-label="API keys">
+  <div class="khead"><h3>🔑 API keys</h3><span class="pfhint">Jev decides · the LLM you pick writes</span><span class="grow"></span>
+    <button class="tbtn sm" onclick="closeKeys()">✕ close</button></div>
+  <div class="kbody" id="keysbody"></div>
+  <div class="kfoot"><span>Saved keys go to <code>week24/.env.local</code> on this machine (gitignored, owner-only) and are never shown again or sent to the browser. Keys in the repo-root <code>.env</code> are picked up automatically.</span>
+    <span id="keysmsg" aria-live="polite"></span></div>
+</dialog>
 
 <div class="shdrawer" id="shdrawer">
   <div class="shbar" onclick="termToggle()">
@@ -410,11 +454,24 @@ async function loadServerProgress(){
     headers:{"Content-Type":"application/json"},body:JSON.stringify({key:k,done:true})}).catch(()=>{}));
 }
 
+function setCourse(data){
+  COURSE=data;
+  FLAT=[];
+  COURSE.forEach((c,fi)=>{
+    (c.sections||[]).forEach((s,si)=>{
+      s.ckTotal=scanCks(s.md||"");
+      FLAT.push({fi,si,key:c.folder+"/"+s.id});
+    });
+  });
+}
+async function loadCourse(){
+  try{const r=await fetch("/api/course?lang="+LANG);if(r.ok)setCourse(await r.json());}catch(e){}
+}
 /* ── boot: never blank — retry /api/course every 3s ── */
 async function boot(){
   let data;
   try{
-    const r=await fetch("/api/course");
+    const r=await fetch("/api/course?lang="+LANG);
     if(!r.ok)throw new Error("HTTP "+r.status);
     data=await r.json();
     if(!Array.isArray(data)||!data.length)throw new Error("empty course");
@@ -424,14 +481,7 @@ async function boot(){
       `retrying every 3s · attempt ${attempt} · start it with <code>.venv/bin/python week24/00_jev_lab_runner/tutorial_server.py</code></div>`;
     setTimeout(boot,3000);return;
   }
-  COURSE=data;
-  FLAT=[];
-  COURSE.forEach((c,fi)=>{
-    (c.sections||[]).forEach((s,si)=>{
-      s.ckTotal=scanCks(s.md||"");
-      FLAT.push({fi,si,key:c.folder+"/"+s.id});
-    });
-  });
+  setCourse(data);
   const last=localStorage.getItem("jl.last");
   const idx=FLAT.findIndex(f=>f.key===last);
   cur=idx>=0?idx:0;
@@ -482,6 +532,7 @@ function renderMode(){
     p.title=STATUS.detail||"";
   }
   document.querySelectorAll(".labmode").forEach(el=>{el.textContent=m.toUpperCase();el.classList.toggle("live",m==="live");});
+  if(typeof renderLlm==="function")renderLlm();
 }
 async function refreshStatus(){
   try{
@@ -494,7 +545,173 @@ async function refreshStatus(){
 function envFor(){
   const m=effMode(),e={JEV_MODE:m};
   if(m==="live")e.JEV_MODEL=MODEL;       // DRY replays are keyed to the pinned model
+  const L=llmEff();                      // the LLM that labs use to WRITE (Jev still decides)
+  e.JEV_LLM_PROVIDER=L.provider;
+  if(L.model)e.JEV_LLM_MODEL=L.model;
   return e;
+}
+
+/* ── language: EN / ไทย (course text from TUTORIAL.th.md; UI chrome from this table) ── */
+let LANG="en"; try{LANG=localStorage.getItem("jl.lang")==="th"?"th":"en";}catch(e){}
+const UI={
+  en:{mode:"Mode:",live:"⚡ Live",dry:"📄 Dry run",model:"Jev model:",llm:"LLM:",keys:"🔑 Keys",terminal:"⌨ Terminal",
+      prev:"◀ prev",next:"next ▶",course:"one continuous course",checkpoint:"✓ Checkpoint",checkpoints:"checkpoints",
+      module:"Module",section:"section",run:"▶ Run",runSol:"▶ Run solution",running:"running",viewSrc:"view source ▸",
+      viewSol:"view solution ▸",hide:"hide ▾",noRuns:"no runs yet",labsHead:"🧪 Run the labs — executed on this Mac, output streamed live",
+      exHead:"✍️ Your exercise — open the file in your editor, fill the TODOs, save, then ▶ Run",exTag:"✍️ exercise",solTag:"💡 solution",
+      solTitle:"reference solution — peek after you have tried",notDone:"✕ not done yet · the checker found TODOs — fix the ✕ lines above, save, run again",
+      askJev:"⚡ Ask Jev",asking:"asking",jevTag:"⚡ Live example — edit the JSON, then ask",format:"format",reset:"reset",curl:"copy as curl",
+      llmTag:"✍️ LLM example — Jev decides, your chosen LLM writes. Edit, then ask",askLlm:"✍️ Ask",writing:"writing",
+      chips:{intro:"read",setup:"set up",step:"do it",labs:"run these",exercises:"stretch",diagrams:"visualize",troubleshooting:"fix it",next:"go on"},
+      thMissing:"",loading:"loading the course…"},
+  th:{mode:"โหมด:",live:"⚡ Live",dry:"📄 Dry run",model:"โมเดล Jev:",llm:"LLM:",keys:"🔑 คีย์",terminal:"⌨ เทอร์มินัล",
+      prev:"◀ ก่อนหน้า",next:"ถัดไป ▶",course:"คอร์สต่อเนื่อง",checkpoint:"✓ จุดตรวจ",checkpoints:"จุดตรวจ",
+      module:"บทที่",section:"หัวข้อ",run:"▶ รัน",runSol:"▶ รันเฉลย",running:"กำลังรัน",viewSrc:"ดูโค้ด ▸",
+      viewSol:"ดูเฉลย ▸",hide:"ซ่อน ▾",noRuns:"ยังไม่เคยรัน",labsHead:"🧪 รันแล็บ — รันบนเครื่องนี้ แสดงผลสดทีละบรรทัด",
+      exHead:"✍️ แบบฝึกหัดของคุณ — เปิดไฟล์ในเอดิเตอร์ เติม TODO บันทึก แล้วกด ▶ รัน",exTag:"✍️ แบบฝึกหัด",solTag:"💡 เฉลย",
+      solTitle:"เฉลยอ้างอิง — ลองทำเองก่อนแล้วค่อยดู",notDone:"✕ ยังไม่เสร็จ · ตัวตรวจพบ TODO — แก้บรรทัด ✕ ด้านบน บันทึก แล้วรันใหม่",
+      askJev:"⚡ ถาม Jev",asking:"กำลังถาม",jevTag:"⚡ ตัวอย่างสด — แก้ JSON ได้ แล้วกดถาม",format:"จัดรูปแบบ",reset:"คืนค่าเดิม",curl:"คัดลอกเป็น curl",
+      llmTag:"✍️ ตัวอย่าง LLM — Jev ตัดสินใจ LLM ที่คุณเลือกเป็นผู้เขียน แก้ได้ แล้วกดถาม",askLlm:"✍️ ถาม",writing:"กำลังเขียน",
+      chips:{intro:"อ่าน",setup:"เตรียม",step:"ลงมือ",labs:"รันแล็บ",exercises:"ฝึกเพิ่ม",diagrams:"ภาพรวม",troubleshooting:"แก้ปัญหา",next:"ไปต่อ"},
+      thMissing:"(ยังไม่มีฉบับภาษาไทย — แสดงภาษาอังกฤษ)",loading:"กำลังโหลดคอร์ส…"}};
+const tr=k=>(UI[LANG]&&UI[LANG][k]!==undefined?UI[LANG][k]:UI.en[k]);
+function applyChrome(){
+  document.documentElement.lang=LANG;
+  document.querySelectorAll("[data-i18n]").forEach(el=>{el.textContent=tr(el.dataset.i18n);});
+  document.querySelectorAll(".lbtn").forEach(b=>{const on=b.dataset.l===LANG;b.classList.toggle("on",on);b.setAttribute("aria-pressed",on?"true":"false");});
+}
+async function setLang(l){
+  if(l===LANG)return;
+  LANG=l;try{localStorage.setItem("jl.lang",l);}catch(e){}
+  applyChrome();
+  const keep=FLAT[cur]&&FLAT[cur].key;
+  await loadCourse();
+  const idx=FLAT.findIndex(f=>f.key===keep);cur=idx>=0?idx:0;
+  renderSide();renderContent();
+}
+
+/* ── the generative LLM paired with Jev (Jev decides, the LLM writes) ── */
+let LLM_P="",LLM_M="",LLM_ROWS=[];
+try{LLM_P=localStorage.getItem("jl.llmp")||"";LLM_M=localStorage.getItem("jl.llmm")||"";}catch(e){}
+function llmRow(id){return (STATUS&&STATUS.llm||[]).find(p=>p.id===id);}
+function llmEff(){
+  const rows=(STATUS&&STATUS.llm)||[];
+  let p=llmRow(LLM_P)?LLM_P:(STATUS&&STATUS.default_llm)||"claude";
+  const r=llmRow(p);
+  return {provider:p,model:LLM_M||(r?r.default:""),hasKey:!!(r&&r.has_key)};
+}
+function renderLlm(){
+  const sp=$("llm-sel"),sm=$("llm-model");if(!sp||!STATUS)return;
+  const e=llmEff();
+  sp.innerHTML=(STATUS.llm||[]).map(p=>`<option value="${esc(p.id)}"${p.id===e.provider?" selected":""}>${p.has_key?"":"✕ "}${esc(p.label)}</option>`).join("");
+  const r=llmRow(e.provider)||{suggested:[],default:""};
+  const opts=[...new Set([...(r.suggested||[]),r.default,...LLM_ROWS].filter(Boolean))];
+  if(e.model&&opts.indexOf(e.model)<0)opts.unshift(e.model);
+  sm.innerHTML=opts.map(m=>`<option value="${esc(m)}"${m===e.model?" selected":""}>${esc(m)}</option>`).join("")+
+    `<option value="__live">↻ list live models…</option><option value="__custom">✎ type a model id…</option>`;
+  sp.title=e.hasKey?"LLM used by labs and ✍️ blocks — Jev decides, this model writes":"no key yet for this provider — add one with 🔑 Keys";
+}
+function pickLlm(){
+  LLM_P=$("llm-sel").value;LLM_M="";LLM_ROWS=[];
+  try{localStorage.setItem("jl.llmp",LLM_P);localStorage.removeItem("jl.llmm");}catch(e){}
+  renderLlm();
+}
+async function pickLlmModel(){
+  const v=$("llm-model").value;
+  if(v==="__live"){
+    const e=llmEff();
+    try{const d=await(await fetch(`/api/llm/models?provider=${encodeURIComponent(e.provider)}`)).json();
+      LLM_ROWS=(d.models||[]).slice(0,200);
+      if(!LLM_ROWS.length)alertInline(d.error?("could not list models: "+d.error):"no models listed — check the key");
+    }catch(err){LLM_ROWS=[];}
+    renderLlm();return;
+  }
+  if(v==="__custom"){
+    const m=(prompt("Model id (as the provider names it):",llmEff().model)||"").trim();
+    if(m&&/^[A-Za-z0-9._:\/@+-]{1,120}$/.test(m))LLM_M=m;
+  }else LLM_M=v;
+  try{localStorage.setItem("jl.llmm",LLM_M);}catch(e){}
+  renderLlm();
+}
+function alertInline(msg){const h=$("modehint");if(h){h.textContent="⚠ "+msg;setTimeout(renderMode,5000);}}
+
+/* ── 🔑 Keys dialog — values go to the server once and are never shown again ── */
+async function openKeys(){
+  const dlg=$("keysdlg");
+  let rows=[];
+  try{rows=(await(await fetch("/api/llm/providers")).json()).providers||[];}catch(e){}
+  const badge=r=>r.key_optional?`<span class="kb ok">no key needed</span>`:
+    r.has_key?`<span class="kb ok">✓ ${esc(r.key_source)}</span>`:`<span class="kb no">✕ missing</span>`;
+  $("keysbody").innerHTML=rows.map(r=>`<div class="krow"><div class="kname"><b>${esc(r.label)}</b>`+
+    `<span class="krole">${r.role==="decides"?(LANG==="th"?"ตัดสินใจ":"decides"):(LANG==="th"?"เขียน":"writes")}</span>`+
+    `<code>${esc((r.key_names||[])[0]||"—")}</code>${badge(r)}</div>`+
+    (r.key_optional?`<div class="kin"><span class="pfhint">runs on this machine — install from <a href="${esc(r.get_key)}" target="_blank" rel="noopener">ollama.com</a></span></div>`:
+    `<div class="kin"><input type="password" autocomplete="off" spellcheck="false" id="kv-${esc(r.id)}" placeholder="${r.has_key?"replace key (optional)":"paste key"}">`+
+    `<button class="tbtn sm" onclick="saveKey('${esc(r.id)}')">save</button>`+
+    (r.key_source==="week24/.env.local"?`<button class="tbtn sm" onclick="saveKey('${esc(r.id)}',true)">remove</button>`:"")+
+    `<a class="pfhint" href="${esc(r.get_key)}" target="_blank" rel="noopener">get a key ↗</a></div>`)+`</div>`).join("");
+  $("keysmsg").textContent="";
+  if(typeof dlg.showModal==="function")dlg.showModal();else dlg.setAttribute("open","");
+}
+async function saveKey(id,remove){
+  const inp=$("kv-"+id),value=remove?"":(inp?inp.value.trim():"");
+  if(!remove&&!value){$("keysmsg").textContent="paste a key first";return;}
+  try{
+    const r=await fetch("/api/keys",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({provider:id,value})});
+    const d=await r.json();
+    $("keysmsg").textContent=r.ok?`${d.name}: ${d.has_key?"saved ✓ (week24/.env.local, gitignored)":"removed"}`:`✕ ${d.detail||r.status}`;
+  }catch(e){$("keysmsg").textContent="✕ could not reach the server";}
+  if(inp)inp.value="";
+  await refreshStatus();await openKeys();
+}
+function closeKeys(){const d=$("keysdlg");if(d.close)d.close();else d.removeAttribute("open");}
+
+/* ── inline ```llm blocks: {"system","user","max_tokens"} → your chosen LLM ── */
+let LB=[];const LB_EDIT={};
+function llmBlockHTML(src,fi,si){
+  const n=LB.length,key=COURSE[fi].folder+"/"+COURSE[fi].sections[si].id+"/llm"+n;
+  LB.push({key,orig:src});
+  return `<div class="jevblk llmblk" id="lb-${n}">`+
+    `<div class="jevbar"><span class="jevtag llm">${esc(tr("llmTag"))}</span><span class="grow"></span>`+
+    `<button class="tbtn sm" onclick="llmReset(${n})">${esc(tr("reset"))}</button>`+
+    `<button class="run jevask llmask" id="lb-ask-${n}" onclick="askLlm(${n})">${esc(tr("askLlm"))}</button></div>`+
+    `<textarea class="jevsrc" id="lb-src-${n}" spellcheck="false" aria-label="Editable LLM prompt JSON" oninput="llmEdited(${n})"></textarea>`+
+    `<div class="jevout" id="lb-out-${n}" aria-live="polite"></div></div>`;
+}
+function armLlm(){
+  const e=llmEff();
+  LB.forEach((b,n)=>{
+    const ta=$(`lb-src-${n}`);if(!ta)return;
+    ta.value=LB_EDIT[b.key]!==undefined?LB_EDIT[b.key]:b.orig;jevSize(ta);
+    const btn=$(`lb-ask-${n}`);if(btn)btn.textContent=`${tr("askLlm")} ${(llmRow(e.provider)||{label:e.provider}).label.split(" (")[0]}`;
+    ta.addEventListener("keydown",ev=>{if((ev.metaKey||ev.ctrlKey)&&ev.key==="Enter"){ev.preventDefault();askLlm(n);}});
+  });
+}
+function llmEdited(n){const ta=$(`lb-src-${n}`);LB_EDIT[LB[n].key]=ta.value;jevSize(ta);}
+function llmReset(n){const ta=$(`lb-src-${n}`);ta.value=LB[n].orig;delete LB_EDIT[LB[n].key];jevSize(ta);
+  const o=$(`lb-out-${n}`);o.innerHTML="";o.classList.remove("show");}
+async function askLlm(n){
+  const o=$(`lb-out-${n}`),btn=$(`lb-ask-${n}`),label=btn.textContent;
+  let spec;try{spec=JSON.parse($(`lb-src-${n}`).value);}catch(err){o.innerHTML=`<div class="jwarn bad">✕ ${esc("not valid JSON — "+(err.message||err))}</div>`;o.classList.add("show");return;}
+  if(!spec||typeof spec.user!=="string"){o.innerHTML=`<div class="jwarn bad">✕ the block needs a "user" prompt string</div>`;o.classList.add("show");return;}
+  const e=llmEff(),mode=effMode();
+  btn.disabled=true;btn.innerHTML=`<span class="sp"></span> ${esc(tr("writing"))}`;
+  try{
+    const r=await fetch("/api/llm",{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({system:spec.system||"",user:spec.user,max_tokens:spec.max_tokens||400,provider:e.provider,model:e.model,mode})});
+    const d=await r.json().catch(()=>({detail:"HTTP "+r.status}));
+    if(!r.ok){o.innerHTML=`<div class="jwarn bad">✕ ${esc(typeof d.detail==="string"?d.detail:JSON.stringify(d.detail))}</div>`;}
+    else{
+      const src=d._source||"live",u=d.usage||{};
+      const tag=src==="live"?`<span class="jsrc live">LIVE</span>`:src==="recorded"?`<span class="jsrc rec">RECORDED replay</span>`:`<span class="jsrc ph">PLACEHOLDER</span>`;
+      o.innerHTML=`<div class="jhead">${tag} <b>${esc((llmRow(d.provider)||{label:d.provider}).label)}</b> · ${esc(d.model||"")} · ${u.input_tokens||0} in / ${u.output_tokens||0} out tok`+
+        (d.latency_ms?` · ${Math.round(d.latency_ms)} ms`:"")+`</div>`+
+        (src==="placeholder"?`<div class="jwarn">◈ ${esc(d.text)}</div>`:`<div class="llmtext">${esc(d.text)}</div>`)+
+        `<div class="jnote">◈ ${LANG==="th"?"ตรวจชื่อโมเดลจากฟิลด์ model ของ API — อย่าเชื่อสิ่งที่โมเดลบอกว่าตัวเองคือใคร":"log the API's model field — never trust a model's self-report of who it is"}</div>`;
+    }
+    o.classList.add("show");
+  }catch(err){o.innerHTML=`<div class="jwarn bad">✕ could not reach the Lab Runner</div>`;o.classList.add("show");}
+  btn.disabled=false;btn.textContent=label;
 }
 
 /* ── sidebar: course tree with per-folder progress rings ── */
@@ -555,7 +772,7 @@ function renderSide(){
 function updateProg(){
   const r=courseCounts();
   $("bar").style.width=r[1]?(100*r[0]/r[1]).toFixed(1)+"%":"0%";
-  $("course-prog").textContent=r[1]?`${r[0]} / ${r[1]} checkpoints`:"";
+  $("course-prog").textContent=r[1]?`${r[0]} / ${r[1]} ${tr("checkpoints")}`:"";
 }
 
 /* ── navigation: one continuous course across every module ── */
@@ -595,7 +812,7 @@ function mdRender(md,fi,si){
   // skip a leading heading — it duplicates the section title shown above
   while(i<lines.length&&!lines[i].trim())i++;
   if(i<lines.length&&/^#{1,2}\s/.test(lines[i].trim()))i++;
-  JB=[];
+  JB=[];LB=[];
   const flushPara=()=>{
     if(para.length){out.push(`<p>${para.map(inline).join(" ")}</p>`);prevText=para.join(" ");para=[];}
   };
@@ -610,6 +827,7 @@ function mdRender(md,fi,si){
       while(i<lines.length&&!lines[i].trim().startsWith("```")){buf.push(lines[i]);i++;}
       i++;
       if(lang==="jev"){out.push(jevBlockHTML(buf.join("\n"),fi,si));prevText="";continue;}
+      if(lang==="llm"){out.push(llmBlockHTML(buf.join("\n"),fi,si));prevText="";continue;}
       out.push(`<div class="codewrap${exp?" expected":""}">`+
                (exp?"":`<button class="copy torun" onclick="sendToTerm(this)" title="load into the built-in terminal">▶ run</button>`)+
                `<button class="copy" onclick="copyCode(this)">copy</button>`+
@@ -622,7 +840,7 @@ function mdRender(md,fi,si){
       const body=t.replace(/^✓\s*Checkpoint:?\s*/,"");
       const on=!!CKS[key];
       out.push(`<label class="ckpt${on?" done":""}"><input type="checkbox" data-key="${esc(key)}" ${on?"checked":""} `+
-               `onchange="tickCk(this)"><span class="ckmark">✓ Checkpoint</span><span class="cktxt">${inline(body)}</span></label>`);
+               `onchange="tickCk(this)"><span class="ckmark">${esc(tr("checkpoint"))}</span><span class="cktxt">${inline(body)}</span></label>`);
       prevText=t;i++;continue;
     }
     if(/^<\/?(details|summary)/i.test(t)){                     // <details><summary> passthrough
@@ -670,12 +888,13 @@ function kindChip(k){
   const m={intro:["read","beginner"],setup:["set up","all"],step:["do it","intermediate"],
            labs:["run these","advanced"],exercises:["stretch","advanced"],diagrams:["visualize","all"],
            troubleshooting:["fix it","all"],next:["go on","beginner"]};
-  const c=m[k];return c?` <span class="lv ${c[1]}">${c[0]}</span>`:"";
+  const c=m[k];return c?` <span class="lv ${c[1]}">${esc((tr("chips")||{})[k]||c[0])}</span>`:"";
 }
 function renderContent(){
   if(!COURSE.length)return;
   const f=FLAT[cur],c=COURSE[f.fi],s=c.sections[f.si];
-  let h=`<div class="crumb">Module ${esc(c.num)} · week24/${esc(c.folder)} · section ${f.si+1}/${c.sections.length}</div>`;
+  let h=`<div class="crumb">${esc(tr("module"))} ${esc(c.num)} · week24/${esc(c.folder)} · ${esc(tr("section"))} ${f.si+1}/${c.sections.length}</div>`;
+  if(LANG==="th"&&!c.has_th)h+=`<div class="pwarn">${esc(tr("thMissing"))}</div>`;
   h+=`<h2>${esc(s.title)}${kindChip(s.kind)}</h2>`;
   if(s.kind==="intro"&&c.meta&&(c.meta.time||c.meta.difficulty)){
     h+=`<div class="metachips">`+
@@ -688,16 +907,16 @@ function renderContent(){
   if(s.kind==="diagrams")h+=diagramsBlock(f.fi);
   if(s.kind==="labs")h+=labCards(f.fi,"labs");
   if(s.kind==="exercises")h+=labCards(f.fi,"exercises");
-  h+=`<div class="navrow"><button class="tbtn" onclick="nav(-1)" ${cur===0?"disabled":""}>◀ prev</button>`+
-     `<span class="navlbl">${cur+1} / ${FLAT.length} — one continuous course, 01 → ${esc(COURSE[COURSE.length-1].num)}</span>`+
-     `<button class="tbtn" onclick="nav(1)" ${cur===FLAT.length-1?"disabled":""}>next ▶</button></div>`;
+  h+=`<div class="navrow"><button class="tbtn" onclick="nav(-1)" ${cur===0?"disabled":""}>${esc(tr("prev"))}</button>`+
+     `<span class="navlbl">${cur+1} / ${FLAT.length} — ${esc(tr("course"))}, 01 → ${esc(COURSE[COURSE.length-1].num)}</span>`+
+     `<button class="tbtn" onclick="nav(1)" ${cur===FLAT.length-1?"disabled":""}>${esc(tr("next"))}</button></div>`;
   $("content").innerHTML=h;
   $("nav-pos").textContent=`${cur+1}/${FLAT.length}`;
   $("nav-prev").disabled=cur===0;
   $("nav-next").disabled=cur===FLAT.length-1;
   if(s.kind==="labs"||s.kind==="exercises")restoreLabUI(f.fi,s.kind);
   if(s.kind==="diagrams")armCharts();
-  armJev();
+  armJev();armLlm();
 }
 
 /* ── lab + exercise cards: view source · run · streamed terminal · run-history spark ── */
@@ -709,7 +928,7 @@ async function loadHistory(){
 }
 function sparkHTML(key){
   const runs=(HIST[key]||[]).slice(-20);
-  if(!runs.length)return `<span class="sparknone">no runs yet</span>`;
+  if(!runs.length)return `<span class="sparknone">${esc(tr("noRuns"))}</span>`;
   const secs=runs.map(r=>+r.seconds||0),mx=Math.max(...secs,0.1);
   const W=110,H=22,step=runs.length>1?W/(runs.length-1):0;
   const pt=i=>[runs.length>1?(i*step).toFixed(1):W/2,(H-3-(secs[i]/mx)*(H-8)).toFixed(1)];
@@ -728,13 +947,13 @@ function renderSpark(fi,rel){
 }
 function fileCard(fi,rel,title,kind){
   const id=fid(fi,rel),short=rel.split("/").pop();
-  const tag=kind==="sol"?`<span class="ftag sol">💡 solution</span>`:kind==="ex"?`<span class="ftag ex">✍️ exercise</span>`:"";
+  const tag=kind==="sol"?`<span class="ftag sol">${esc(tr("solTag"))}</span>`:kind==="ex"?`<span class="ftag ex">${esc(tr("exTag"))}</span>`:"";
   return `<article class="labcard${kind==="sol"?" solcard":""}" aria-label="${esc(rel)}${title?" — "+esc(title):""}">`+
      `<div class="labtop">${tag}<span class="labfile">${esc(short)}</span><span class="labtitle">${esc(title||"")}</span>`+
      `<span class="grow"></span>`+
      `<span class="spark" id="spark-${id}" title="last 20 runs — dot colour = exit code, height = duration">${sparkHTML(fileKey(fi,rel))}</span>`+
-     `<button class="tbtn" id="srcbtn-${id}" onclick="toggleSrc(${fi},'${esc(rel)}')" aria-expanded="false" aria-controls="src-${id}">${kind==="sol"?"view solution ▸":"view source ▸"}</button>`+
-     `<button class="run" id="runbtn-${id}" onclick="runFile(${fi},'${esc(rel)}')" aria-label="Run ${esc(short)}">▶ Run${kind==="sol"?" solution":""}</button></div>`+
+     `<button class="tbtn" id="srcbtn-${id}" onclick="toggleSrc(${fi},'${esc(rel)}')" aria-expanded="false" aria-controls="src-${id}">${esc(kind==="sol"?tr("viewSol"):tr("viewSrc"))}</button>`+
+     `<button class="run" id="runbtn-${id}" onclick="runFile(${fi},'${esc(rel)}')" aria-label="Run ${esc(short)}">${esc(kind==="sol"?tr("runSol"):tr("run"))}</button></div>`+
      `<pre class="src" id="src-${id}"></pre>`+
      `<div class="term-wrap" id="tw-${id}" style="display:none">`+
      `<div class="term-bar"><span class="d" style="background:#f85149"></span>`+
@@ -745,16 +964,14 @@ function fileCard(fi,rel,title,kind){
 }
 function cardFiles(fi,which){
   const c=COURSE[fi],out=[];
-  if(which==="exercises")(c.exercises||[]).forEach(E=>{out.push([E.file,E.title,"ex"]);if(E.solution)out.push([E.solution,"reference solution — peek after you have tried","sol"]);});
+  if(which==="exercises")(c.exercises||[]).forEach(E=>{out.push([E.file,E.title,"ex"]);if(E.solution)out.push([E.solution,tr("solTitle"),"sol"]);});
   else (c.labs||[]).forEach(L=>out.push([L.file,L.title,"lab"]));
   return out;
 }
 function labCards(fi,which){
   const files=cardFiles(fi,which);
   if(!files.length)return "";
-  const head=which==="exercises"
-    ?"✍️ Your exercise — open the file in your editor, fill the TODOs, save, then ▶ Run"
-    :"🧪 Run the labs — executed on this Mac, output streamed live";
+  const head=which==="exercises"?tr("exHead"):tr("labsHead");
   let h=`<div class="labsec"><h3 class="labshead">${head} <span class="labmode">${esc(effMode().toUpperCase())}</span></h3>`;
   files.forEach(([rel,title,kind])=>{h+=fileCard(fi,rel,title,kind);});
   return h+`</div>`;
@@ -771,7 +988,7 @@ function restoreLabUI(fi,which){
     if(openSrc[k]&&srcCache[k]!==undefined){
       const el=$(`src-${id}`),b=$(`srcbtn-${id}`);
       if(el){el.textContent=srcCache[k];el.classList.add("open");}
-      if(b)b.textContent="hide ▾";
+      if(b)b.textContent=tr("hide");
     }
   });
   setRunButtons(RUNNING);
@@ -779,7 +996,7 @@ function restoreLabUI(fi,which){
 async function toggleSrc(fi,rel){
   const k=fileKey(fi,rel),id=fid(fi,rel),el=$(`src-${id}`),btn=$(`srcbtn-${id}`);
   if(!el)return;
-  const label=rel.indexOf("/solutions/")>=0?"view solution ▸":"view source ▸";
+  const label=rel.indexOf("/solutions/")>=0?tr("viewSol"):tr("viewSrc");
   if(el.classList.contains("open")){
     el.classList.remove("open");openSrc[k]=false;
     if(btn){btn.textContent=label;btn.setAttribute("aria-expanded","false");}return;
@@ -791,7 +1008,7 @@ async function toggleSrc(fi,rel){
     srcCache[k]=r.ok?await r.text():`(HTTP ${r.status} — could not load source)`;
   }catch(e){srcCache[k]="(could not load source: "+(e.message||e)+")";}
   el.textContent=srcCache[k];openSrc[k]=true;
-  if(btn){btn.textContent="hide ▾";btn.setAttribute("aria-expanded","true");}
+  if(btn){btn.textContent=tr("hide");btn.setAttribute("aria-expanded","true");}
 }
 function clearFileTerm(fi,rel){
   const k=fileKey(fi,rel),id=fid(fi,rel);
@@ -833,7 +1050,7 @@ async function runFile(fi,rel){
   RUNNING=true;setRunButtons(true);
   const k=fileKey(fi,rel),id=fid(fi,rel);
   const btn=$(`runbtn-${id}`),orig=btn?btn.innerHTML:"▶ Run";
-  if(btn)btn.innerHTML=`<span class="sp"></span> running`;
+  if(btn)btn.innerHTML=`<span class="sp"></span> ${esc(tr("running"))}`;
   const tw=$(`tw-${id}`);if(tw)tw.style.display="block";
   const f0=$(`foot-${id}`);if(f0){f0.innerHTML="";f0.classList.remove("show");}
   termCache[k]="";footCache[k]="";
@@ -863,7 +1080,7 @@ async function runFile(fi,rel){
     if(code===null)fh=`<span class="pass">✓ stream ended</span>`;
     else if(code===0)fh=`<span class="pass">✓ exit 0</span> · ${esc(dur)}s · ${esc(mode.toUpperCase())}`;
     else if(code===124)fh=`<span class="failc">✕ timed out</span> · ${esc(dur)}s — hit the ${RUNTMO}s cap`;
-    else if(isEx)fh=`<span class="failc">✕ not done yet</span> · the checker found TODOs — fix the ✕ lines above, save, run again`;
+    else if(isEx)fh=`<span class="failc">${esc(tr("notDone"))}</span>`;
     else fh=`<span class="failc">✕ exit ${code}</span> · ${esc(dur)}s — see output above`;
     footCache[k]=fh;
     const f=$(`foot-${id}`);
@@ -884,11 +1101,11 @@ function jevBlockHTML(src,fi,si){
   const n=JB.length,key=COURSE[fi].folder+"/"+COURSE[fi].sections[si].id+"/"+n;
   JB.push({key,orig:src});
   return `<div class="jevblk" id="jb-${n}">`+
-    `<div class="jevbar"><span class="jevtag">⚡ Live example — edit the JSON, then ask</span><span class="grow"></span>`+
-    `<button class="tbtn sm" onclick="jevFormat(${n})" title="re-indent the JSON">format</button>`+
-    `<button class="tbtn sm" onclick="jevReset(${n})" title="restore the original example">reset</button>`+
-    `<button class="tbtn sm" onclick="jevCurl(${n},this)" title="copy an equivalent curl command (uses $TYPESAFE_API_KEY)">copy as curl</button>`+
-    `<button class="run jevask" id="jb-ask-${n}" onclick="askJev(${n})">⚡ Ask Jev</button></div>`+
+    `<div class="jevbar"><span class="jevtag">${esc(tr("jevTag"))}</span><span class="grow"></span>`+
+    `<button class="tbtn sm" onclick="jevFormat(${n})" title="re-indent the JSON">${esc(tr("format"))}</button>`+
+    `<button class="tbtn sm" onclick="jevReset(${n})" title="restore the original example">${esc(tr("reset"))}</button>`+
+    `<button class="tbtn sm" onclick="jevCurl(${n},this)" title="copy an equivalent curl command (uses $TYPESAFE_API_KEY)">${esc(tr("curl"))}</button>`+
+    `<button class="run jevask" id="jb-ask-${n}" onclick="askJev(${n})">${esc(tr("askJev"))}</button></div>`+
     `<textarea class="jevsrc" id="jb-src-${n}" spellcheck="false" aria-label="Editable Jev request JSON" oninput="jevEdited(${n})"></textarea>`+
     `<div class="jevout" id="jb-out-${n}" aria-live="polite"></div></div>`;
 }
@@ -932,7 +1149,7 @@ function jevShowErr(n,msg){
 async function askJev(n){
   const r=jevParse(n);if(r.err){jevShowErr(n,r.err);return;}
   const btn=$(`jb-ask-${n}`),o=$(`jb-out-${n}`);
-  btn.disabled=true;btn.innerHTML=`<span class="sp"></span> asking`;
+  btn.disabled=true;btn.innerHTML=`<span class="sp"></span> ${esc(tr("asking"))}`;
   const mode=effMode();
   try{
     const body={state:r.spec.state,questions:r.spec.questions,mode};
@@ -944,7 +1161,7 @@ async function askJev(n){
       jevShowErr(n,`${resp.status===502?"TypeSafe returned an error":"Request rejected"} — ${d}`);
     }else{o.innerHTML=jevAnswerHTML(data);o.classList.add("show");}
   }catch(e){jevShowErr(n,"could not reach the Lab Runner — "+(e.message||e));}
-  btn.disabled=false;btn.innerHTML="⚡ Ask Jev";
+  btn.disabled=false;btn.innerHTML=esc(tr("askJev"));
 }
 function jrow(label,p,win,title){
   const pct=Math.max(0,Math.min(100,(+p||0)*100));
@@ -1391,6 +1608,7 @@ function armCharts(){
   els.forEach(el=>chartIO.observe(el));
 }
 /* ── go ── */
+applyChrome();
 renderMode();
 boot();
 </script>

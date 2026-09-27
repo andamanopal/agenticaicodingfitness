@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Lab 11-1 · The finished guest-request copilot, end to end.
+"""Lab 12-1 · The finished guest-request copilot, end to end.
 
 Runs copilot_reference.handle() on 9 fictional guest messages (EN / TH / mixed,
 including a safety case, a negation, an angry guest and a vague "hello?"):
@@ -8,7 +8,7 @@ including a safety case, a negation, an angry guest and a vague "hello?"):
     →   code: policy (safety override, uncertainty gate, priority)
     →   code: ticket JSON + templated reply draft   ·   execute: False
 
-Run: .venv/bin/python week24/11_capstone_hotel_copilot/labs/lab01_capstone_demo.py
+Run: .venv/bin/python week24/12_capstone_hotel_copilot/labs/lab01_capstone_demo.py
 """
 import json
 import sys
@@ -18,7 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import copilot_reference as copilot                     # noqa: E402
 from jevkit import banner, step, table                  # noqa: E402
 
-banner("Lab 11-1 · smart-hotel guest-request copilot",
+banner("Lab 12-1 · smart-hotel guest-request copilot",
        f"{len(copilot.MESSAGES)} messages · 1 Jev call each · 5 questions per call")
 
 step(1, "the questions — five independent judgments, sent together")

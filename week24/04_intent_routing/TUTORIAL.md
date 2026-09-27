@@ -113,7 +113,7 @@ Everything after the Jev call is deterministic Python in `jev_lab.py`. No model 
 | **specialists** | each expertise noul ≥ .80 | Suggestions for the multi-agent dispatcher |
 | **compute tier** | complexity ≥ 1.5 **or** its confidence < .75 → `reasoning_candidate`, else `fast_candidate` | When unsure how hard it is, pay for the bigger model |
 
-Notice in the table above that almost every request got `reasoning_candidate` — not because they are hard, but because the complexity **score's confidence** was below .75 (i1: 0.46). That is a policy choice you might revisit: it spends money to be safe. This is exactly the kind of threshold you tune on real traffic, *without re-asking the model*.
+Notice in the table above that most requests got `reasoning_candidate` (only i5 and i9 got `fast_candidate`) — not because they are hard, but because the complexity **score's confidence** was below .75 (i1: 0.46). That is a policy choice you might revisit: it spends money to be safe. This is exactly the kind of threshold you tune on real traffic, *without re-asking the model*.
 
 Try the full router on a request of your own:
 

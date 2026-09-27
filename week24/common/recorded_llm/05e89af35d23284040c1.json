@@ -1,0 +1,20 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "provider": "kimi",
+  "model": "kimi-k3",
+  "system": "",
+  "user": "Reply with exactly: hello from <your model name>",
+  "max_tokens": 200
+ },
+ "response": {
+  "text": "hello from Kimi",
+  "provider": "kimi",
+  "model": "kimi-k3",
+  "usage": {
+   "input_tokens": 96,
+   "output_tokens": 92
+  },
+  "latency_ms": 4181.2
+ }
+}

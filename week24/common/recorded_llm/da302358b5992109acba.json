@@ -1,0 +1,20 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "provider": "ollama",
+  "model": "gemma4:latest",
+  "system": "You write short replies to hotel guests for staff to review. 2 sentences. Never promise refunds.",
+  "user": "Guest in room 1203: the air conditioning is freezing and won't turn off. It's 1am. Write the reply.",
+  "max_tokens": 400
+ },
+ "response": {
+  "text": "We apologize for the drafty temperature in your room. Could you confirm if you have accessed the thermostat controls? We can send up an additional blanket if you are feeling too cold.",
+  "provider": "ollama",
+  "model": "gemma4:latest",
+  "usage": {
+   "input_tokens": 68,
+   "output_tokens": 37
+  },
+  "latency_ms": 637.0
+ }
+}

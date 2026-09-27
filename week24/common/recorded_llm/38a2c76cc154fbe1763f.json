@@ -1,0 +1,20 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "provider": "claude",
+  "model": "claude-sonnet-5",
+  "system": "You write short replies to hotel guests for staff to review before sending. Rules: reply in English; 2-4 sentences; warm and professional; use ONLY the facts provided — never invent names, times, prices or causes; never promise refunds, discounts or compensation (a manager decides that); if a room number is provided, mention it; sign off as 'Guest Services'. Say the front desk will follow up.",
+  "user": "Guest message:\nI was charged twice for my stay. I want a refund today or I'm leaving a review.\n\nFacts you may use (nothing else):\n- room: not given\n- team asked to help: front_desk\n- urgency: today\n\nWrite the reply draft now.",
+  "max_tokens": 600
+ },
+ "response": {
+  "text": "Thank you for letting us know about the duplicate charge — we understand how frustrating this must be. Our front desk team has been alerted and will follow up with you today to look into this. We appreciate your patience while this is being reviewed.\n\nGuest Services",
+  "provider": "claude",
+  "model": "claude-sonnet-5",
+  "usage": {
+   "input_tokens": 214,
+   "output_tokens": 94
+  },
+  "latency_ms": 2154.7
+ }
+}

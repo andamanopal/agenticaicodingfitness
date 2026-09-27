@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Exercise 11 · CAPSTONE — build the smart-hotel guest-request copilot yourself.
+"""Exercise 12 · CAPSTONE — build the smart-hotel guest-request copilot yourself.
 
 Four TODOs, each checked OFFLINE (free) before a single API call:
 
@@ -11,7 +11,7 @@ Four TODOs, each checked OFFLINE (free) before a single API call:
 When every check is ✓, the copilot runs live on five guest messages.
 Reference answer: ../copilot_reference.py (try first — peek later).
 
-Run: .venv/bin/python week24/11_capstone_hotel_copilot/exercises/ex11_build_the_copilot.py
+Run: .venv/bin/python week24/12_capstone_hotel_copilot/exercises/ex12_build_the_copilot.py
 """
 import json
 import re
@@ -140,7 +140,7 @@ def offline_checks() -> bool:
 
 def main() -> None:
     print("━" * 72)
-    print("━━ Exercise 11 · CAPSTONE — build the guest-request copilot")
+    print("━━ Exercise 12 · CAPSTONE — build the guest-request copilot")
     print("━" * 72)
     if not offline_checks():
         print("\n⚠ fix the ✕ lines above, save, and run again — no API call was made.")

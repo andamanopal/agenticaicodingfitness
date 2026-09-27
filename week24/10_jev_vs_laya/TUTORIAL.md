@@ -48,7 +48,7 @@ These specifications are **reported by the Laya project**, not measured by us:
 
 ## 2 · Why the two published comparisons "disagree"
 
-**In plain words:** two articles seem to crown different winners, but they ran different races. One compared an out-of-the-box Laya against Jev on one benchmark. The other compared a Laya that was specially trained for the task against a Jev number copied from somewhere else, with different prompts and test sizes. It is like comparing a runner's time on a flat track with another runner's time uphill. Neither result tells you which model is better *for AltoTech*. Only a fair test on your own data (section 6) can.
+**In plain words:** two articles seem to crown different winners, but they ran different races. One compared an out-of-the-box Laya against Jev on one benchmark. The other compared a Laya that was specially trained for the task against a Jev number copied from somewhere else, with different prompts and test sizes. It is like comparing a runner's time on a flat track with another runner's time uphill. Neither result tells you which model is better *for AltoTech*. Only a fair test on your own data (the fair-pilot referee you write in this module's exercise) can.
 
 
 | Source | Reports | What was actually compared |
@@ -325,4 +325,4 @@ Add a rule for latency fairness: when comparing latencies, both runs must record
 
 ## Next
 
-Continue to [Lab 11 — Capstone: a smart-hotel guest-request copilot](../11_capstone_hotel_copilot/TUTORIAL.md). You'll put all of it together: batched questions, code-side extraction, an uncertainty gate, a safety override and shadow-mode comparison.
+Continue to [Lab 11 — Jev + your choice of LLM](../11_jev_plus_llm/TUTORIAL.md): Jev decides, Claude / ChatGPT / Gemini / DeepSeek / Kimi / GLM writes. Then the capstone: [Lab 12](../12_capstone_hotel_copilot/TUTORIAL.md). You'll put all of it together: batched questions, code-side extraction, an uncertainty gate, a safety override and shadow-mode comparison.

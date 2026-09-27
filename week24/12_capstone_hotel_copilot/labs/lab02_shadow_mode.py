@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-"""Lab 11-2 · Shadow mode — run the new router BESIDE the old one, change nothing.
+"""Lab 12-2 · Shadow mode — run the new router BESIDE the old one, change nothing.
 
 Before a new router touches live traffic, you run it in the shadow: every
 message still goes where the CURRENT system sends it, and you only log what the
 new one WOULD have done. Disagreements are the interesting rows.
 
 Here the "current system" is a typical keyword router. The candidate is the
-Jev copilot from Lab 11-1. The human-labeled "right team" lets us score both.
+Jev copilot from Lab 12-1. The human-labeled "right team" lets us score both.
 
-Run: .venv/bin/python week24/11_capstone_hotel_copilot/labs/lab02_shadow_mode.py
+Run: .venv/bin/python week24/12_capstone_hotel_copilot/labs/lab02_shadow_mode.py
 """
 import sys
 from pathlib import Path
@@ -45,7 +45,7 @@ CASES = [(m, gold) for m, gold in zip(copilot.MESSAGES, [
     ("The shower is fine now, thanks. But my room key stopped working. 705", "front_desk"),
 ]
 
-banner("Lab 11-2 · shadow mode", f"{len(CASES)} messages · incumbent keyword router vs Jev copilot")
+banner("Lab 12-2 · shadow mode", f"{len(CASES)} messages · incumbent keyword router vs Jev copilot")
 
 step(1, "route every message both ways — the incumbent's answer is the one that 'ships'")
 rows, kw_ok, jev_ok, agree = [], 0, 0, 0
