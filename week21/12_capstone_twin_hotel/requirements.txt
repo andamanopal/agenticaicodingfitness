@@ -1,0 +1,4 @@
+fastapi
+uvicorn
+openai
+# usd-core      # optional — genuine OpenUSD for the scene chapters (App 2 style REAL mode)

@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.sandbox/
+*/.sandbox/
+out/
+*.sqlite

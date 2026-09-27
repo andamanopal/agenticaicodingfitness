@@ -1,0 +1,4 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+openai>=1.30
+# usd-core  # optional — REAL USD mode: exports re-open with the real pxr API (no GPU)

@@ -1,0 +1,5 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+openai>=1.30
+# usd-core        # optional — flips Ch 3's session-layer demo to REAL OpenUSD (no GPU)
+# paho-mqtt    # optional — hops 3–4 ride a real MQTT broker (MQTT_BROKER=host:port)

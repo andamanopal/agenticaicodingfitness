@@ -1,0 +1,5 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+openai>=1.30
+# usd-core       # optional — REAL USD mode in Ch 5 (writes a genuine stage, no GPU)
+# ifcopenshell   # optional — the real open-source IFC toolkit behind pipeline path 1

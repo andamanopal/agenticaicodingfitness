@@ -1,0 +1,4 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+openai>=1.30
+# cuopt-server  # optional — the real GPU VRP solver (NVIDIA cuOpt, Apache-2.0); the demo ships a pure-Python stand-in

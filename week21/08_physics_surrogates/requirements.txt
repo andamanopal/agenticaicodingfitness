@@ -1,0 +1,4 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+openai>=1.30
+# nvidia-physicsnemo  # optional — REAL mode for Ch 3 (heavy; needs CUDA for training)

@@ -1,0 +1,6 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+openai>=1.30
+# sinergym             # optional — REAL EnergyPlus gym (Ch 2–3); Docker image has E+ preinstalled
+# CityLearn            # optional — REAL district demand-response env (Ch 4)
+# stable-baselines3    # optional — PPO/SAC on the real gyms (Ch 3's "run it for real")
