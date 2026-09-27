@@ -1,0 +1,45 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "model": "jev-1.13.0",
+  "state": {
+   "message": "Don't turn off chiller 2 unless the high-pressure alarm clears."
+  },
+  "questions": {
+   "requests_shutdown": {
+    "type": "noul",
+    "instructions": "Does `message` mention turning off the chiller?"
+   },
+   "action": {
+    "type": "choice",
+    "instructions": "Which equipment action does `message` request?",
+    "criteria": {
+     "turn_off": "Turn the equipment off",
+     "keep_running": "Keep the equipment running"
+    }
+   }
+  }
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "requests_shutdown": {
+    "type": "noul",
+    "noul": 0.99
+   },
+   "action": {
+    "type": "choice",
+    "choice": "keep_running",
+    "confidence": 0.99,
+    "probabilities": {
+     "turn_off": 0.01,
+     "keep_running": 0.99
+    }
+   }
+  },
+  "usage": {
+   "input_tokens": 356,
+   "output_tokens": 51
+  }
+ }
+}

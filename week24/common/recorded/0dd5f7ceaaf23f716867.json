@@ -1,0 +1,141 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "model": "jev-1.13.0",
+  "state": {
+   "readings": [
+    {
+     "zone_c": 26.1,
+     "setpoint_c": 24.0
+    },
+    {
+     "zone_c": 25.9,
+     "setpoint_c": 24.0
+    },
+    {
+     "zone_c": 26.0,
+     "setpoint_c": 24.0
+    },
+    {
+     "zone_c": 23.5,
+     "setpoint_c": 21.4
+    },
+    {
+     "zone_c": 22.9,
+     "setpoint_c": 21.0
+    }
+   ],
+   "today": "2026-09-27",
+   "due_dates": [
+    "2026-09-26",
+    "27/09/2026",
+    "Oct 1, 2026",
+    "9/28/26"
+   ],
+   "alarms": [
+    "HIGH_TEMP",
+    "LOW_FLOW",
+    "HIGH_TEMP",
+    "COMM_LOSS",
+    "HIGH_TEMP",
+    "LOW_FLOW",
+    "HIGH_TEMP",
+    "HIGH_TEMP",
+    "COMM_LOSS",
+    "HIGH_TEMP",
+    "HIGH_TEMP"
+   ]
+  },
+  "questions": {
+   "warm_0": {
+    "type": "noul",
+    "instructions": "Is `readings[0].zone_c` MORE than 2.0 degrees above `readings[0].setpoint_c`?"
+   },
+   "warm_1": {
+    "type": "noul",
+    "instructions": "Is `readings[1].zone_c` MORE than 2.0 degrees above `readings[1].setpoint_c`?"
+   },
+   "warm_2": {
+    "type": "noul",
+    "instructions": "Is `readings[2].zone_c` MORE than 2.0 degrees above `readings[2].setpoint_c`?"
+   },
+   "warm_3": {
+    "type": "noul",
+    "instructions": "Is `readings[3].zone_c` MORE than 2.0 degrees above `readings[3].setpoint_c`?"
+   },
+   "warm_4": {
+    "type": "noul",
+    "instructions": "Is `readings[4].zone_c` MORE than 2.0 degrees above `readings[4].setpoint_c`?"
+   },
+   "overdue_0": {
+    "type": "noul",
+    "instructions": "Is the date `due_dates[0]` strictly earlier than `today`?"
+   },
+   "overdue_1": {
+    "type": "noul",
+    "instructions": "Is the date `due_dates[1]` strictly earlier than `today`?"
+   },
+   "overdue_2": {
+    "type": "noul",
+    "instructions": "Is the date `due_dates[2]` strictly earlier than `today`?"
+   },
+   "overdue_3": {
+    "type": "noul",
+    "instructions": "Is the date `due_dates[3]` strictly earlier than `today`?"
+   },
+   "many_high_temp": {
+    "type": "noul",
+    "instructions": "Does `alarms` contain HIGH_TEMP more than 6 times?"
+   }
+  }
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "warm_0": {
+    "type": "noul",
+    "noul": 0.93
+   },
+   "warm_1": {
+    "type": "noul",
+    "noul": 0.02
+   },
+   "warm_2": {
+    "type": "noul",
+    "noul": 0.14
+   },
+   "warm_3": {
+    "type": "noul",
+    "noul": 0.96
+   },
+   "warm_4": {
+    "type": "noul",
+    "noul": 0.23
+   },
+   "overdue_0": {
+    "type": "noul",
+    "noul": 0.98
+   },
+   "overdue_1": {
+    "type": "noul",
+    "noul": 0.03
+   },
+   "overdue_2": {
+    "type": "noul",
+    "noul": 0.02
+   },
+   "overdue_3": {
+    "type": "noul",
+    "noul": 0.03
+   },
+   "many_high_temp": {
+    "type": "noul",
+    "noul": 0.97
+   }
+  },
+  "usage": {
+   "input_tokens": 823,
+   "output_tokens": 188
+  }
+ }
+}

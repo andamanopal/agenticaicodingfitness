@@ -1,0 +1,36 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "model": "jev-1.13.0",
+  "state": {
+   "message": "I might be checking out a day early, not sure yet."
+  },
+  "questions": {
+   "leaving_early": {
+    "type": "noul",
+    "instructions": "Is the guest in `message` checking out early?"
+   },
+   "not_leaving_early": {
+    "type": "noul",
+    "instructions": "Is the guest in `message` NOT checking out early?"
+   }
+  }
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "leaving_early": {
+    "type": "noul",
+    "noul": 0.36
+   },
+   "not_leaving_early": {
+    "type": "noul",
+    "noul": 0.33
+   }
+  },
+  "usage": {
+   "input_tokens": 315,
+   "output_tokens": 45
+  }
+ }
+}

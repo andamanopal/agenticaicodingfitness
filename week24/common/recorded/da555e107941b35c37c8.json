@@ -1,0 +1,44 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "model": "jev-1.13.0",
+  "state": {
+   "message": "It's freezing cold in here and the room is too dark — the lights don't work. Room 312."
+  },
+  "questions": {
+   "for_hvac": {
+    "type": "noul",
+    "instructions": "Does `message` report a room temperature or air-conditioning problem?"
+   },
+   "for_maintenance": {
+    "type": "noul",
+    "instructions": "Does `message` report a broken light, electrical, plumbing or furniture problem?"
+   },
+   "for_housekeeping": {
+    "type": "noul",
+    "instructions": "Does `message` ask for cleaning, towels, linen or amenities?"
+   }
+  }
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "for_hvac": {
+    "type": "noul",
+    "noul": 0.95
+   },
+   "for_maintenance": {
+    "type": "noul",
+    "noul": 0.97
+   },
+   "for_housekeeping": {
+    "type": "noul",
+    "noul": 0.08
+   }
+  },
+  "usage": {
+   "input_tokens": 357,
+   "output_tokens": 62
+  }
+ }
+}

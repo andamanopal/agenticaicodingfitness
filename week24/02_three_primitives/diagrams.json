@@ -1,0 +1,72 @@
+{
+  "architecture": {
+    "title": "Three primitives, one request — typed answers your code consumes",
+    "caption": "One state is ingested once; every question is answered independently against it. Choice and Score return a distribution plus confidence; Noul returns one probability. Thresholds, routing and actions live in your code.",
+    "lanes": [
+      {"id": "app", "label": "Your code"},
+      {"id": "request", "label": "Request — state + typed questions"},
+      {"id": "jev", "label": "Jev (System One)"},
+      {"id": "answers", "label": "Typed answers"}
+    ],
+    "nodes": [
+      {"id": "msg", "label": "Guest message", "lane": "app", "sub": "“AC dripping, bill looks wrong”", "accent": "green"},
+      {"id": "state", "label": "state", "lane": "request", "sub": "{message: …} — facts only"},
+      {"id": "qs", "label": "questions", "lane": "request", "sub": "department · needs_* · urgency", "accent": "cyan"},
+      {"id": "model", "label": "jev-1.13.0", "lane": "jev", "sub": "parallel, independent judgments", "accent": "amber"},
+      {"id": "a-choice", "label": "choice", "lane": "answers", "sub": "winner + probabilities + confidence", "accent": "violet"},
+      {"id": "a-noul", "label": "noul", "lane": "answers", "sub": "p(true) 0…1 — no confidence", "accent": "violet"},
+      {"id": "a-score", "label": "score", "lane": "answers", "sub": "expected level + legend + confidence", "accent": "violet"},
+      {"id": "policy", "label": "Policy in code", "lane": "app", "sub": "margins · thresholds · escape option", "accent": "green"}
+    ],
+    "edges": [
+      {"from": "msg", "to": "state", "label": "facts"},
+      {"from": "state", "to": "model", "label": "ingested once", "animated": true},
+      {"from": "qs", "to": "model", "label": "each answered independently", "animated": true},
+      {"from": "model", "to": "a-choice", "label": "type=choice"},
+      {"from": "model", "to": "a-noul", "label": "type=noul"},
+      {"from": "model", "to": "a-score", "label": "type=score"},
+      {"from": "a-choice", "to": "policy", "label": "read the distribution"},
+      {"from": "a-noul", "to": "policy", "label": "0.5 = unsure"},
+      {"from": "a-score", "to": "policy", "label": "threshold, not magnitude"}
+    ]
+  },
+  "sequence": {
+    "title": "Lab 02-1 — reading a torn choice",
+    "caption": "Live run: “Our room is too hot and we also need fresh towels” — hvac wins with 0.51, housekeeping 0.46. Code sees the 0.05 margin and treats it as two needs instead of trusting the winner.",
+    "actors": [
+      {"id": "lab", "label": "lab01_choice.py"},
+      {"id": "jev", "label": "Jev"},
+      {"id": "policy", "label": "Your policy"}
+    ],
+    "steps": [
+      {"from": "lab", "to": "jev", "label": "state: two-needs message · question: department (4 options)", "kind": "call"},
+      {"from": "jev", "to": "lab", "label": "choice hvac · p hvac .51 / housekeeping .46 · confidence .34", "kind": "return"},
+      {"from": "lab", "to": "policy", "label": "margin = .51 − .46 = .05", "kind": "call"},
+      {"from": "policy", "to": "lab", "label": "small margin → split request or human review", "kind": "return"},
+      {"from": "lab", "to": "lab", "label": "better tool for several-can-be-true: one noul per label (lab02)", "kind": "note"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Choice margin — clear vs torn vs none-of-these",
+      "type": "bars",
+      "unit": "probability",
+      "labels": ["clear (AC warm air)", "two needs (hot + towels)", "no request (thank you)"],
+      "series": [
+        {"name": "top option", "values": [1.0, 0.51, 0.99], "color": "green"},
+        {"name": "second option", "values": [0.0, 0.46, 0.01], "color": "amber"}
+      ],
+      "caption": "Measured live by labs/lab01_choice.py on jev-1.13.0 (2026-09-27). The two-needs message is the only one with a small margin (0.05) — the signal your code should act on."
+    },
+    {
+      "title": "Multi-label nouls are independent — they do not sum to 1",
+      "type": "hbars",
+      "unit": "p(true)",
+      "labels": ["needs_hvac", "needs_housekeeping", "needs_billing", "needs_security"],
+      "series": [
+        {"name": "noul", "values": [0.97, 0.87, 0.98, 0.22], "color": "cyan"}
+      ],
+      "caption": "Measured live by labs/lab02_noul.py for “The AC is dripping water onto the carpet and the minibar bill looks wrong.” Sum = 3.04: three labels are true at once."
+    }
+  ]
+}

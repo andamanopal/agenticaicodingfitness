@@ -1,0 +1,185 @@
+{
+ "recorded_at": "2026-09-27",
+ "model": "jev-1.13.0",
+ "calls": 28,
+ "ok": 28,
+ "failed": 0,
+ "latency": {
+  "p50": 442.453,
+  "p95": 1303.74
+ },
+ "input_tokens": 20142,
+ "groups": {
+  "afdd/safety_concern/all": {
+   "type": "noul",
+   "labeled_decisions": 2,
+   "valid_decisions": 2,
+   "accuracy_successes_only": 1.0,
+   "coverage_all_labeled": 1.0,
+   "accepted_accuracy": 1.0,
+   "wrong_accepted": 0
+  },
+  "afdd/severity/all": {
+   "type": "score",
+   "labeled_decisions": 1,
+   "valid_decisions": 1,
+   "accuracy_successes_only": 1.0,
+   "coverage_all_labeled": 1.0,
+   "accepted_accuracy": 1.0,
+   "wrong_accepted": 0
+  },
+  "email/category/all": {
+   "type": "choice",
+   "labeled_decisions": 6,
+   "valid_decisions": 6,
+   "accuracy_successes_only": 1.0,
+   "coverage_all_labeled": 1.0,
+   "accepted_accuracy": 1.0,
+   "wrong_accepted": 0
+  },
+  "email/urgent/all": {
+   "type": "noul",
+   "labeled_decisions": 2,
+   "valid_decisions": 2,
+   "accuracy_successes_only": 1.0,
+   "coverage_all_labeled": 1.0,
+   "accepted_accuracy": 1.0,
+   "wrong_accepted": 0
+  },
+  "hr/building_evidence/all": {
+   "type": "choice",
+   "labeled_decisions": 2,
+   "valid_decisions": 2,
+   "accuracy_successes_only": 1.0,
+   "coverage_all_labeled": 1.0,
+   "accepted_accuracy": 1.0,
+   "wrong_accepted": 0
+  },
+  "hr/integration_evidence/all": {
+   "type": "choice",
+   "labeled_decisions": 2,
+   "valid_decisions": 2,
+   "accuracy_successes_only": 1.0,
+   "coverage_all_labeled": 1.0,
+   "accepted_accuracy": 1.0,
+   "wrong_accepted": 0
+  },
+  "hr/python_evidence/all": {
+   "type": "choice",
+   "labeled_decisions": 2,
+   "valid_decisions": 2,
+   "accuracy_successes_only": 0.5,
+   "coverage_all_labeled": 1.0,
+   "accepted_accuracy": 0.5,
+   "wrong_accepted": 1
+  },
+  "intent/complexity/all": {
+   "type": "score",
+   "labeled_decisions": 1,
+   "valid_decisions": 1,
+   "accuracy_successes_only": 0.0,
+   "coverage_all_labeled": 0.0,
+   "accepted_accuracy": null,
+   "wrong_accepted": 0
+  },
+  "intent/intent/all": {
+   "type": "choice",
+   "labeled_decisions": 11,
+   "valid_decisions": 11,
+   "accuracy_successes_only": 0.9090909090909091,
+   "coverage_all_labeled": 0.9090909090909091,
+   "accepted_accuracy": 0.9,
+   "wrong_accepted": 1
+  },
+  "lead/buying_stage/all": {
+   "type": "score",
+   "labeled_decisions": 2,
+   "valid_decisions": 2,
+   "accuracy_successes_only": 1.0,
+   "coverage_all_labeled": 1.0,
+   "accepted_accuracy": 1.0,
+   "wrong_accepted": 0
+  },
+  "lead/solution/all": {
+   "type": "choice",
+   "labeled_decisions": 2,
+   "valid_decisions": 2,
+   "accuracy_successes_only": 1.0,
+   "coverage_all_labeled": 1.0,
+   "accepted_accuracy": 1.0,
+   "wrong_accepted": 0
+  },
+  "point/ambiguous/all": {
+   "type": "noul",
+   "labeled_decisions": 3,
+   "valid_decisions": 3,
+   "accuracy_successes_only": 1.0,
+   "coverage_all_labeled": 0.3333333333333333,
+   "accepted_accuracy": 1.0,
+   "wrong_accepted": 0
+  },
+  "point/kind/all": {
+   "type": "choice",
+   "labeled_decisions": 3,
+   "valid_decisions": 3,
+   "accuracy_successes_only": 1.0,
+   "coverage_all_labeled": 0.6666666666666666,
+   "accepted_accuracy": 1.0,
+   "wrong_accepted": 0
+  },
+  "rag/injection/all": {
+   "type": "noul",
+   "labeled_decisions": 2,
+   "valid_decisions": 2,
+   "accuracy_successes_only": 1.0,
+   "coverage_all_labeled": 1.0,
+   "accepted_accuracy": 1.0,
+   "wrong_accepted": 0
+  },
+  "rag/relevant/all": {
+   "type": "noul",
+   "labeled_decisions": 2,
+   "valid_decisions": 2,
+   "accuracy_successes_only": 1.0,
+   "coverage_all_labeled": 1.0,
+   "accepted_accuracy": 1.0,
+   "wrong_accepted": 0
+  }
+ },
+ "misses": [
+  {
+   "id": "candidate-demo-2",
+   "lab": "hr",
+   "language": "en",
+   "question": "python_evidence",
+   "gold": "unclear",
+   "predicted": "not_stated",
+   "top": 0.99
+  },
+  {
+   "id": "i3",
+   "lab": "intent",
+   "language": "en",
+   "question": "intent",
+   "gold": "hvac",
+   "predicted": "energy_mv",
+   "top": 0.87
+  },
+  {
+   "id": "b-mixed-code",
+   "lab": "intent",
+   "language": "mixed",
+   "question": "complexity",
+   "gold": 1,
+   "predicted": 0,
+   "top": 0.66
+  }
+ ],
+ "cautions": [
+  "Toy labels are not a benchmark of production quality.",
+  "Top probability is not provider-specific confidence. Acceptance is a metric, not permission.",
+  "Repeated trials are correlated; no independent-sample confidence interval is claimed.",
+  "Failures reduce coverage. Cost may omit retry/failed-call billing.",
+  "Threshold sweep is exploratory; do not choose a production threshold on test data."
+ ]
+}

@@ -1,0 +1,104 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "model": "jev-1.13.0",
+  "state": {
+   "message": "Could someone ring me to discuss the AHU filter replacement schedule?"
+  },
+  "questions": {
+   "bad_outage": {
+    "type": "noul",
+    "instructions": "Is this bad?"
+   },
+   "bad_team": {
+    "type": "choice",
+    "instructions": "Which team?",
+    "criteria": {
+     "hvac": null,
+     "electrical": null,
+     "plumbing": null
+    }
+   },
+   "bad_callback": {
+    "type": "noul",
+    "instructions": "Does the sender of `message` want a phone call?",
+    "criteria": {
+     "true": "The sender does NOT ask to be called",
+     "false": "The sender asks to be called"
+    }
+   },
+   "good_outage": {
+    "type": "noul",
+    "instructions": "Does `message` report a failure or outage happening right now that needs immediate action?",
+    "criteria": {
+     "true": "Something has just failed or is failing now and needs action at once (tripped, burst, no power, flooding)",
+     "false": "Minor or ongoing issues the sender is happy to have checked later, schedule questions, or thanks"
+    }
+   },
+   "good_team": {
+    "type": "choice",
+    "instructions": "Which maintenance team should handle `message`?",
+    "criteria": {
+     "hvac": "Chillers, AHUs, air conditioning, ventilation, filters, cooling or heating",
+     "electrical": "Lights, breakers, power supply, sockets and electrical panels",
+     "plumbing": "Pipes, leaks, water supply, drains and flooding",
+     "not_a_request": "Thanks, feedback or anything that asks no team to do anything"
+    }
+   },
+   "good_callback": {
+    "type": "noul",
+    "instructions": "Does the sender of `message` ask to be phoned or called back?",
+    "criteria": {
+     "true": "The sender asks for a call, gives a number to call, or asks someone to ring them",
+     "false": "No phone call is requested"
+    }
+   }
+  }
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "bad_outage": {
+    "type": "noul",
+    "noul": 0.13
+   },
+   "bad_team": {
+    "type": "choice",
+    "choice": "hvac",
+    "confidence": 1.0,
+    "probabilities": {
+     "electrical": 0.0,
+     "plumbing": 0.0,
+     "hvac": 1.0
+    }
+   },
+   "bad_callback": {
+    "type": "noul",
+    "noul": 0.87
+   },
+   "good_outage": {
+    "type": "noul",
+    "noul": 0.02
+   },
+   "good_team": {
+    "type": "choice",
+    "choice": "hvac",
+    "confidence": 1.0,
+    "probabilities": {
+     "not_a_request": 0.0,
+     "electrical": 0.0,
+     "plumbing": 0.0,
+     "hvac": 1.0
+    }
+   },
+   "good_callback": {
+    "type": "noul",
+    "noul": 0.99
+   }
+  },
+  "usage": {
+   "input_tokens": 647,
+   "output_tokens": 167
+  }
+ }
+}

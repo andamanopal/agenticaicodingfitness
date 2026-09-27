@@ -1,0 +1,72 @@
+{
+  "architecture": {
+    "title": "Alto Copilot intent routing — Jev proposes, code disposes",
+    "caption": "One 7-question Jev call per request supplies topic and signals. Deterministic policy picks route, dispatch and compute tier; a reviewed prompt registry supplies the system prompt. Authorization is re-checked at every retrieval and tool call.",
+    "lanes": [
+      {"id": "edge", "label": "Server code — before Jev"},
+      {"id": "classify", "label": "Jev — one batched call"},
+      {"id": "policy", "label": "Deterministic policy"},
+      {"id": "exec", "label": "Specialists (separately authorized)"}
+    ],
+    "nodes": [
+      {"id": "auth", "label": "Auth + tenant scope", "lane": "edge", "sub": "resolve permissions, strip secrets", "accent": "green"},
+      {"id": "jev", "label": "intent schema", "lane": "classify", "sub": "choice(7) + 5 nouls + complexity score", "accent": "amber"},
+      {"id": "gate", "label": "accepted() gate", "lane": "policy", "sub": "conf ≥ .75 · peak ≥ .80 · margin ≥ .20", "accent": "cyan"},
+      {"id": "dispatch", "label": "dispatch + tier", "lane": "policy", "sub": "needs_mas → single / MAS / review", "accent": "cyan"},
+      {"id": "registry", "label": "Prompt registry", "lane": "policy", "sub": "route → approved system prompt"},
+      {"id": "single", "label": "Specialist LLM", "lane": "exec", "sub": "hvac_expert · mv_analyst · coding_agent", "accent": "violet"},
+      {"id": "mas", "label": "Multi-agent coordinator", "lane": "exec", "sub": "multi-specialist tasks", "accent": "violet"},
+      {"id": "clarify", "label": "Clarify / human review", "lane": "exec", "sub": "unknown or uncertain", "accent": "red"}
+    ],
+    "edges": [
+      {"from": "auth", "to": "jev", "label": "message only", "animated": true},
+      {"from": "jev", "to": "gate", "label": "typed answers", "animated": true},
+      {"from": "gate", "to": "dispatch", "label": "accepted"},
+      {"from": "gate", "to": "clarify", "label": "not accepted"},
+      {"from": "dispatch", "to": "registry", "label": "route key"},
+      {"from": "registry", "to": "single", "label": "needs_mas ≤ .20"},
+      {"from": "registry", "to": "mas", "label": "needs_mas ≥ .80"}
+    ]
+  },
+  "sequence": {
+    "title": "Lab 04-1 — the i3 adjudication case, live",
+    "caption": "The teaching label says hvac; Jev says energy_mv (p 0.87, confidence 0.83) with needs_mas 0.98 and both expertise nouls high. The policy dispatches a multi-agent candidate — arguably the best outcome, and a reminder that gold labels can need adjudication.",
+    "actors": [
+      {"id": "user", "label": "Copilot user"},
+      {"id": "code", "label": "Server + policy"},
+      {"id": "jev", "label": "Jev"},
+      {"id": "coord", "label": "Multi-agent coordinator"}
+    ],
+    "steps": [
+      {"from": "user", "to": "code", "label": "“Compare an HVAC diagnosis with an M&V assessment and resolve their disagreement”", "kind": "call"},
+      {"from": "code", "to": "jev", "label": "state {message} + 7 intent questions", "kind": "call"},
+      {"from": "jev", "to": "code", "label": "energy_mv .87 · hvac .12 · needs_mas .98 · hvac_exp .82 · mv_exp .92", "kind": "return"},
+      {"from": "code", "to": "code", "label": "accepted() ✓ · needs_mas ≥ .80 → mas_candidate · complexity 1.98 → reasoning tier", "kind": "note"},
+      {"from": "code", "to": "coord", "label": "MAS candidate: hvac_expert + mv_analyst (execute: false)", "kind": "call"},
+      {"from": "coord", "to": "user", "label": "separately authorized multi-specialist answer", "kind": "return"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Routing outcome on the nine teaching requests",
+      "type": "donut",
+      "unit": "requests",
+      "labels": ["agrees with teaching label", "debatable label (i3 → MAS)", "sent to clarify (i9)"],
+      "series": [
+        {"name": "lab01 run", "values": [7, 1, 1], "color": "green"}
+      ],
+      "caption": "Measured live by labs/lab01_route_requests.py (jev-1.13.0, 2026-09-27): 8/9 topic agreement; i9 'Please do that thing.' correctly became clarify_or_review; i3 disagreed with a debatable gold label and was dispatched as a multi-agent candidate."
+    },
+    {
+      "title": "English → Thai drift in needs_live_data",
+      "type": "bars",
+      "unit": "noul",
+      "labels": ["AHU-3 not cooling", "verified savings", "chiller PM", "carbon summary", "kW/ton (mixed)"],
+      "series": [
+        {"name": "English", "values": [0.84, 0.87, 0.52, 0.91, 0.94], "color": "cyan"},
+        {"name": "Thai / mixed", "values": [0.75, 0.85, 0.43, 0.85, 0.93], "color": "amber"}
+      ],
+      "caption": "Measured live by labs/lab03_thai_vs_english.py. Topics matched 5/5, but nouls drifted slightly lower in Thai — enough to cross a 0.80 threshold on the AHU question."
+    }
+  ]
+}

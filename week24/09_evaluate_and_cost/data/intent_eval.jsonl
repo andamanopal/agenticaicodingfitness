@@ -1,0 +1,12 @@
+{"id": "i1", "language": "en", "state": {"message": "Why is AHU-3 not cooling the hotel lobby? Check yesterday's trends."}, "expected": {"intent": "hvac"}}
+{"id": "i2", "language": "th", "state": {"message": "ช่วยตรวจสอบว่า AHU-3 ไม่เย็นเพราะอะไร"}, "expected": {"intent": "hvac"}}
+{"id": "i3", "language": "en", "state": {"message": "Compare an HVAC engineer's diagnosis with an M&V analyst's savings assessment and resolve their disagreement."}, "expected": {"intent": "hvac"}}
+{"id": "i4", "language": "en", "state": {"message": "Write a Python function to validate a JSON payload."}, "expected": {"intent": "coding"}}
+{"id": "i5", "language": "en", "state": {"message": "Tell me a short story about a cat."}, "expected": {"intent": "general"}}
+{"id": "i6", "language": "en", "state": {"message": "Calculate verified electricity savings against the adjusted baseline."}, "expected": {"intent": "energy_mv"}}
+{"id": "i7", "language": "en", "state": {"message": "Summarize our hotel's carbon emissions report."}, "expected": {"intent": "sustainability"}}
+{"id": "i8", "language": "en", "state": {"message": "Schedule preventive maintenance for the next site visit."}, "expected": {"intent": "facility_ops"}}
+{"id": "i9", "language": "en", "state": {"message": "Please do that thing."}, "expected": {"intent": "unknown"}}
+{"id": "t1", "language": "th", "state": {"message": "ช่วยคำนวณผลประหยัดพลังงานเทียบกับ baseline ของเดือนที่แล้ว"}, "expected": {"intent": "energy_mv"}}
+{"id": "t2", "language": "th", "state": {"message": "สรุปรายงานการปล่อยคาร์บอนของโรงแรมให้หน่อย"}, "expected": {"intent": "sustainability"}}
+{"id": "t3", "language": "th", "state": {"message": "นัดช่างมาบำรุงรักษาเครื่องทำน้ำเย็นสัปดาห์หน้า"}, "expected": {"intent": "facility_ops"}}

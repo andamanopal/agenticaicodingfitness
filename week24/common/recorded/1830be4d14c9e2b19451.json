@@ -1,0 +1,45 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "model": "jev-1.13.0",
+  "state": {
+   "sentences": {
+    "s1": "Led a team that wrote BACnet drivers in C++.",
+    "s2": "Reviewed Python pull requests for the analytics team.",
+    "s3": "Presented at a smart-building meetup."
+   }
+  },
+  "questions": {
+   "integration": {
+    "type": "choice",
+    "instructions": "Which ONE sentence in `sentences` is the clearest explicit evidence of hands-on REST API, BACnet or Modbus integration work?",
+    "criteria": {
+     "s1": "Sentence s1: Led a team that wrote BACnet drivers in C++.",
+     "s2": "Sentence s2: Reviewed Python pull requests for the analytics team.",
+     "s3": "Sentence s3: Presented at a smart-building meetup.",
+     "not_stated": "No sentence describes integration work."
+    }
+   }
+  }
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "integration": {
+    "type": "choice",
+    "choice": "s1",
+    "confidence": 1.0,
+    "probabilities": {
+     "s3": 0.0,
+     "not_stated": 0.0,
+     "s2": 0.0,
+     "s1": 1.0
+    }
+   }
+  },
+  "usage": {
+   "input_tokens": 456,
+   "output_tokens": 51
+  }
+ }
+}

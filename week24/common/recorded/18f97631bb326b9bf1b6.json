@@ -1,0 +1,40 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "model": "jev-1.13.0",
+  "state": {
+   "email": "Chiller 2 tripped and the mall is getting warm. Please send someone now."
+  },
+  "questions": {
+   "vague_important": {
+    "type": "noul",
+    "instructions": "Is `email` important?"
+   },
+   "precise_same_day": {
+    "type": "noul",
+    "instructions": "Does `email` report a CURRENT equipment failure, outage, leak or loss of data at a site that operations must act on today?",
+    "criteria": {
+     "true": "A problem is happening now at a building or system we operate",
+     "false": "Deadlines, meetings, sales offers, newsletters or future plans — even if they say urgent"
+    }
+   }
+  }
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "vague_important": {
+    "type": "noul",
+    "noul": 0.92
+   },
+   "precise_same_day": {
+    "type": "noul",
+    "noul": 0.98
+   }
+  },
+  "usage": {
+   "input_tokens": 377,
+   "output_tokens": 43
+  }
+ }
+}

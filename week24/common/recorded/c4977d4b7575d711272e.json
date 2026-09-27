@@ -1,0 +1,49 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "model": "jev-1.13.0",
+  "state": {
+   "message": "ช่วยตรวจสอบว่า AHU-3 ไม่เย็นเพราะอะไร ดูเทรนด์เมื่อวานด้วย"
+  },
+  "questions": {
+   "intent": {
+    "type": "choice",
+    "instructions": "Classify the primary topic of `message`.",
+    "criteria": {
+     "hvac": "HVAC, chiller, AHU, VRF, cooling performance or diagnosis.",
+     "energy_mv": "Energy baselines, savings measurement or verification.",
+     "facility_ops": "Maintenance workflow, site operations, work orders.",
+     "unknown": "Too vague, unsupported topic, or no identifiable request."
+    }
+   },
+   "needs_live_data": {
+    "type": "noul",
+    "instructions": "Does answering `message` require current or historical operational records from connected systems?"
+   }
+  }
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "intent": {
+    "type": "choice",
+    "choice": "hvac",
+    "confidence": 1.0,
+    "probabilities": {
+     "energy_mv": 0.0,
+     "hvac": 1.0,
+     "unknown": 0.0,
+     "facility_ops": 0.0
+    }
+   },
+   "needs_live_data": {
+    "type": "noul",
+    "noul": 0.95
+   }
+  },
+  "usage": {
+   "input_tokens": 463,
+   "output_tokens": 68
+  }
+ }
+}

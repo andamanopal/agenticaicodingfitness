@@ -1,0 +1,9 @@
+# learner-local state — never commit
+00_jev_lab_runner/progress.json
+00_jev_lab_runner/.run_history.json
+**/.runs/
+**/__pycache__/
+# benchmark outputs written by jev_lab/jev_laya_benchmark.py
+jev_lab/run-*/
+jev_lab/benchmark_data*/
+jev_lab/data/

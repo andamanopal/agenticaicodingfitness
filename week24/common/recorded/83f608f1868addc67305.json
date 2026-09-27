@@ -1,0 +1,76 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "model": "jev-1.13.0",
+  "state": {
+   "message": "The lobby has been freezing since this morning and guests are complaining. Please fix it before the 6pm wedding!"
+  },
+  "questions": {
+   "department": {
+    "type": "choice",
+    "instructions": "Which team should handle `message`?",
+    "criteria": {
+     "hvac": "Heating, cooling, ventilation or air-conditioning problems",
+     "housekeeping": "Cleaning, towels, linen, room tidiness",
+     "front_desk": "Bookings, billing, check-in and general requests",
+     "unknown": "No clear request"
+    }
+   },
+   "has_deadline": {
+    "type": "noul",
+    "instructions": "Does `message` state an explicit deadline or time limit?"
+   },
+   "severity": {
+    "type": "score",
+    "instructions": "How severe is the impact described in `message`?",
+    "criteria": [
+     "No impact stated",
+     "Minor inconvenience for one guest",
+     "Many guests or an event affected",
+     "Safety risk"
+    ]
+   }
+  }
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "department": {
+    "type": "choice",
+    "choice": "hvac",
+    "confidence": 1.0,
+    "probabilities": {
+     "hvac": 1.0,
+     "housekeeping": 0.0,
+     "unknown": 0.0,
+     "front_desk": 0.0
+    }
+   },
+   "has_deadline": {
+    "type": "noul",
+    "noul": 0.98
+   },
+   "severity": {
+    "type": "score",
+    "score": 2.0,
+    "confidence": 1.0,
+    "legend": {
+     "0": "No impact stated",
+     "1": "Minor inconvenience for one guest",
+     "2": "Many guests or an event affected",
+     "3": "Safety risk"
+    },
+    "probabilities": {
+     "0": 0.0,
+     "1": 0.0,
+     "2": 1.0,
+     "3": 0.0
+    }
+   }
+  },
+  "usage": {
+   "input_tokens": 478,
+   "output_tokens": 85
+  }
+ }
+}

@@ -1,0 +1,38 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "model": "jev-1.13.0",
+  "state": {
+   "work_order": {
+    "asset": "AHU-03, Level 2 plant room",
+    "issue": "Supply fan belt squealing",
+    "site": "Riverside Hotel"
+   }
+  },
+  "questions": {
+   "same_asset": {
+    "type": "noul",
+    "instructions": {
+     "existing_record": {
+      "asset": "Air Handling Unit 3 (L2)",
+      "site": "Riverside Hotel Bangkok"
+     },
+     "question": "Does `work_order.asset` refer to the same physical equipment as `existing_record.asset` at the same site?"
+    }
+   }
+  }
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "same_asset": {
+    "type": "noul",
+    "noul": 0.85
+   }
+  },
+  "usage": {
+   "input_tokens": 377,
+   "output_tokens": 21
+  }
+ }
+}

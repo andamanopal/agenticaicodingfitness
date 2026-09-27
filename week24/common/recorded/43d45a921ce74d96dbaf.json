@@ -1,0 +1,36 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "model": "jev-1.13.0",
+  "state": {
+   "note": "Lobby is warm. AHU fan is running. No smoke or unusual noise reported."
+  },
+  "questions": {
+   "mentions": {
+    "type": "noul",
+    "instructions": "Does `note` explicitly mention smoke, burning, fire or another safety concern?"
+   },
+   "present": {
+    "type": "noul",
+    "instructions": "Does `note` report smoke, burning, fire or another safety concern that is currently present?"
+   }
+  }
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "mentions": {
+    "type": "noul",
+    "noul": 0.72
+   },
+   "present": {
+    "type": "noul",
+    "noul": 0.02
+   }
+  },
+  "usage": {
+   "input_tokens": 332,
+   "output_tokens": 36
+  }
+ }
+}

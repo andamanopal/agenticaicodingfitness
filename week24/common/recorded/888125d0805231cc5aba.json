@@ -1,0 +1,58 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "model": "jev-1.13.0",
+  "state": {
+   "professional_text": "Worked six years as a facility technician on chiller plants and AHUs. Completed an online Python course last year."
+  },
+  "questions": {
+   "python_evidence": {
+    "type": "choice",
+    "instructions": "Does `professional_text` provide explicit evidence of hands-on Python implementation work? A course or an interest is not hands-on work.",
+    "criteria": {
+     "evidenced": "A specific Python project, implementation or work responsibility is described.",
+     "not_stated": "No concrete Python implementation work is described.",
+     "unclear": "Python is named but practical work is ambiguous."
+    }
+   },
+   "building_evidence": {
+    "type": "choice",
+    "instructions": "Does `professional_text` state work with HVAC, BMS or building energy systems?",
+    "criteria": {
+     "evidenced": "Specific relevant building-system work is described.",
+     "not_stated": "No such work is described.",
+     "unclear": "A possible connection is mentioned without concrete work."
+    }
+   }
+  }
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "python_evidence": {
+    "type": "choice",
+    "choice": "not_stated",
+    "confidence": 1.0,
+    "probabilities": {
+     "not_stated": 1.0,
+     "unclear": 0.0,
+     "evidenced": 0.0
+    }
+   },
+   "building_evidence": {
+    "type": "choice",
+    "choice": "evidenced",
+    "confidence": 1.0,
+    "probabilities": {
+     "not_stated": 0.0,
+     "unclear": 0.0,
+     "evidenced": 1.0
+    }
+   }
+  },
+  "usage": {
+   "input_tokens": 496,
+   "output_tokens": 93
+  }
+ }
+}
