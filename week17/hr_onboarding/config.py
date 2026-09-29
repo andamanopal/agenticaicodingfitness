@@ -50,7 +50,7 @@ def load_env() -> None:
 #   anthropic  → Claude via LiteLlm (needs a valid ANTHROPIC_API_KEY).
 #   gemini     → the blog's model (needs GOOGLE_API_KEY or Vertex ADC).
 ALTO_BASE_URL = os.environ.get("ALTO_LLM_BASE_URL", "https://alto-llm.altotech.ai")
-ALTO_API_KEY = os.environ.get("ALTO_LLM_API_KEY", "sk-u7V_MmTJpBioO-ydubi6kQ")
+ALTO_API_KEY = os.environ.get("ALTO_LLM_API_KEY", "")   # never hard-code a key: set it in .env
 
 
 def make_model():
@@ -74,6 +74,10 @@ def make_model():
         base = os.environ.get("ALTO_LLM_BASE_URL", ALTO_BASE_URL).rstrip("/")
         if not base.endswith("/v1"):
             base = base + "/v1"
+        if not os.environ.get("ALTO_LLM_API_KEY", ALTO_API_KEY):
+            raise RuntimeError(
+                "ONBOARDING_PROVIDER=alto needs ALTO_LLM_API_KEY (and ALTO_LLM_BASE_URL for your own "
+                "OpenAI-compatible gateway) in .env — or set ONBOARDING_PROVIDER=anthropic | gemini.")
         return LiteLlm(model=f"openai/{name}",
                        api_base=base,
                        api_key=os.environ.get("ALTO_LLM_API_KEY", ALTO_API_KEY))
