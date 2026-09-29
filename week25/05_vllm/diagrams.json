@@ -1,0 +1,73 @@
+{
+  "architecture": {
+    "title": "vLLM on DGX Spark — one container, one memory slice, one OpenAI port",
+    "caption": "Clients (curl, the openai SDK, LiteLLM, NAT, the labs) call the OpenAI-compatible API on :8000. Inside the container the scheduler joins new requests into the running batch (continuous batching). Weights and KV cache pages (PagedAttention) share the slice set by --gpu-memory-utilization, taken from the Spark's 128 GB unified memory. For models larger than one Spark, a Ray cluster over QSFP splits every layer across two Sparks (tensor parallel 2).",
+    "lanes": [
+      {"id": "clients", "label": "Clients (laptop or Spark)"},
+      {"id": "spark_a", "label": "Spark A · vLLM container"},
+      {"id": "spark_b", "label": "Spark B · two-Spark mode only"}
+    ],
+    "nodes": [
+      {"id": "labs", "label": "labs 05-2/3/4 + sparkkit", "lane": "clients", "sub": "chat() · threads · tools", "accent": "green"},
+      {"id": "gateway", "label": "LiteLLM / NAT / agents", "lane": "clients", "sub": "Modules 08 and 14"},
+      {"id": "api", "label": "OpenAI API :8000", "lane": "spark_a", "sub": "/v1/models · /v1/chat/completions · /health", "accent": "cyan"},
+      {"id": "sched", "label": "Scheduler", "lane": "spark_a", "sub": "continuous batching · --max-num-seqs", "accent": "violet"},
+      {"id": "parsers", "label": "Tool + reasoning parsers", "lane": "spark_a", "sub": "qwen3_xml · qwen3_coder · gemma4", "accent": "amber"},
+      {"id": "mem", "label": "Weights + KV pages", "lane": "spark_a", "sub": "--gpu-memory-utilization × 128 GB", "accent": "red"},
+      {"id": "worker", "label": "Ray worker (TP rank 1)", "lane": "spark_b", "sub": "half of every layer", "accent": "violet"}
+    ],
+    "edges": [
+      {"from": "labs", "to": "api", "label": "HTTP JSON", "animated": true},
+      {"from": "gateway", "to": "api", "label": "base_url …:8000/v1"},
+      {"from": "api", "to": "sched", "label": "requests join the batch"},
+      {"from": "sched", "to": "mem", "label": "one weight read per step, all sequences"},
+      {"from": "sched", "to": "parsers", "label": "raw tokens → tool_calls / reasoning"},
+      {"from": "mem", "to": "worker", "label": "all-reduce over QSFP (TP=2)", "animated": true}
+    ]
+  },
+  "sequence": {
+    "title": "Lab 05-4 — one tool-calling round trip through vLLM",
+    "caption": "The server's --tool-call-parser turns the model's own syntax into the OpenAI tool_calls field. The lab runs the tool itself (a fake sensor), returns the result as a role=tool message, and the model answers from it. Without --enable-auto-tool-choice the first call fails or returns text only.",
+    "actors": [
+      {"id": "lab", "label": "lab04 (client)"},
+      {"id": "vllm", "label": "vLLM :8000"},
+      {"id": "model", "label": "Qwen3.6-35B-A3B"},
+      {"id": "tool", "label": "get_room_temperature (local)"}
+    ],
+    "steps": [
+      {"from": "lab", "to": "vllm", "label": "POST /v1/chat/completions {messages, tools}", "kind": "call"},
+      {"from": "vllm", "to": "model", "label": "prompt with tool schema (chat template)", "kind": "call"},
+      {"from": "model", "to": "vllm", "label": "tool-call syntax (XML for Qwen3.6)", "kind": "return"},
+      {"from": "vllm", "to": "vllm", "label": "qwen3_xml parser → tool_calls[]", "kind": "note"},
+      {"from": "vllm", "to": "lab", "label": "tool_calls: get_room_temperature({room: 1204})", "kind": "return"},
+      {"from": "lab", "to": "tool", "label": "run it locally", "kind": "call"},
+      {"from": "tool", "to": "lab", "label": "{celsius: 26.5}", "kind": "return"},
+      {"from": "lab", "to": "vllm", "label": "messages + role=tool result", "kind": "call"},
+      {"from": "vllm", "to": "lab", "label": "\"Room 1204 is 26.5 °C\"", "kind": "return"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Full-length 32K sequences that fit — Qwen3-32B NVFP4",
+      "type": "bars",
+      "unit": "sequences",
+      "labels": ["util 0.5", "util 0.8", "util 0.9"],
+      "series": [
+        {"name": "KV bf16 (auto)", "values": [4.8, 9.3, 10.8], "color": "amber"},
+        {"name": "KV fp8", "values": [9.7, 18.6, 21.6], "color": "green"}
+      ],
+      "caption": "From lab 05-1 (arithmetic, not a measurement): (util × 128 GB − 18.4 GB weights − 4 GB runtime) ÷ KV per 32K sequence. fp8 KV doubles the users; raising utilization takes memory from the OS on a unified-memory Spark."
+    },
+    {
+      "title": "Laptop stand-in: total vs per-stream tok/s (Ollama, gemma3:4b)",
+      "type": "line",
+      "unit": "tok/s",
+      "labels": ["1", "2", "4", "8"],
+      "series": [
+        {"name": "total", "values": [90.4, 80.9, 41.4, 47.8], "color": "cyan"},
+        {"name": "per-stream", "values": [95.4, 88.4, 46.6, 51.7], "color": "violet"}
+      ],
+      "caption": "Measured by lab 05-3 on this Mac against Ollama (LAPTOP STAND-IN, shared with other programs, not a Spark and not vLLM). Here the total did not grow: requests queued. Run the lab against vLLM on your Spark and compare the shape of the curve, never the numbers."
+    }
+  ]
+}

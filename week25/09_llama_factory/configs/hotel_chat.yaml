@@ -1,0 +1,6 @@
+# llamafactory-cli chat configs/hotel_chat.yaml   (adapted from examples/inference/qwen3_lora_sft.yaml)
+model_name_or_path: Qwen/Qwen3-4B-Instruct-2507
+adapter_name_or_path: saves/qwen3-4b-hotel/lora/sft   # the LoRA adapter the train config writes
+template: qwen3_nothink
+infer_backend: huggingface       # choices: [huggingface, vllm, sglang, ktransformers]
+trust_remote_code: true

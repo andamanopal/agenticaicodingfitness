@@ -1,0 +1,20 @@
+{
+  "hotel_ops": {
+    "file_name": "hotel_ops.json",
+    "columns": {
+      "prompt": "instruction",
+      "query": "input",
+      "response": "output",
+      "system": "system"
+    }
+  },
+  "hotel_ops_eval": {
+    "file_name": "hotel_ops_eval.json",
+    "columns": {
+      "prompt": "instruction",
+      "query": "input",
+      "response": "output",
+      "system": "system"
+    }
+  }
+}

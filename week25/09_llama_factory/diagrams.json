@@ -1,0 +1,89 @@
+{
+  "architecture": {
+    "title": "Fine-tuning with LLaMA Factory — the laptop prepares, the Spark trains, Module 13 serves",
+    "caption": "Labs 02 and 03 build the dataset and the YAML on your laptop and validate them for free. Lab 03 copies them to ~/w25/m09 on the Spark and starts llamafactory-cli train under nohup, so the run survives the lab and your laptop sleeping. Lab 04 reads the two logs back over ssh. The adapter (~66 MB at r=16) and the merged model feed Module 13.",
+    "lanes": [
+      {"id": "laptop", "label": "Your laptop"},
+      {"id": "net", "label": "ssh · scp"},
+      {"id": "spark", "label": "DGX Spark · ~/factoryEnv + ~/w25/m09"}
+    ],
+    "nodes": [
+      {"id": "ds", "label": "lab02 dataset builder", "lane": "laptop", "sub": "hotel_ops.json · dataset_info.json", "accent": "green"},
+      {"id": "cfg", "label": "lab03 config generator", "lane": "laptop", "sub": "6 YAML files · validated", "accent": "green"},
+      {"id": "mon", "label": "lab04 monitor", "lane": "laptop", "sub": "parses loss · diagnoses", "accent": "cyan"},
+      {"id": "scp", "label": "sparkkit.put()", "lane": "net", "sub": "scp → ~/w25/m09/", "accent": "cyan"},
+      {"id": "ssh", "label": "sparkkit.sh()", "lane": "net", "sub": "nohup · tail · ls", "accent": "cyan"},
+      {"id": "train", "label": "llamafactory-cli train", "lane": "spark", "sub": "Qwen3-4B + LoRA r=16 · bf16", "accent": "violet"},
+      {"id": "logs", "label": "logs", "lane": "spark", "sub": "~/w25/logs/*.log · trainer_log.jsonl"},
+      {"id": "adapter", "label": "saves/qwen3-4b-hotel/lora/sft", "lane": "spark", "sub": "adapter + training_loss.png", "accent": "amber"},
+      {"id": "merged", "label": "saves/qwen3-4b-hotel/merged", "lane": "spark", "sub": "llamafactory-cli export → Module 13", "accent": "amber"}
+    ],
+    "edges": [
+      {"from": "ds", "to": "cfg", "label": "dataset names"},
+      {"from": "cfg", "to": "scp", "label": "data + configs", "animated": true},
+      {"from": "scp", "to": "train", "label": "cd ~/w25/m09"},
+      {"from": "ssh", "to": "train", "label": "nohup … &"},
+      {"from": "train", "to": "logs", "label": "every 5 steps"},
+      {"from": "train", "to": "adapter", "label": "save"},
+      {"from": "adapter", "to": "merged", "label": "export (merge)"},
+      {"from": "logs", "to": "mon", "label": "tail over ssh", "animated": true}
+    ]
+  },
+  "sequence": {
+    "title": "Labs 09-3 and 09-4 — launch once, watch as often as you like",
+    "caption": "The launch is opt-in (SPARK_APPLY=1). nohup plus < /dev/null lets ssh return immediately while training continues. Lab 04 is read-only: re-run it any time for a fresh view of the loss.",
+    "actors": [
+      {"id": "lab3", "label": "lab03 (laptop)"},
+      {"id": "lab4", "label": "lab04 (laptop)"},
+      {"id": "spark", "label": "Spark A"},
+      {"id": "lf", "label": "llamafactory-cli"}
+    ],
+    "steps": [
+      {"from": "lab3", "to": "lab3", "label": "write + validate 6 YAML files", "kind": "note"},
+      {"from": "lab3", "to": "spark", "label": "scp data/*.json configs/*.yaml → ~/w25/m09", "kind": "call"},
+      {"from": "lab3", "to": "spark", "label": "pgrep llamafactory-cli (nothing else running?)", "kind": "call"},
+      {"from": "lab3", "to": "lf", "label": "nohup llamafactory-cli train configs/hotel_lora_sft.yaml &", "kind": "call"},
+      {"from": "spark", "to": "lab3", "label": "started pid …", "kind": "return"},
+      {"from": "lf", "to": "spark", "label": "trainer_log.jsonl · console log · checkpoints", "kind": "note"},
+      {"from": "lab4", "to": "spark", "label": "tail log · cat trainer_log.jsonl · ls output_dir", "kind": "call"},
+      {"from": "spark", "to": "lab4", "label": "loss lines → table · failures → fixes", "kind": "return"},
+      {"from": "lab4", "to": "lf", "label": "--export: nohup llamafactory-cli export configs/hotel_merge.yaml", "kind": "call"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Memory to fine-tune on one Spark (128 GB), by method",
+      "type": "bars",
+      "unit": "GB",
+      "labels": ["Qwen3-4B", "Qwen3-8B", "Qwen3-32B", "Llama 3.3 70B"],
+      "series": [
+        {"name": "full (16 B/param)", "values": [74, 141, 534, 1139], "color": "red"},
+        {"name": "LoRA r=16, bf16 base", "values": [19, 27, 78, 154], "color": "amber"},
+        {"name": "QLoRA r=16, 4-bit base", "values": [13, 17, 33, 56], "color": "green"}
+      ],
+      "caption": "From lab 03 step 1 (arithmetic from each model's config.json, not a measurement): AdamW mixed precision + 10 GB overhead, activations not counted. Above 128 GB does not fit one Spark."
+    },
+    {
+      "title": "LoRA trainable parameters on Qwen3-4B (lora_target: all)",
+      "type": "hbars",
+      "unit": "million parameters",
+      "labels": ["r = 8", "r = 16", "r = 32", "r = 64"],
+      "series": [
+        {"name": "trainable", "values": [16.5, 33.0, 66.1, 132.1], "color": "violet"}
+      ],
+      "caption": "From lab 03 step 1: r × (in + out) for the 7 linear layers in each of 36 blocks. r = 16 trains 0.82 % of the model's 4.02 B parameters."
+    },
+    {
+      "title": "The hotel dataset — training records per department",
+      "type": "bars",
+      "unit": "records",
+      "labels": ["housekeeping", "engineering", "front_desk", "food_beverage", "concierge", "security"],
+      "series": [
+        {"name": "all", "values": [84, 84, 84, 84, 84, 84], "color": "cyan"},
+        {"name": "Thai", "values": [24, 24, 14, 28, 28, 16], "color": "amber"},
+        {"name": "urgent", "values": [0, 36, 0, 0, 0, 67], "color": "red"}
+      ],
+      "caption": "From lab 02 (run on this Mac, seed 25): 504 training records, balanced by department; urgent cases only occur for engineering and security. The 60 eval records come from 8 held-out templates."
+    }
+  ]
+}

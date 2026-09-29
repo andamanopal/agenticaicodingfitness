@@ -1,0 +1,74 @@
+{
+  "architecture": {
+    "title": "One workflow file, three front ends — NAT between you and the Spark's model",
+    "caption": "configs/hotel_agent.yml names an OpenAI-compatible model server, three tools and an agent loop. NAT builds them and puts a front end in front: nat run (console), nat serve (REST + /v1/chat/completions on :8400) or nat mcp serve (the tools as MCP on :9901). The two hotel tools come from the hotel_ops_nat plugin package through the nat.components entry point. The model runs in vLLM on the Spark (or Ollama on the laptop as a labelled stand-in); NAT itself needs no GPU.",
+    "lanes": [
+      {"id": "client", "label": "Clients"},
+      {"id": "nat", "label": "NeMo Agent Toolkit 1.9 (.venv-nat)"},
+      {"id": "spark", "label": "DGX Spark"}
+    ],
+    "nodes": [
+      {"id": "cli", "label": "nat run", "lane": "client", "sub": "console · one question", "accent": "green"},
+      {"id": "http", "label": "OpenAI client / Open WebUI", "lane": "client", "sub": "POST :8400/v1/chat/completions"},
+      {"id": "mcpc", "label": "MCP client", "lane": "client", "sub": "tool list · tool call → :9901/mcp"},
+      {"id": "wf", "label": "tool_calling_agent", "lane": "nat", "sub": "workflow · max_iterations 6", "accent": "cyan"},
+      {"id": "tools", "label": "hotel_ops_nat tools", "lane": "nat", "sub": "room_temperature · create_maintenance_ticket", "accent": "amber"},
+      {"id": "trace", "label": "telemetry.tracing", "lane": "nat", "sub": "_type: file → .runs/nat_trace.jsonl"},
+      {"id": "vllm", "label": "vLLM :8000", "lane": "spark", "sub": "Qwen3.6-35B-A3B-NVFP4 · tool calling", "accent": "violet"}
+    ],
+    "edges": [
+      {"from": "cli", "to": "wf", "label": "--input"},
+      {"from": "http", "to": "wf", "label": "nat serve"},
+      {"from": "mcpc", "to": "tools", "label": "nat mcp serve"},
+      {"from": "wf", "to": "vllm", "label": "chat + tools", "animated": true},
+      {"from": "wf", "to": "tools", "label": "tool calls", "animated": true},
+      {"from": "wf", "to": "trace", "label": "START/END events"}
+    ]
+  },
+  "sequence": {
+    "title": "Lab 14-2 — one agent run: read the room, then open a ticket",
+    "caption": "What the trace and the streamed log of lab 14-2 show, in order. The model chose both tool calls itself; NAT ran the Python functions and fed their results back. Captured on the laptop stand-in (nemotron-3-nano on Ollama); on the Spark the same steps go to vLLM.",
+    "actors": [
+      {"id": "user", "label": "you"},
+      {"id": "nat", "label": "NAT tool_calling_agent"},
+      {"id": "llm", "label": "model server"},
+      {"id": "tool", "label": "hotel_ops_nat"}
+    ],
+    "steps": [
+      {"from": "user", "to": "nat", "label": "Room 808 feels hot. Check it and open a ticket if something is wrong.", "kind": "call"},
+      {"from": "nat", "to": "llm", "label": "question + 3 tool schemas", "kind": "call"},
+      {"from": "llm", "to": "nat", "label": "tool_call room_temperature({room: 808})", "kind": "return"},
+      {"from": "nat", "to": "tool", "label": "room_temperature(\"808\")", "kind": "call"},
+      {"from": "tool", "to": "nat", "label": "27.9 °C, setpoint 23.0 °C · fault: fan coil unit not responding", "kind": "return"},
+      {"from": "nat", "to": "llm", "label": "tool result", "kind": "call"},
+      {"from": "llm", "to": "nat", "label": "tool_call create_maintenance_ticket(808, …, high)", "kind": "return"},
+      {"from": "nat", "to": "tool", "label": "create_maintenance_ticket", "kind": "call"},
+      {"from": "tool", "to": "nat", "label": "Created ticket MT-A83AD2", "kind": "return"},
+      {"from": "nat", "to": "llm", "label": "tool result", "kind": "call"},
+      {"from": "llm", "to": "nat", "label": "final answer", "kind": "return"},
+      {"from": "nat", "to": "user", "label": "Room 808 is too warm … ticket MT-A83AD2 (high priority)", "kind": "return"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Where one agent run spent its time (laptop stand-in)",
+      "type": "hbars",
+      "unit": "seconds",
+      "labels": ["LLM call 1 (pick a tool)", "room_temperature", "LLM call 2 (pick a tool)", "create_maintenance_ticket", "LLM call 3 (answer)"],
+      "series": [
+        {"name": "lab 14-2, this Mac", "values": [8.33, 0.0, 14.65, 0.01, 13.72], "color": "cyan"}
+      ],
+      "caption": "From the trace timestamps of one lab 14-2 run on this Mac: nemotron-3-nano on a shared laptop Ollama — LAPTOP STAND-IN, not Spark numbers. The point is the shape: the tools take milliseconds, the model calls take the time. Faster serving (vLLM on the Spark, Modules 05–07) shortens the model bars; the agent code does not change."
+    },
+    {
+      "title": "What NAT 1.9 ships (components registered in week25/.venv-nat)",
+      "type": "bars",
+      "unit": "components",
+      "labels": ["function", "ttc_strategy", "llm_provider", "tracing", "dataset_loader", "evaluator", "front_end", "function_group"],
+      "series": [
+        {"name": "count", "values": [36, 16, 9, 8, 7, 5, 3, 3], "color": "green"}
+      ],
+      "caption": "Counted from `nat info components` in lab 14-1 (nvidia-nat[langchain] + nvidia-nat-mcp + this module's hotel_ops_nat). `function` includes the agents (react_agent, tool_calling_agent, …) and the two hotel tools; `front_end` is console, fastapi and mcp."
+    }
+  ]
+}

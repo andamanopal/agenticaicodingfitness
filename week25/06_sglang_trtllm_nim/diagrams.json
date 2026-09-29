@@ -1,0 +1,70 @@
+{
+  "architecture": {
+    "title": "Four engines, one OpenAI API — run one at a time on a Spark",
+    "caption": "The bake-off lab, LiteLLM and agents use one OpenAI client for every engine; only the base URL changes. vLLM and NIM share :8000, TensorRT-LLM uses :8355 (:8123 in the Nemotron Super recipe), SGLang :30000. Each engine reserves most of the 128 GB unified memory at start-up, so start one, measure it, stop it, then start the next.",
+    "lanes": [
+      {"id": "client", "label": "Client (laptop or Spark)"},
+      {"id": "engines", "label": "Serving engines on the Spark (one at a time)"},
+      {"id": "models", "label": "Models (Hugging Face / NGC)"}
+    ],
+    "nodes": [
+      {"id": "bake", "label": "lab 06-1 bake-off", "lane": "client", "sub": "same prompts · temp 0 · warm-up · medians", "accent": "green"},
+      {"id": "decide", "label": "lab 06-2 which engine?", "lane": "client", "sub": "needs → candidates → measure"},
+      {"id": "vllm", "label": "vLLM :8000", "lane": "engines", "sub": "vllm/vllm-openai · agent-ready recipe", "accent": "cyan"},
+      {"id": "sglang", "label": "SGLang :30000", "lane": "engines", "sub": "lmsysorg/sglang:latest-cu130 · RadixAttention", "accent": "violet"},
+      {"id": "trt", "label": "TensorRT-LLM :8355", "lane": "engines", "sub": "release:1.3.0rc13 · trtllm-serve + YAML", "accent": "amber"},
+      {"id": "nim", "label": "NIM :8000", "lane": "engines", "sub": "llama-3.1-8b-instruct-dgx-spark", "accent": "red"},
+      {"id": "hf", "label": "Hugging Face checkpoints", "lane": "models", "sub": "Llama 3.1 8B FP4 · Qwen3-8B · Nemotron 3"},
+      {"id": "ngc", "label": "NGC (nvcr.io)", "lane": "models", "sub": "NIM model + engine in one image"}
+    ],
+    "edges": [
+      {"from": "bake", "to": "vllm", "label": "POST /v1/chat/completions", "animated": true},
+      {"from": "bake", "to": "sglang", "label": "same request"},
+      {"from": "bake", "to": "trt", "label": "same request"},
+      {"from": "bake", "to": "nim", "label": "same request"},
+      {"from": "hf", "to": "vllm", "label": "hf download"},
+      {"from": "hf", "to": "sglang", "label": "hf download"},
+      {"from": "hf", "to": "trt", "label": "hf download"},
+      {"from": "ngc", "to": "nim", "label": "docker login nvcr.io"}
+    ]
+  },
+  "sequence": {
+    "title": "Lab 06-3 — SGLang's prefix cache across two turns",
+    "caption": "Turn 2 repeats turn 1's system prompt and question, then adds the answer and a new question. SGLang's RadixAttention finds the shared prefix in its cache and prefills only the new tokens; with --enable-cache-report the response says how many tokens came from the cache.",
+    "actors": [
+      {"id": "lab", "label": "lab03 (client)"},
+      {"id": "sglang", "label": "SGLang :30000"},
+      {"id": "radix", "label": "radix tree (KV cache)"}
+    ],
+    "steps": [
+      {"from": "lab", "to": "sglang", "label": "turn 1: system + question", "kind": "call"},
+      {"from": "sglang", "to": "radix", "label": "no match → prefill all tokens, store the prefix", "kind": "note"},
+      {"from": "sglang", "to": "lab", "label": "answer · cached_tokens 0", "kind": "return"},
+      {"from": "lab", "to": "sglang", "label": "turn 2: same system + question + answer + new question", "kind": "call"},
+      {"from": "sglang", "to": "radix", "label": "longest shared prefix found → reuse its KV", "kind": "note"},
+      {"from": "sglang", "to": "lab", "label": "answer · cached_tokens > 0 (prefill only the new part)", "kind": "return"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Memory each engine reserves at its playbook default (128 GB Spark)",
+      "type": "hbars",
+      "unit": "GB",
+      "labels": ["vLLM (--gpu-memory-utilization 0.8)", "SGLang (--mem-fraction-static 0.85)", "TensorRT-LLM (free_gpu_memory_fraction 0.9)"],
+      "series": [
+        {"name": "reserved", "values": [102.4, 108.8, 115.2], "color": "amber"}
+      ],
+      "caption": "Arithmetic from the playbook defaults: fraction × 128 GB (not a measurement; TensorRT-LLM's fraction applies to memory that is free after the weights load). Any two of these together exceed one Spark, which is why the bake-off runs one engine at a time."
+    },
+    {
+      "title": "Lab 06-2 scorecard — total across the seven needs",
+      "type": "bars",
+      "unit": "points (0-2 per need)",
+      "labels": ["vLLM", "SGLang", "TensorRT-LLM", "NIM"],
+      "series": [
+        {"name": "documented in the Spark playbooks", "values": [11, 7, 10, 5], "color": "cyan"}
+      ],
+      "caption": "Sum of lab 06-2's scores (2 = validated path shown in the playbook, 1 = possible but not shown, 0 = no path). It measures documentation, not speed: use lab 06-1 on your Spark for speed."
+    }
+  ]
+}

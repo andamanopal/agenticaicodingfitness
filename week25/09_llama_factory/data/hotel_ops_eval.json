@@ -1,0 +1,362 @@
+[
+  {
+    "instruction": "Good evening. Could you recommend a good seafood restaurant within walking distance? Thank you.",
+    "input": "",
+    "output": "{\"department\": \"concierge\", \"priority\": \"normal\", \"reply\": \"Happily. The Concierge will prepare a few seafood restaurant suggestions within walking distance for you.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Could you recommend a good seafood restaurant within walking distance? Thank you.",
+    "input": "",
+    "output": "{\"department\": \"concierge\", \"priority\": \"normal\", \"reply\": \"Happily. The Concierge will prepare a few seafood restaurant suggestions within walking distance for you.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Good evening. Could you recommend a good seafood restaurant within walking distance?",
+    "input": "",
+    "output": "{\"department\": \"concierge\", \"priority\": \"normal\", \"reply\": \"Happily. The Concierge will prepare a few seafood restaurant suggestions within walking distance for you.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "The bathroom in 1524 wasn't cleaned properly, there's hair in the sink.",
+    "input": "",
+    "output": "{\"department\": \"housekeeping\", \"priority\": \"normal\", \"reply\": \"I'm sorry about that. Housekeeping will come to room 1524 to clean the bathroom again.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "What is the Wi-Fi password? I'm in room 1915. Thanks a lot.",
+    "input": "",
+    "output": "{\"department\": \"front_desk\", \"priority\": \"normal\", \"reply\": \"The Front Desk will send the Wi-Fi details to room 1915 right away.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Good evening. Do you have vegan dishes on the room service menu? Room 623.",
+    "input": "",
+    "output": "{\"department\": \"food_beverage\", \"priority\": \"normal\", \"reply\": \"Yes, we do. Room Service will send the vegan menu options to room 623.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Hello, do you have vegan dishes on the room service menu? Room 1925.",
+    "input": "",
+    "output": "{\"department\": \"food_beverage\", \"priority\": \"normal\", \"reply\": \"Yes, we do. Room Service will send the vegan menu options to room 1925.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Hello, the bathroom in 301 wasn't cleaned properly, there's hair in the sink. Thanks!",
+    "input": "",
+    "output": "{\"department\": \"housekeeping\", \"priority\": \"normal\", \"reply\": \"I'm sorry about that. Housekeeping will come to room 301 to clean the bathroom again.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Hello, could you recommend a good seafood restaurant within walking distance? Thank you.",
+    "input": "",
+    "output": "{\"department\": \"concierge\", \"priority\": \"normal\", \"reply\": \"Happily. The Concierge will prepare a few seafood restaurant suggestions within walking distance for you.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Hello, the bedside lamp and the desk light in 1424 both stopped working. Thanks!",
+    "input": "",
+    "output": "{\"department\": \"engineering\", \"priority\": \"normal\", \"reply\": \"Sorry for the trouble. An engineer will come to room 1424 to fix the lights.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Excuse me, the bathroom in 626 wasn't cleaned properly, there's hair in the sink.",
+    "input": "",
+    "output": "{\"department\": \"housekeeping\", \"priority\": \"normal\", \"reply\": \"I'm sorry about that. Housekeeping will come to room 626 to clean the bathroom again.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "สวัสดีครับ ทีวีในห้อง 527 เปิดไม่ติด",
+    "input": "",
+    "output": "{\"department\": \"engineering\", \"priority\": \"normal\", \"reply\": \"ขออภัยค่ะ ช่างจะขึ้นไปตรวจทีวีที่ห้อง 527 ค่ะ\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Hello, the bathroom in 1418 wasn't cleaned properly, there's hair in the sink.",
+    "input": "",
+    "output": "{\"department\": \"housekeeping\", \"priority\": \"normal\", \"reply\": \"I'm sorry about that. Housekeeping will come to room 1418 to clean the bathroom again.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "What is the Wi-Fi password? I'm in room 608.",
+    "input": "",
+    "output": "{\"department\": \"front_desk\", \"priority\": \"normal\", \"reply\": \"The Front Desk will send the Wi-Fi details to room 608 right away.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "ทีวีในห้อง 402 เปิดไม่ติด",
+    "input": "",
+    "output": "{\"department\": \"engineering\", \"priority\": \"normal\", \"reply\": \"ขออภัยค่ะ ช่างจะขึ้นไปตรวจทีวีที่ห้อง 402 ค่ะ\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Hi, the bedside lamp and the desk light in 1907 both stopped working.",
+    "input": "",
+    "output": "{\"department\": \"engineering\", \"priority\": \"normal\", \"reply\": \"Sorry for the trouble. An engineer will come to room 1907 to fix the lights.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Hi, the bathroom in 508 wasn't cleaned properly, there's hair in the sink. Thank you.",
+    "input": "",
+    "output": "{\"department\": \"housekeeping\", \"priority\": \"normal\", \"reply\": \"I'm sorry about that. Housekeeping will come to room 508 to clean the bathroom again.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "สวัสดีครับ ทีวีในห้อง 1504 เปิดไม่ติด",
+    "input": "",
+    "output": "{\"department\": \"engineering\", \"priority\": \"normal\", \"reply\": \"ขออภัยค่ะ ช่างจะขึ้นไปตรวจทีวีที่ห้อง 1504 ค่ะ\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Excuse me, what is the Wi-Fi password? I'm in room 2317.",
+    "input": "",
+    "output": "{\"department\": \"front_desk\", \"priority\": \"normal\", \"reply\": \"The Front Desk will send the Wi-Fi details to room 2317 right away.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Good evening. Do you have vegan dishes on the room service menu? Room 1827. Thank you.",
+    "input": "",
+    "output": "{\"department\": \"food_beverage\", \"priority\": \"normal\", \"reply\": \"Yes, we do. Room Service will send the vegan menu options to room 1827.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "The bathroom in 2017 wasn't cleaned properly, there's hair in the sink. Thanks a lot.",
+    "input": "",
+    "output": "{\"department\": \"housekeeping\", \"priority\": \"normal\", \"reply\": \"I'm sorry about that. Housekeeping will come to room 2017 to clean the bathroom again.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "สวัสดีค่ะ ทีวีในห้อง 913 เปิดไม่ติด",
+    "input": "",
+    "output": "{\"department\": \"engineering\", \"priority\": \"normal\", \"reply\": \"ขออภัยค่ะ ช่างจะขึ้นไปตรวจทีวีที่ห้อง 913 ค่ะ\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Hello, the bedside lamp and the desk light in 2105 both stopped working. Thanks a lot.",
+    "input": "",
+    "output": "{\"department\": \"engineering\", \"priority\": \"normal\", \"reply\": \"Sorry for the trouble. An engineer will come to room 2105 to fix the lights.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Hello, could you recommend a good seafood restaurant within walking distance?",
+    "input": "",
+    "output": "{\"department\": \"concierge\", \"priority\": \"normal\", \"reply\": \"Happily. The Concierge will prepare a few seafood restaurant suggestions within walking distance for you.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Could you recommend a good seafood restaurant within walking distance? Thanks a lot.",
+    "input": "",
+    "output": "{\"department\": \"concierge\", \"priority\": \"normal\", \"reply\": \"Happily. The Concierge will prepare a few seafood restaurant suggestions within walking distance for you.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "อาหารเช้าที่สั่งไว้ห้อง 1925 ยังไม่มาเลย",
+    "input": "",
+    "output": "{\"department\": \"food_beverage\", \"priority\": \"normal\", \"reply\": \"ขออภัยที่ให้รอค่ะ รูมเซอร์วิสกำลังตรวจสอบรายการอาหารของห้อง 1925 ค่ะ\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "สวัสดีครับ ทีวีในห้อง 2408 เปิดไม่ติด",
+    "input": "",
+    "output": "{\"department\": \"engineering\", \"priority\": \"normal\", \"reply\": \"ขออภัยค่ะ ช่างจะขึ้นไปตรวจทีวีที่ห้อง 2408 ค่ะ\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Hello, someone left an unattended bag next to the gym a long time ago. Thanks!",
+    "input": "",
+    "output": "{\"department\": \"security\", \"priority\": \"urgent\", \"reply\": \"Thank you for telling us. Security is going to the gym now. Please keep away from the bag.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Hi, someone left an unattended bag next to the breakfast room a long time ago. Thanks a lot.",
+    "input": "",
+    "output": "{\"department\": \"security\", \"priority\": \"urgent\", \"reply\": \"Thank you for telling us. Security is going to the breakfast room now. Please keep away from the bag.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "สวัสดีค่ะ อาหารเช้าที่สั่งไว้ห้อง 508 ยังไม่มาเลย",
+    "input": "",
+    "output": "{\"department\": \"food_beverage\", \"priority\": \"normal\", \"reply\": \"ขออภัยที่ให้รอค่ะ รูมเซอร์วิสกำลังตรวจสอบรายการอาหารของห้อง 508 ค่ะ\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Excuse me, the bedside lamp and the desk light in 1204 both stopped working. Thank you.",
+    "input": "",
+    "output": "{\"department\": \"engineering\", \"priority\": \"normal\", \"reply\": \"Sorry for the trouble. An engineer will come to room 1204 to fix the lights.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "The bathroom in 2318 wasn't cleaned properly, there's hair in the sink.",
+    "input": "",
+    "output": "{\"department\": \"housekeeping\", \"priority\": \"normal\", \"reply\": \"I'm sorry about that. Housekeeping will come to room 2318 to clean the bathroom again.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Could you recommend a good seafood restaurant within walking distance?",
+    "input": "",
+    "output": "{\"department\": \"concierge\", \"priority\": \"normal\", \"reply\": \"Happily. The Concierge will prepare a few seafood restaurant suggestions within walking distance for you.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Someone left an unattended bag next to the gym a long time ago. Thanks!",
+    "input": "",
+    "output": "{\"department\": \"security\", \"priority\": \"urgent\", \"reply\": \"Thank you for telling us. Security is going to the gym now. Please keep away from the bag.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "สวัสดีค่ะ อาหารเช้าที่สั่งไว้ห้อง 2127 ยังไม่มาเลย",
+    "input": "",
+    "output": "{\"department\": \"food_beverage\", \"priority\": \"normal\", \"reply\": \"ขออภัยที่ให้รอค่ะ รูมเซอร์วิสกำลังตรวจสอบรายการอาหารของห้อง 2127 ค่ะ\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "สวัสดีครับ อาหารเช้าที่สั่งไว้ห้อง 427 ยังไม่มาเลย",
+    "input": "",
+    "output": "{\"department\": \"food_beverage\", \"priority\": \"normal\", \"reply\": \"ขออภัยที่ให้รอค่ะ รูมเซอร์วิสกำลังตรวจสอบรายการอาหารของห้อง 427 ค่ะ\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "What is the Wi-Fi password? I'm in room 708. Thank you.",
+    "input": "",
+    "output": "{\"department\": \"front_desk\", \"priority\": \"normal\", \"reply\": \"The Front Desk will send the Wi-Fi details to room 708 right away.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Excuse me, what is the Wi-Fi password? I'm in room 417.",
+    "input": "",
+    "output": "{\"department\": \"front_desk\", \"priority\": \"normal\", \"reply\": \"The Front Desk will send the Wi-Fi details to room 417 right away.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "The bathroom in 1805 wasn't cleaned properly, there's hair in the sink. Thanks a lot.",
+    "input": "",
+    "output": "{\"department\": \"housekeeping\", \"priority\": \"normal\", \"reply\": \"I'm sorry about that. Housekeeping will come to room 1805 to clean the bathroom again.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Hi, could you recommend a good seafood restaurant within walking distance?",
+    "input": "",
+    "output": "{\"department\": \"concierge\", \"priority\": \"normal\", \"reply\": \"Happily. The Concierge will prepare a few seafood restaurant suggestions within walking distance for you.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Someone left an unattended bag next to the lobby a long time ago. Thanks a lot.",
+    "input": "",
+    "output": "{\"department\": \"security\", \"priority\": \"urgent\", \"reply\": \"Thank you for telling us. Security is going to the lobby now. Please keep away from the bag.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Hello, the bedside lamp and the desk light in 617 both stopped working. Thank you.",
+    "input": "",
+    "output": "{\"department\": \"engineering\", \"priority\": \"normal\", \"reply\": \"Sorry for the trouble. An engineer will come to room 617 to fix the lights.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Hello, someone left an unattended bag next to the pool a long time ago.",
+    "input": "",
+    "output": "{\"department\": \"security\", \"priority\": \"urgent\", \"reply\": \"Thank you for telling us. Security is going to the pool now. Please keep away from the bag.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Excuse me, someone left an unattended bag next to the breakfast room a long time ago.",
+    "input": "",
+    "output": "{\"department\": \"security\", \"priority\": \"urgent\", \"reply\": \"Thank you for telling us. Security is going to the breakfast room now. Please keep away from the bag.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Hi, someone left an unattended bag next to the pool a long time ago. Thank you.",
+    "input": "",
+    "output": "{\"department\": \"security\", \"priority\": \"urgent\", \"reply\": \"Thank you for telling us. Security is going to the pool now. Please keep away from the bag.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Could you recommend a good seafood restaurant within walking distance? Thanks!",
+    "input": "",
+    "output": "{\"department\": \"concierge\", \"priority\": \"normal\", \"reply\": \"Happily. The Concierge will prepare a few seafood restaurant suggestions within walking distance for you.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Good evening. What is the Wi-Fi password? I'm in room 813. Thanks!",
+    "input": "",
+    "output": "{\"department\": \"front_desk\", \"priority\": \"normal\", \"reply\": \"The Front Desk will send the Wi-Fi details to room 813 right away.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Excuse me, could you recommend a good seafood restaurant within walking distance? Thank you.",
+    "input": "",
+    "output": "{\"department\": \"concierge\", \"priority\": \"normal\", \"reply\": \"Happily. The Concierge will prepare a few seafood restaurant suggestions within walking distance for you.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "The bathroom in 606 wasn't cleaned properly, there's hair in the sink. Thank you.",
+    "input": "",
+    "output": "{\"department\": \"housekeeping\", \"priority\": \"normal\", \"reply\": \"I'm sorry about that. Housekeeping will come to room 606 to clean the bathroom again.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Good evening. The bathroom in 1424 wasn't cleaned properly, there's hair in the sink.",
+    "input": "",
+    "output": "{\"department\": \"housekeeping\", \"priority\": \"normal\", \"reply\": \"I'm sorry about that. Housekeeping will come to room 1424 to clean the bathroom again.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "สวัสดีครับ อาหารเช้าที่สั่งไว้ห้อง 203 ยังไม่มาเลย",
+    "input": "",
+    "output": "{\"department\": \"food_beverage\", \"priority\": \"normal\", \"reply\": \"ขออภัยที่ให้รอค่ะ รูมเซอร์วิสกำลังตรวจสอบรายการอาหารของห้อง 203 ค่ะ\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Good evening. Someone left an unattended bag next to the lobby a long time ago. Thanks a lot.",
+    "input": "",
+    "output": "{\"department\": \"security\", \"priority\": \"urgent\", \"reply\": \"Thank you for telling us. Security is going to the lobby now. Please keep away from the bag.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Hello, someone left an unattended bag next to the breakfast room a long time ago.",
+    "input": "",
+    "output": "{\"department\": \"security\", \"priority\": \"urgent\", \"reply\": \"Thank you for telling us. Security is going to the breakfast room now. Please keep away from the bag.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Hello, what is the Wi-Fi password? I'm in room 1123. Thanks!",
+    "input": "",
+    "output": "{\"department\": \"front_desk\", \"priority\": \"normal\", \"reply\": \"The Front Desk will send the Wi-Fi details to room 1123 right away.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Hi, what is the Wi-Fi password? I'm in room 920.",
+    "input": "",
+    "output": "{\"department\": \"front_desk\", \"priority\": \"normal\", \"reply\": \"The Front Desk will send the Wi-Fi details to room 920 right away.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Hello, what is the Wi-Fi password? I'm in room 1729. Thanks a lot.",
+    "input": "",
+    "output": "{\"department\": \"front_desk\", \"priority\": \"normal\", \"reply\": \"The Front Desk will send the Wi-Fi details to room 1729 right away.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Hello, do you have vegan dishes on the room service menu? Room 1120. Thanks a lot.",
+    "input": "",
+    "output": "{\"department\": \"food_beverage\", \"priority\": \"normal\", \"reply\": \"Yes, we do. Room Service will send the vegan menu options to room 1120.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Hi, someone left an unattended bag next to the gym a long time ago. Thanks!",
+    "input": "",
+    "output": "{\"department\": \"security\", \"priority\": \"urgent\", \"reply\": \"Thank you for telling us. Security is going to the gym now. Please keep away from the bag.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "What is the Wi-Fi password? I'm in room 406. Thanks!",
+    "input": "",
+    "output": "{\"department\": \"front_desk\", \"priority\": \"normal\", \"reply\": \"The Front Desk will send the Wi-Fi details to room 406 right away.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  },
+  {
+    "instruction": "Excuse me, do you have vegan dishes on the room service menu? Room 2106. Thanks!",
+    "input": "",
+    "output": "{\"department\": \"food_beverage\", \"priority\": \"normal\", \"reply\": \"Yes, we do. Room Service will send the vegan menu options to room 2106.\"}",
+    "system": "You are the guest-request router for a hotel. Read the guest's message and answer with one line of JSON: {\"department\": one of housekeeping|engineering|front_desk|food_beverage|concierge|security, \"priority\": normal|urgent, \"reply\": a short, polite reply to the guest in the guest's language}. Do not promise a specific time."
+  }
+]

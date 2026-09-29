@@ -1,0 +1,79 @@
+{
+  "architecture": {
+    "title": "Fine-tuning on one Spark, and across two with FSDP",
+    "caption": "Single Spark: lab 02 starts the playbook's NGC container with nohup; the recipes and the Hugging Face cache are mounted from the Spark's disk; the log goes to ~/w25/logs, which lab 03 parses. Two Sparks: Docker Swarm runs one PyTorch container per Spark, Accelerate starts one process per Spark (machine_rank 0 and 1), and FSDP gathers weight shards over the QSFP link with NCCL on every forward and backward pass.",
+    "lanes": [
+      {"id": "laptop", "label": "Your laptop"},
+      {"id": "a", "label": "Spark A (rank 0, swarm manager)"},
+      {"id": "b", "label": "Spark B (rank 1, swarm worker)"}
+    ],
+    "nodes": [
+      {"id": "labs", "label": "labs 01–04 + sparkkit", "lane": "laptop", "sub": "memory math · launch · parse · preflight", "accent": "green"},
+      {"id": "pt_a", "label": "pytorch:25.11-py3", "lane": "a", "sub": "Transformers · PEFT · TRL · Accelerate", "accent": "violet"},
+      {"id": "nemo_a", "label": "nemo-automodel:26.02", "lane": "a", "sub": "finetune.py + YAML recipe (single Spark)", "accent": "violet"},
+      {"id": "disk_a", "label": "~/.cache/huggingface · ~/w25", "lane": "a", "sub": "token · weights · recipes · logs · checkpoints", "accent": "amber"},
+      {"id": "pt_b", "label": "pytorch:25.11-py3", "lane": "b", "sub": "second swarm replica", "accent": "violet"},
+      {"id": "disk_b", "label": "~/.cache/huggingface · ~/w25", "lane": "b", "sub": "its own copy of recipes + configs", "accent": "amber"}
+    ],
+    "edges": [
+      {"from": "labs", "to": "pt_a", "label": "ssh: nohup docker run … > log"},
+      {"from": "labs", "to": "disk_a", "label": "ssh: tail -n 400 log"},
+      {"from": "pt_a", "to": "disk_a", "label": "volume mounts"},
+      {"from": "nemo_a", "to": "disk_a", "label": "checkpoints/LATEST"},
+      {"from": "pt_a", "to": "pt_b", "label": "FSDP all-gather over QSFP (NCCL)", "animated": true},
+      {"from": "pt_b", "to": "disk_b", "label": "volume mounts"}
+    ]
+  },
+  "sequence": {
+    "title": "Labs 11-2 and 11-3 — start a job that outlives the lab, then read its log",
+    "caption": "Lab 02 checks Docker, that no other course job holds the GPU, and that a Hugging Face login exists, then starts the container with nohup and returns within seconds. Training continues on the Spark. Lab 03, run any time later, tails the log and parses the trainer's per-step dicts into a loss curve and a verdict. In DRY mode lab 03 parses an EXAMPLE log so its parser is tested on every machine.",
+    "actors": [
+      {"id": "l2", "label": "lab02 (laptop)"},
+      {"id": "spark", "label": "Spark A"},
+      {"id": "job", "label": "container w25-m11-…"},
+      {"id": "l3", "label": "lab03 (laptop)"}
+    ],
+    "steps": [
+      {"from": "l2", "to": "spark", "label": "docker version · docker ps --filter name=w25-m11 · test -s ~/.cache/huggingface/token", "kind": "call"},
+      {"from": "l2", "to": "spark", "label": "nohup docker run --name w25-m11-pytorch-lora-8b … > ~/w25/logs/m11_….log &", "kind": "call"},
+      {"from": "spark", "to": "job", "label": "pip install … && python Llama3_8B_LoRA_finetuning.py", "kind": "call"},
+      {"from": "spark", "to": "l2", "label": "started (lab exits; training continues)", "kind": "return"},
+      {"from": "job", "to": "spark", "label": "{'loss': …} per step → log file", "kind": "note"},
+      {"from": "l3", "to": "spark", "label": "tail -n 400 · free -g · nvidia-smi --query-gpu=…", "kind": "call"},
+      {"from": "spark", "to": "l3", "label": "log text", "kind": "return"},
+      {"from": "l3", "to": "l3", "label": "parse → loss curve · NaN / OOM check · TRAINING COMPLETED", "kind": "note"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Memory needed per recipe — one Spark holds 128 GB",
+      "type": "hbars",
+      "unit": "GB",
+      "labels": ["PyTorch full SFT · Llama 3.2 3B", "PyTorch LoRA · Llama 3.1 8B", "PyTorch QLoRA · Llama 3.1 70B", "PyTorch QLoRA + checkpointing · 70B", "PyTorch LoRA bf16 · Llama 3.1 70B", "NeMo full SFT · Qwen3 8B", "NeMo LoRA · Llama 3.1 8B"],
+      "series": [
+        {"name": "total (typ)", "values": [44.0, 38.2, 105.1, 55.4, 154.5, 81.3, 31.3], "color": "cyan"}
+      ],
+      "caption": "From lab 01 (arithmetic, not a measurement): state at the method's bytes per parameter + a rough activation estimate for ≤300-token Alpaca samples (an assumption) + 10 GB headroom. Only 70B LoRA in bf16 needs two Sparks; with FSDP each holds about half the state."
+    },
+    {
+      "title": "Bytes per parameter by method",
+      "type": "bars",
+      "unit": "bytes / parameter",
+      "labels": ["full, fp32 master", "full, as the playbook runs it", "LoRA (frozen bf16)", "QLoRA (frozen NF4)"],
+      "series": [
+        {"name": "bytes", "values": [16, 8, 2, 0.52], "color": "violet"}
+      ],
+      "caption": "Arithmetic: bf16 weight 2 + bf16 grad 2 + AdamW m and v in bf16 (2 + 2) = 8, as the PyTorch scripts run it (dtype bfloat16, adamw_torch). fp32 master weights and moments double it. LoRA and QLoRA add a small adapter (~0.3% of parameters at r=8) on top."
+    },
+    {
+      "title": "FSDP traffic over the QSFP link per forward + backward pass",
+      "type": "bars",
+      "unit": "seconds at 21.875 GB/s (floor)",
+      "labels": ["Llama 3.1 70B LoRA", "Llama 3.1 8B LoRA", "Llama 3.2 3B full SFT"],
+      "series": [
+        {"name": "link time", "values": [6.46, 0.74, 0.29], "color": "amber"}
+      ],
+      "caption": "From lab 01, step 5 (arithmetic): FULL_SHARD gathers the other Spark's half of the weights in the forward pass and again in the backward pass; the 3B FSDP2 config gathers once and reduce-scatters gradients. Paid on every pass — gradient accumulation does not reduce it."
+    }
+  ]
+}

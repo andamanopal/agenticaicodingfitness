@@ -1,0 +1,33 @@
+# llamafactory-cli train configs/hotel_predict.yaml   (adapted from examples/extras/nlg_eval/llama3_lora_predict.yaml)
+# Generates an answer for every held-out request → saves/qwen3-4b-hotel/lora/predict/generated_predictions.jsonl (Module 13 scores it)
+### model
+model_name_or_path: Qwen/Qwen3-4B-Instruct-2507
+adapter_name_or_path: saves/qwen3-4b-hotel/lora/sft
+trust_remote_code: true
+
+### method
+stage: sft
+do_predict: true
+finetuning_type: lora
+
+### dataset
+dataset_dir: data
+eval_dataset: hotel_ops_eval
+template: qwen3_nothink
+cutoff_len: 1024
+max_samples: 1000
+overwrite_cache: true
+preprocessing_num_workers: 16
+dataloader_num_workers: 4
+
+### output
+output_dir: saves/qwen3-4b-hotel/lora/predict
+overwrite_output_dir: true
+report_to: none
+
+### eval
+per_device_eval_batch_size: 1
+predict_with_generate: true
+do_sample: false                 # greedy: LLaMA Factory samples by default (temperature 0.95), which makes scores noisy
+max_new_tokens: 160              # an answer is ~60 tokens; the default is 1024
+ddp_timeout: 180000000

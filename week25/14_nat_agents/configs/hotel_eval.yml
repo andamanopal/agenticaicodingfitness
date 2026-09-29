@@ -1,0 +1,19 @@
+# Week 25 · Module 14 — `nat eval` for the hotel agent: three questions, one offline evaluator.
+# `base:` makes NAT load hotel_agent.yml first and merge this file on top (NAT 1.9 config inheritance).
+# Run from week25/14_nat_agents:
+#
+#   ../.venv-nat/bin/nat eval --config_file configs/hotel_eval.yml
+
+base: hotel_agent.yml
+
+eval:
+  general:
+    output_dir: .runs/eval
+    max_concurrency: 1                     # the laptop Ollama is shared: one question at a time
+    dataset:
+      _type: json
+      file_path: configs/eval_dataset.json
+  evaluators:
+    mentions_expected:                     # deterministic, no LLM judge: "did the answer contain these facts?"
+      _type: langsmith_custom
+      evaluator: hotel_ops_nat.evals.mentions_expected

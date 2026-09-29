@@ -1,0 +1,59 @@
+# Week 25 · Module 14 — the hotel-operations agent, as a NeMo Agent Toolkit 1.9 workflow.
+#
+# Three sections do all the work:
+#   llms       which model, where (any OpenAI-compatible server: vLLM :8000, Ollama :11434, LiteLLM :4000)
+#   functions  the tools the agent may call (two from the hotel_ops_nat plugin, one built into NAT)
+#   workflow   the agent loop that ties them together
+#
+# ${VAR:-default} is expanded by NAT when it loads the file. The defaults point at the LAPTOP STAND-IN
+# (Ollama on this Mac). On the Spark, set HOTEL_LLM_BASE_URL / HOTEL_LLM_MODEL (see TUTORIAL.md §3).
+#
+#   week25/.venv-nat/bin/nat run --config_file week25/14_nat_agents/configs/hotel_agent.yml \
+#       --input "Room 808 feels hot. Check it and open a ticket if something is wrong."
+
+general:
+  telemetry:
+    tracing:
+      local_file:                         # every LLM call and tool call as a JSON line (§7)
+        _type: file
+        output_path: ${HOTEL_TRACE_FILE:-.runs/nat_trace.jsonl}
+        project: hotel-ops
+        mode: overwrite
+
+llms:
+  hotel_llm:
+    _type: openai
+    base_url: ${HOTEL_LLM_BASE_URL:-http://localhost:11434/v1}
+    model_name: ${HOTEL_LLM_MODEL:-nemotron-3-nano:latest}
+    api_key: ${HOTEL_LLM_API_KEY:-not-needed}
+    temperature: 0.0
+    max_tokens: 512
+    # Thinking models (nemotron-3-nano, gemma4, Qwen3.6) spend the whole budget "thinking" unless told not to.
+    # Ollama accepts reasoning_effort "none". For vLLM + Qwen3.6 on the Spark, §3 swaps this for
+    # extra_body.chat_template_kwargs.enable_thinking=false with --override.
+    reasoning_effort: ${HOTEL_LLM_REASONING:-none}
+    # Inside an OpenShell sandbox (Module 15) the model is https://inference.local/v1, whose certificate
+    # comes from the sandbox proxy. Leave this true; set HOTEL_LLM_VERIFY_SSL=false only if TLS fails there.
+    verify_ssl: ${HOTEL_LLM_VERIFY_SSL:-true}
+
+functions:
+  room_temperature:
+    _type: room_temperature                # from the hotel_ops_nat plugin
+    comfort_band_c: 1.5
+  create_maintenance_ticket:
+    _type: create_maintenance_ticket       # from the hotel_ops_nat plugin
+    ticket_log: ${HOTEL_TICKET_LOG:-.runs/tickets.jsonl}
+  current_datetime:
+    _type: current_datetime                # built into NAT
+
+workflow:
+  _type: tool_calling_agent
+  llm_name: hotel_llm
+  tool_names: [room_temperature, create_maintenance_ticket, current_datetime]
+  max_iterations: 6
+  verbose: true
+  system_prompt: |
+    You are the night-shift operations assistant of a small hotel.
+    Use room_temperature to read a room before you judge it.
+    Open a maintenance ticket only when the reading shows a fault or the room is outside its comfort band.
+    Always quote the ticket id you get back. Answer in two short sentences.

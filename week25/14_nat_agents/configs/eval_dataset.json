@@ -1,0 +1,5 @@
+[
+  {"id": "hot_808", "question": "Room 808 feels hot. Check it and open a ticket if something is wrong.", "answer": "808|MT-"},
+  {"id": "ok_1203", "question": "Is room 1203 at a comfortable temperature?", "answer": "1203|23.5"},
+  {"id": "cold_1510", "question": "What is the temperature in room 1510 right now?", "answer": "1510|20.1"}
+]

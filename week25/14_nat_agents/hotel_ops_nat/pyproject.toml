@@ -1,0 +1,22 @@
+# A NeMo Agent Toolkit plugin package: two fake, deterministic hotel-operations tools and one
+# offline evaluator. Shape copied from `nat workflow create` (NAT 1.9): the entry point in the
+# 'nat.components' group is how `nat run` / `nat serve` / `nat eval` discover the tools.
+#
+#   uv pip install --python week25/.venv-nat/bin/python --no-deps -e week25/14_nat_agents/hotel_ops_nat
+
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = ["setuptools >= 64"]
+
+[project]
+name = "hotel_ops_nat"
+version = "0.1.0"
+dependencies = [
+  "nvidia-nat[langchain]~=1.9",
+]
+requires-python = ">=3.11,<3.14"
+description = "Week 25 Module 14: hotel-operations tools for NeMo Agent Toolkit (fake, deterministic, safe)"
+classifiers = ["Programming Language :: Python"]
+
+[project.entry-points.'nat.components']
+hotel_ops_nat = "hotel_ops_nat.register"

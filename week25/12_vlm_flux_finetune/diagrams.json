@@ -1,0 +1,81 @@
+{
+  "architecture": {
+    "title": "Two image fine-tunes on one Spark — a VLM that reads images, a diffusion model that draws them",
+    "caption": "Both recipes live in the playbook repo on the Spark and run in Docker. Labs 01 and 03 prepare and validate the datasets on the laptop. Labs 02 and 04 run what the playbook's buttons and scripts run, headless under nohup, and read the logs back. Only one of them should run at a time: both want most of the 128 GB.",
+    "lanes": [
+      {"id": "laptop", "label": "Your laptop"},
+      {"id": "net", "label": "ssh · scp"},
+      {"id": "spark", "label": "DGX Spark · ~/dgx-spark-playbooks/nvidia/…"}
+    ],
+    "nodes": [
+      {"id": "vds", "label": "lab01 VLM datasets", "lane": "laptop", "sub": "image folders · metadata.jsonl", "accent": "green"},
+      {"id": "fds", "label": "lab03 FLUX dataset", "lane": "laptop", "sub": "concepts · captions · data.toml", "accent": "green"},
+      {"id": "ssh", "label": "sparkkit.sh / put", "lane": "net", "sub": "nohup · tail · scp", "accent": "cyan"},
+      {"id": "vlm", "label": "vlm_demo container", "lane": "spark", "sub": "Qwen2.5-VL-7B · Unsloth · GRPO", "accent": "violet"},
+      {"id": "vout", "label": "ui_image/saved_model", "lane": "spark", "sub": "LoRA merged into checkpoint-N", "accent": "amber"},
+      {"id": "flux", "label": "flux-train container", "lane": "spark", "sub": "FLUX.1-dev 12B · sd-scripts · LoRA dim 256", "accent": "violet"},
+      {"id": "fout", "label": "models/loras", "lane": "spark", "sub": "flux_dreambooth-0000NN.safetensors", "accent": "amber"},
+      {"id": "comfy", "label": "ComfyUI :8188", "lane": "spark", "sub": "finetuned_flux.json"}
+    ],
+    "edges": [
+      {"from": "vds", "to": "ssh", "label": "train.yaml"},
+      {"from": "fds", "to": "ssh", "label": "data.toml + images", "animated": true},
+      {"from": "ssh", "to": "vlm", "label": "python -u src/train_image_vlm.py"},
+      {"from": "ssh", "to": "flux", "label": "sh launch_train_w25.sh"},
+      {"from": "vlm", "to": "vout", "label": "merge at the end"},
+      {"from": "flux", "to": "fout", "label": "every 25 epochs"},
+      {"from": "fout", "to": "comfy", "label": "LoRA loader"}
+    ]
+  },
+  "sequence": {
+    "title": "Lab 12-2 — GRPO on one image, one step",
+    "caption": "GRPO has no answer text to imitate. For each image the model writes num_generations answers, the two reward functions score each one, and the update pushes toward the higher-scoring answers. From src/train_image_vlm.py and train.yaml (rewards 2.0 and 5.0, 2 generations).",
+    "actors": [
+      {"id": "data", "label": "ui_image/data"},
+      {"id": "model", "label": "Qwen2.5-VL + LoRA"},
+      {"id": "reward", "label": "reward functions"},
+      {"id": "trainer", "label": "GRPOTrainer"}
+    ],
+    "steps": [
+      {"from": "data", "to": "model", "label": "image + 'Identify if this region has been affected by a wildfire…'", "kind": "call"},
+      {"from": "model", "to": "reward", "label": "2 answers: <REASONING>…</REASONING><SOLUTION>Yes</SOLUTION>", "kind": "return"},
+      {"from": "reward", "to": "reward", "label": "format: +1 per tag pair · correctness: 5.0 if SOLUTION = label", "kind": "note"},
+      {"from": "reward", "to": "trainer", "label": "scores per answer", "kind": "call"},
+      {"from": "trainer", "to": "model", "label": "update LoRA toward the better answer", "kind": "return"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "FLUX.1 LoRA run: images per epoch and optimizer steps for 100 epochs",
+      "type": "bars",
+      "unit": "count",
+      "labels": ["playbook (tjtoy + sparkgpu)", "course (+ sparkhotel)"],
+      "series": [
+        {"name": "images per epoch", "values": [20, 26], "color": "cyan"},
+        {"name": "optimizer steps ÷ 10", "values": [50, 70], "color": "violet"}
+      ],
+      "caption": "From lab 03 (arithmetic on the real data.toml files): Σ images × num_repeats, ⌈÷ gradient accumulation 4⌉ × 100 epochs = 500 and 700 steps (shown ÷ 10)."
+    },
+    {
+      "title": "What the playbook downloads for FLUX.1 fine-tuning",
+      "type": "hbars",
+      "unit": "GB",
+      "labels": ["flux1-dev.safetensors", "t5xxl_fp16.safetensors", "ae.safetensors", "clip_l.safetensors"],
+      "series": [
+        {"name": "size", "values": [23.8, 9.8, 0.335, 0.246], "color": "amber"}
+      ],
+      "caption": "Sizes as stated in the playbook's Step 3 (~23.8 GB, ~9.8 GB, ~335 MB, ~246 MB): about 34 GB before any training."
+    },
+    {
+      "title": "The playbook's sample dashcam clips",
+      "type": "bars",
+      "unit": "frames",
+      "labels": ["1.mp4", "2.mp4", "3.mp4"],
+      "series": [
+        {"name": "frames in clip", "values": [153, 155, 152], "color": "green"},
+        {"name": "frames the model sees (num_frames 12)", "values": [12, 12, 12], "color": "red"}
+      ],
+      "caption": "From lab 01 (ffprobe on this Mac): three ~5.1 s clips at ~30 fps. The inference config samples 12 frames; the training notebook samples 8–32 at random."
+    }
+  ]
+}

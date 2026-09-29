@@ -1,0 +1,79 @@
+{
+  "architecture": {
+    "title": "A coding agent on local inference — the agent edits files, the Spark's model only returns tool calls",
+    "caption": "The playbooks run the agent on the Spark next to Ollama (ollama launch <agent>). To run it on your laptop, reach the Spark's Ollama through an ssh tunnel (course default) or by opening port 11434 (vibe-coding Step 2, no authentication). Each client speaks a different Ollama API: native /api for ollama launch and Continue, /v1/chat/completions for OpenCode, /v1/messages for Claude Code, /v1/responses for Codex. Lab 01 checks all four.",
+    "lanes": [
+      {"id": "laptop", "label": "Your laptop (optional)"},
+      {"id": "net", "label": "Network"},
+      {"id": "spark", "label": "DGX Spark (GB10 · 128 GB unified)"}
+    ],
+    "nodes": [
+      {"id": "editor", "label": "VS Code + Continue", "lane": "laptop", "sub": "continue-config.yaml (lab 03)", "accent": "violet"},
+      {"id": "cli", "label": "Claude Code / OpenCode / Codex", "lane": "laptop", "sub": "course configs in .runs/ (lab 03)"},
+      {"id": "tunnel", "label": "ssh -L 21434:localhost:11434", "lane": "net", "sub": "or OLLAMA_HOST=0.0.0.0 (no auth)", "accent": "cyan"},
+      {"id": "agent", "label": "ollama launch <agent>", "lane": "spark", "sub": "claude · opencode · codex", "accent": "green"},
+      {"id": "ollama", "label": "Ollama :11434", "lane": "spark", "sub": "/api · /v1/chat · /v1/messages · /v1/responses", "accent": "violet"},
+      {"id": "model", "label": "qwen3.6:35b-a3b-mtp-q4_K_M", "lane": "spark", "sub": "~23 GB · MoE, ~3B active · num_ctx 64K", "accent": "amber"},
+      {"id": "repo", "label": "~/cli-agent-demo", "lane": "spark", "sub": "math_utils.py + pytest"}
+    ],
+    "edges": [
+      {"from": "agent", "to": "ollama", "label": "tools + messages", "animated": true},
+      {"from": "ollama", "to": "model", "label": "decode"},
+      {"from": "agent", "to": "repo", "label": "writes files, runs tests"},
+      {"from": "cli", "to": "tunnel", "label": "HTTP", "animated": true},
+      {"from": "editor", "to": "tunnel", "label": "HTTP"},
+      {"from": "tunnel", "to": "ollama", "label": "localhost:11434"}
+    ]
+  },
+  "sequence": {
+    "title": "Lab 18-2 — one edit, graded by the real test",
+    "caption": "The model never touches the disk: it returns a write_file tool call. The lab (acting as the agent) checks the call, writes the file into a temp dir, runs the test, and on failure gives the model the test output for one repair turn. A reply with no tool call, or a tool call printed as text, is a failed edit.",
+    "actors": [
+      {"id": "lab", "label": "lab02 (the agent)"},
+      {"id": "llm", "label": "Ollama + coding model"},
+      {"id": "tmp", "label": "temp dir"}
+    ],
+    "steps": [
+      {"from": "lab", "to": "llm", "label": "stub + failing test + tools=[write_file]", "kind": "call"},
+      {"from": "llm", "to": "lab", "label": "tool_call write_file({path, content})", "kind": "return"},
+      {"from": "lab", "to": "lab", "label": "valid JSON? right path? screen os/subprocess/open", "kind": "note"},
+      {"from": "lab", "to": "tmp", "label": "write file · run test_* (20 s timeout)", "kind": "call"},
+      {"from": "tmp", "to": "lab", "label": "PASS · or FAIL + traceback", "kind": "return"},
+      {"from": "lab", "to": "llm", "label": "on FAIL: tool result = test output, 'fix it'", "kind": "call"},
+      {"from": "lab", "to": "lab", "label": "scorecard: tool call · valid args · pass 1st · pass ≤1 repair", "kind": "note"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Lab 18-2 on this Mac — edits that passed their tests, 3 runs × 3 tasks",
+      "type": "hbars",
+      "unit": "passes out of 9",
+      "labels": ["gemma4:12b", "nemotron-3-nano (31.6B)", "gemma3:4b (no tools)"],
+      "series": [
+        {"name": "pass 1st try", "values": [9, 3, 0], "color": "cyan"},
+        {"name": "pass ≤ 1 repair", "values": [9, 4, 0], "color": "green"}
+      ],
+      "caption": "LAPTOP STAND-IN, measured: three runs of lab 02 on this Mac's Ollama 0.34.4, one trial per task each. Model behaviour, not speed. nemotron-3-nano printed its parse_duration tool call as text in all three runs; gemma3:4b has no tools capability. Not a Spark measurement: run lab 02 on your Spark for Qwen3.6."
+    },
+    {
+      "title": "Single-stream decode ceiling at 273 GB/s — why the Spark playbook picks an MoE coding model",
+      "type": "bars",
+      "unit": "tok/s (upper bound)",
+      "labels": ["qwen3.6 35B-A3B q4_K_M", "gpt-oss-120b MXFP4", "qwen3.6 27B q4_K_M"],
+      "series": [
+        {"name": "ceiling", "values": [150.1, 100.8, 16.7], "color": "amber"}
+      ],
+      "caption": "Arithmetic, not a benchmark: bandwidth ÷ bytes of active weights per token (sparkkit.decode_ceiling_tok_s; ~3B, 5.1B and 27B active). Real engines land below these ceilings."
+    },
+    {
+      "title": "Qwen3.6 35B-A3B variants from the CLI playbook — memory to load",
+      "type": "bars",
+      "unit": "GB",
+      "labels": ["mtp-q4_K_M (default)", "q8_0", "bf16"],
+      "series": [
+        {"name": "size", "values": [23, 39, 71], "color": "violet"}
+      ],
+      "caption": "REFERENCE: sizes as the cli-coding-agent playbook's prerequisites state them. All fit in one Spark's 128 GB; the rest is KV cache for long contexts and room for other services."
+    }
+  ]
+}

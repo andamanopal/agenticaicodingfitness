@@ -1,0 +1,14 @@
+# llamafactory-cli export configs/hotel_merge.yaml   (adapted from examples/merge_lora/qwen3_lora_sft.yaml)
+### Note: DO NOT use quantized model or quantization_bit when merging lora adapters
+
+### model
+model_name_or_path: Qwen/Qwen3-4B-Instruct-2507
+adapter_name_or_path: saves/qwen3-4b-hotel/lora/sft
+template: qwen3_nothink
+trust_remote_code: true
+
+### export
+export_dir: saves/qwen3-4b-hotel/merged         # base + adapter folded into one plain Hugging Face model (vLLM serves it in Module 13)
+export_size: 5                   # shard size in GB
+export_device: cpu               # choices: [cpu, auto]
+export_legacy_format: false      # write .safetensors

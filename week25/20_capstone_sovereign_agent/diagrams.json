@@ -1,0 +1,66 @@
+{
+  "architecture": {
+    "title": "The sovereign hotel agent on two Sparks — every piece from this week, wired together",
+    "caption": "Spark B serves the fine-tuned router (Module 09's LoRA on Qwen3-4B, served as in Module 13). Spark A serves the agent's brain (Qwen3.6 agent-ready recipe, Module 05), the LiteLLM gateway (Module 08) and an OpenShell sandbox (Module 15) running the NAT agent (Module 14). The sandbox has two ways out: inference.local (routed to the gateway's agent-brain alias) and the gateway itself for the router tool. Nothing leaves the two Sparks.",
+    "lanes": [
+      {"id": "sparka", "label": "Spark A — agent side"},
+      {"id": "sparkb", "label": "Spark B — router side"}
+    ],
+    "nodes": [
+      {"id": "sandbox", "label": "OpenShell sandbox", "lane": "sparka", "sub": "NAT tool_calling_agent · 3 tools", "accent": "amber"},
+      {"id": "gw", "label": "LiteLLM :4000", "lane": "sparka", "sub": "agent-brain · hotel-router · master key", "accent": "green"},
+      {"id": "brain", "label": "vLLM :8000 (127.0.0.1)", "lane": "sparka", "sub": "Qwen3.6-35B-A3B-NVFP4 · tool parser", "accent": "violet"},
+      {"id": "router", "label": "vLLM :8000", "lane": "sparkb", "sub": "Qwen3-4B + LoRA hotel-ft", "accent": "violet"},
+      {"id": "train", "label": "LLaMA Factory", "lane": "sparkb", "sub": "retrain the next adapter here", "accent": "cyan"}
+    ],
+    "edges": [
+      {"from": "sandbox", "to": "gw", "label": "inference.local → agent-brain", "animated": true},
+      {"from": "sandbox", "to": "gw", "label": "route_guest_message → hotel-router"},
+      {"from": "gw", "to": "brain", "label": "localhost"},
+      {"from": "gw", "to": "router", "label": "LAN / ConnectX-7", "animated": true},
+      {"from": "train", "to": "router", "label": "new adapter → ship gate → swap"}
+    ]
+  },
+  "sequence": {
+    "title": "Lab 20-3 — the 'smoke' scenario, captured on the laptop stand-in",
+    "caption": "Real NAT 1.9 run through a real LiteLLM 1.89 proxy; both aliases fell back to gemma4:12b on the laptop because no Spark was serving. The order is enforced by the system prompt and checked by the acceptance judge: route first, then act.",
+    "actors": [
+      {"id": "agent", "label": "NAT agent"},
+      {"id": "gw", "label": "gateway"},
+      {"id": "router", "label": "hotel-router"},
+      {"id": "tickets", "label": "ticket tool"}
+    ],
+    "steps": [
+      {"from": "agent", "to": "gw", "label": "agent-brain: plan", "kind": "call"},
+      {"from": "agent", "to": "router", "label": "route_guest_message('…smoke … room 522…')", "kind": "call"},
+      {"from": "router", "to": "agent", "label": "{security, urgent, reply}", "kind": "return"},
+      {"from": "agent", "to": "tickets", "label": "create_maintenance_ticket(522, …, urgent)", "kind": "call"},
+      {"from": "tickets", "to": "agent", "label": "MT-9C47E8", "kind": "return"},
+      {"from": "agent", "to": "agent", "label": "answer quotes MT-9C47E8 → 4/4 checks ✓", "kind": "note"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Acceptance checks passed per scenario (lab 20-3, laptop stand-in, two runs identical)",
+      "type": "hbars",
+      "unit": "checks",
+      "labels": ["smoke (security, urgent)", "hot-room (engineering)", "restaurant (no ticket)", "thai-tv (engineering, normal)"],
+      "series": [
+        {"name": "passed", "values": [4, 4, 3, 3], "color": "green"},
+        {"name": "failed", "values": [0, 0, 0, 1], "color": "red"}
+      ],
+      "caption": "The one failure is Module 13's finding again: the prompt-only stand-in router marks a normal Thai request urgent. The fine-tuned router on Spark B is what has to fix it."
+    },
+    {
+      "title": "Memory each Spark reserves for vLLM (lab 20-1, arithmetic)",
+      "type": "bars",
+      "unit": "GB",
+      "labels": ["Spark A", "Spark B"],
+      "series": [
+        {"name": "vLLM reservation", "values": [51.2, 38.4], "color": "violet"},
+        {"name": "left for everything else", "values": [76.8, 89.6], "color": "cyan"}
+      ],
+      "caption": "--gpu-memory-utilization 0.4 on A (Module 05's agent recipe) and 0.3 on B. Spark B keeps enough room to train the next LoRA adapter while the current one serves."
+    }
+  ]
+}

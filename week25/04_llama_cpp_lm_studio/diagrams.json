@@ -1,0 +1,78 @@
+{
+  "architecture": {
+    "title": "From a GGUF on Hugging Face to an OpenAI API on the Spark",
+    "caption": "You build llama.cpp on the Spark with CUDA for sm_121 (121a-real). llama-server -hf downloads the GGUF into ~/.cache/huggingface/hub and serves /v1/chat/completions and /health on port 30080 (the playbook uses 30000, which SGLang needs). LM Studio's headless llmster serves its own models on 1234. Both speak the same OpenAI API as Ollama, so the laptop's client code does not change.",
+    "lanes": [
+      {"id": "laptop", "label": "Your laptop"},
+      {"id": "hub", "label": "Model sources"},
+      {"id": "spark", "label": "DGX Spark (GB10 · 128 GB unified)"}
+    ],
+    "nodes": [
+      {"id": "labs", "label": "labs 01–04 + sparkkit", "lane": "laptop", "sub": "chat() · timings · GGUF reader", "accent": "green"},
+      {"id": "hf", "label": "Hugging Face", "lane": "hub", "sub": "unsloth/Qwen3.6-35B-A3B-MTP-GGUF:UD-Q4_K_XL", "accent": "amber"},
+      {"id": "lmcat", "label": "LM Studio catalog", "lane": "hub", "sub": "nvidia/nemotron-3-nano-omni"},
+      {"id": "build", "label": "~/llama.cpp/build", "lane": "spark", "sub": "cmake -DGGML_CUDA=ON … 121a-real"},
+      {"id": "gguf", "label": "~/.cache/huggingface/hub", "lane": "spark", "sub": "the .gguf (Q4_K + Q6_K + F32 tensors)"},
+      {"id": "srv", "label": "llama-server :30080", "lane": "spark", "sub": "/v1/chat/completions · /health · 4 slots", "accent": "violet"},
+      {"id": "lms", "label": "llmster (lms) :1234", "lane": "spark", "sub": "/v1 · /api/v1/models", "accent": "cyan"}
+    ],
+    "edges": [
+      {"from": "build", "to": "srv", "label": "bin/llama-server"},
+      {"from": "hf", "to": "gguf", "label": "-hf download (first run)", "animated": true},
+      {"from": "gguf", "to": "srv", "label": "mmap + GPU offload"},
+      {"from": "lmcat", "to": "lms", "label": "lms get · lms load"},
+      {"from": "labs", "to": "srv", "label": "HTTP /v1 (tailnet or ssh -L)", "animated": true},
+      {"from": "labs", "to": "lms", "label": "HTTP /v1", "animated": true}
+    ]
+  },
+  "sequence": {
+    "title": "Lab 04-2 — proving a GGUF's size from its header",
+    "caption": "The lab reads only the header: magic, version, metadata (tokenizer included), then one entry per tensor with its shape and GGML type. Multiplying each shape by its type's bytes-per-block and adding it all up reproduced the gemma3:4b file on this Mac to within 27 bytes of alignment padding.",
+    "actors": [
+      {"id": "lab", "label": "lab02"},
+      {"id": "file", "label": ".gguf file"},
+      {"id": "table", "label": "GGML block table"}
+    ],
+    "steps": [
+      {"from": "lab", "to": "file", "label": "read 'GGUF' magic, version 3, tensor + key counts", "kind": "call"},
+      {"from": "lab", "to": "file", "label": "read 35 metadata keys (skip 262K-token arrays fast)", "kind": "call"},
+      {"from": "file", "to": "lab", "label": "883 tensors: name · shape · type id", "kind": "return"},
+      {"from": "lab", "to": "table", "label": "type 12 → Q4_K: 144 B per 256 weights", "kind": "call"},
+      {"from": "table", "to": "lab", "label": "bytes per tensor", "kind": "return"},
+      {"from": "lab", "to": "lab", "label": "Σ bytes = file − header (±27 B) ✓", "kind": "note"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Rounding error vs bits per weight (1M synthetic weights)",
+      "type": "line",
+      "unit": "relative error %",
+      "labels": ["16 (F16)", "8.5 (Q8_0)", "6.5 (sym-6)", "5 (Q4_1)", "4.5 (Q4_0)", "3.5 (sym-3)", "2.5 (sym-2)"],
+      "series": [
+        {"name": "relative RMS error", "values": [0.02, 0.62, 2.56, 8.21, 9.91, 24.14, 63.88], "color": "red"}
+      ],
+      "caption": "From lab 03 (arithmetic, fixed seed). Error on the weights, not model quality: roughly 6 dB (×2 error) per bit removed."
+    },
+    {
+      "title": "What is inside a real Q4_K_M file (gemma3:4b, Ollama's copy)",
+      "type": "donut",
+      "unit": "GB",
+      "labels": ["Q4_K", "Q6_K", "F16 (vision encoder)", "F32 (norms)"],
+      "series": [
+        {"name": "bytes", "values": [1.531, 0.950, 0.839, 0.003], "color": "violet"}
+      ],
+      "caption": "From lab 02 on this Mac. Only 46% of a 'Q4' file is Q4_K; the transformer layers average 4.82 bits per weight, the whole file 6.18."
+    },
+    {
+      "title": "Qwen3.6-35B-A3B on one Spark: weights and decode ceiling by quant",
+      "type": "bars",
+      "unit": "GB / tok/s",
+      "labels": ["BF16", "Q8_0", "Q6_K", "Q5_K_M", "Q4_K_M", "Q3_K_M"],
+      "series": [
+        {"name": "weights (GB)", "values": [70.0, 37.2, 28.9, 24.9, 21.2, 17.1], "color": "amber"},
+        {"name": "decode ceiling (tok/s, 3B active)", "values": [46, 86, 110, 128, 150, 187], "color": "cyan"}
+      ],
+      "caption": "From lab 03 (arithmetic: 35B total, ~3B active per the model name, 273 GB/s). Upper bounds, not measurements."
+    }
+  ]
+}

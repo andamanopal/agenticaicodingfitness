@@ -1,0 +1,19 @@
+# Week 25 · Module 14 — the hotel agent on the Spark's vLLM (Module 05's agent-ready Qwen3.6 recipe).
+# Inherits everything from hotel_agent.yml and changes only the LLM block:
+#   • base_url / model point at vLLM on :8000 (export HOTEL_LLM_BASE_URL=http://<spark>:8000/v1)
+#   • reasoning_effort: null removes the Ollama-only switch (NAT drops None fields before the request)
+#   • Qwen3-family chat templates turn thinking off with chat_template_kwargs.enable_thinking=false,
+#     sent in the request body through ChatOpenAI's extra_body
+#
+#   HOTEL_LLM_BASE_URL=http://spark-a:8000/v1 ../.venv-nat/bin/nat run --config_file configs/hotel_agent_spark.yml --input "..."
+
+base: hotel_agent.yml
+
+llms:
+  hotel_llm:
+    model_name: ${HOTEL_LLM_MODEL:-nvidia/Qwen3.6-35B-A3B-NVFP4}
+    max_tokens: 1024
+    reasoning_effort: null
+    extra_body:
+      chat_template_kwargs:
+        enable_thinking: false

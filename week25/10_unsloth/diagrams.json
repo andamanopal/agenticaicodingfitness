@@ -1,0 +1,72 @@
+{
+  "architecture": {
+    "title": "Unsloth on the Spark — the playbook's container, run headless, fed Module 09's data",
+    "caption": "Lab 02 derives the Unsloth config from Module 09's YAML and converts the same 504 records to TRL's prompt–completion format, so the two frameworks train on the same text with the same numbers. run_unsloth.sh is the playbook's docker run and pip installs without -it, so nohup can run it. Lab 03 reads both frameworks' results and scores both prediction files with one scorer.",
+    "lanes": [
+      {"id": "laptop", "label": "Your laptop"},
+      {"id": "net", "label": "ssh · scp"},
+      {"id": "spark", "label": "DGX Spark · ~/w25/m10 + container"}
+    ],
+    "nodes": [
+      {"id": "m09", "label": "Module 09 files", "lane": "laptop", "sub": "hotel_lora_sft.yaml · hotel_ops.json"},
+      {"id": "lab2", "label": "lab02 config + data", "lane": "laptop", "sub": "same numbers · answer-only loss", "accent": "green"},
+      {"id": "lab3", "label": "lab03 compare", "lane": "laptop", "sub": "fairness · protocol · one scorer", "accent": "cyan"},
+      {"id": "scp", "label": "sparkkit.put()", "lane": "net", "sub": "→ ~/w25/m10", "accent": "cyan"},
+      {"id": "wrap", "label": "run_unsloth.sh", "lane": "spark", "sub": "nvcr.io/nvidia/pytorch:25.11-py3 · pip installs"},
+      {"id": "train", "label": "train_hotel_unsloth.py", "lane": "spark", "sub": "FastModel · LoRA r=16 · SFTTrainer", "accent": "violet"},
+      {"id": "out", "label": "saves/qwen3-4b-hotel-unsloth/lora", "lane": "spark", "sub": "adapter · predictions · W25_RESULT", "accent": "amber"},
+      {"id": "lf", "label": "Module 09 run", "lane": "spark", "sub": "~/w25/m09/saves/qwen3-4b-hotel", "accent": "amber"}
+    ],
+    "edges": [
+      {"from": "m09", "to": "lab2", "label": "read YAML + records"},
+      {"from": "lab2", "to": "scp", "label": "config · jsonl · scripts", "animated": true},
+      {"from": "scp", "to": "wrap", "label": "nohup bash …"},
+      {"from": "wrap", "to": "train", "label": "python in container"},
+      {"from": "train", "to": "out", "label": "save + predict"},
+      {"from": "out", "to": "lab3", "label": "W25_RESULT · predictions", "animated": true},
+      {"from": "lf", "to": "lab3", "label": "train metrics · predictions", "animated": true}
+    ]
+  },
+  "sequence": {
+    "title": "Lab 10-2 — one headless run inside the playbook container",
+    "caption": "The container is --rm like the playbook's, so each run repeats the two pip installs (a few minutes) before training. Models land in ~/.cache/huggingface on the Spark and are downloaded only once.",
+    "actors": [
+      {"id": "lab", "label": "lab02 (laptop)"},
+      {"id": "spark", "label": "Spark A"},
+      {"id": "box", "label": "container"},
+      {"id": "py", "label": "train_hotel_unsloth.py"}
+    ],
+    "steps": [
+      {"from": "lab", "to": "lab", "label": "YAML → hotel_unsloth_config.json · records → prompt/completion", "kind": "note"},
+      {"from": "lab", "to": "spark", "label": "scp 5 files → ~/w25/m10", "kind": "call"},
+      {"from": "lab", "to": "spark", "label": "nohup bash run_unsloth.sh hotel-lora train_hotel_unsloth.py &", "kind": "call"},
+      {"from": "spark", "to": "box", "label": "docker run --gpus all --rm … pytorch:25.11-py3", "kind": "call"},
+      {"from": "box", "to": "box", "label": "pip install transformers peft … · pip install --no-deps unsloth …", "kind": "note"},
+      {"from": "box", "to": "py", "label": "python train_hotel_unsloth.py", "kind": "call"},
+      {"from": "py", "to": "spark", "label": "{'loss': …} lines · W25_RESULT {…} · adapter · predictions", "kind": "return"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Optimizer steps for 504 records × 3 epochs, by effective batch",
+      "type": "hbars",
+      "unit": "steps",
+      "labels": ["1 × 8 (playbook example)", "2 × 4 (Module 09 · lab 02)", "4 × 4 (Exercise 10's unfair run)"],
+      "series": [
+        {"name": "optimizer steps", "values": [189, 189, 96], "color": "violet"}
+      ],
+      "caption": "Arithmetic from Exercise 10: ⌈504 ÷ effective batch⌉ × 3. A run with half the optimizer steps is not the same experiment, whatever the framework."
+    },
+    {
+      "title": "Where 8-bit AdamW helps: training state for Qwen3-4B",
+      "type": "bars",
+      "unit": "GB",
+      "labels": ["full fine-tune (4.02 B trainable)", "LoRA r=16 adapter (33.0 M trainable)"],
+      "series": [
+        {"name": "AdamW fp32 (16 B/param)", "values": [64.4, 0.53], "color": "red"},
+        {"name": "8-bit AdamW (10 B/param)", "values": [40.2, 0.33], "color": "green"}
+      ],
+      "caption": "Arithmetic, not a measurement: bf16 weight + grad (4) + fp32 master (4) + Adam moments (8 fp32, or 2 in 8-bit). With LoRA the optimizer state is already tiny, so the playbook script's adamw_8bit saves ~0.2 GB; with full fine-tuning it saves ~24 GB."
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "architecture": {
+    "title": "How this course reaches your Spark — the laptop drives, the Spark does the work",
+    "caption": "The Lab Runner and the labs run on your laptop. Commands travel over SSH (BatchMode, key login) to Spark A, and to Spark B in the two-Spark modules. HTTP labs call the serving engines' OpenAI-compatible ports directly over the tailnet, or through an ssh -L tunnel for services bound to localhost (DGX Dashboard, Ollama). Tokens live in week25/.env.local and never reach the browser.",
+    "lanes": [
+      {"id": "laptop", "label": "Your laptop"},
+      {"id": "net", "label": "Network"},
+      {"id": "spark", "label": "DGX Spark (GB10 · 128 GB unified)"}
+    ],
+    "nodes": [
+      {"id": "runner", "label": "Spark Lab Runner :8125", "lane": "laptop", "sub": "course · ▶ Run · ⌨ terminal", "accent": "green"},
+      {"id": "labs", "label": "labs/*.py + sparkkit", "lane": "laptop", "sub": "sh() · chat_any() · labelled output"},
+      {"id": "ssh", "label": "SSH (key, BatchMode)", "lane": "net", "sub": "mDNS .local or Tailscale", "accent": "cyan"},
+      {"id": "tunnel", "label": "ssh -L tunnels", "lane": "net", "sub": "localhost-only services", "accent": "cyan"},
+      {"id": "shell", "label": "bash on the Spark", "lane": "spark", "sub": "nvidia-smi · docker · training jobs"},
+      {"id": "apis", "label": "Serving ports", "lane": "spark", "sub": ":11434 :8000 :30000 :8355 :4000", "accent": "violet"},
+      {"id": "dash", "label": "DGX Dashboard :11000", "lane": "spark", "sub": "telemetry · JupyterLab · updates", "accent": "amber"}
+    ],
+    "edges": [
+      {"from": "runner", "to": "labs", "label": "spawns lab subprocesses"},
+      {"from": "labs", "to": "ssh", "label": "commands", "animated": true},
+      {"from": "ssh", "to": "shell", "label": "bash -lc"},
+      {"from": "labs", "to": "apis", "label": "HTTP /v1/chat/completions", "animated": true},
+      {"from": "runner", "to": "tunnel", "label": "browser → localhost"},
+      {"from": "tunnel", "to": "dash", "label": "-L 11000:localhost:11000"}
+    ]
+  },
+  "sequence": {
+    "title": "Lab 01-1 — the Spark doctor, one read-only check at a time",
+    "caption": "Each check prints its command, runs it where sparkkit decides (local, ssh or DRY), and tests the output. In DRY mode the lab prints the playbook's REFERENCE value or an EXAMPLE and marks the row ◈ instead of ✓, because a quoted value is not your machine.",
+    "actors": [
+      {"id": "lab", "label": "lab01 (laptop)"},
+      {"id": "kit", "label": "sparkkit.sh()"},
+      {"id": "spark", "label": "Spark A"}
+    ],
+    "steps": [
+      {"from": "lab", "to": "kit", "label": "sh('nvidia-smi --query-gpu=name,driver_version …')", "kind": "call"},
+      {"from": "kit", "to": "kit", "label": "where()? local · ssh · dry", "kind": "note"},
+      {"from": "kit", "to": "spark", "label": "ssh -o BatchMode=yes spark-a 'bash -lc …'", "kind": "call"},
+      {"from": "spark", "to": "kit", "label": "NVIDIA GB10, 580.95.05 (streamed)", "kind": "return"},
+      {"from": "kit", "to": "lab", "label": "Result(code=0, source='live')", "kind": "return"},
+      {"from": "lab", "to": "lab", "label": "test → ✓ · or ✕ + printed fix (never run)", "kind": "note"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Memory needed at 32K context — one Spark holds 128 GB",
+      "type": "bars",
+      "unit": "GB",
+      "labels": ["Llama 8B", "Qwen3 32B", "Llama 70B", "gpt-oss-120b", "Qwen3 235B"],
+      "series": [
+        {"name": "bf16", "values": [30, 84, 162, 246, 486], "color": "red"},
+        {"name": "fp8", "values": [22, 51, 91, 129, 251], "color": "amber"},
+        {"name": "nvfp4", "values": [19, 37, 60, 78, 148], "color": "green"}
+      ],
+      "caption": "From lab 02 (arithmetic, not a measurement): weights + bf16 KV cache for one 32K conversation + 10 GB overhead. Anything above 128 GB needs two Sparks (Module 02) or a smaller format (Module 07)."
+    },
+    {
+      "title": "Single-stream decode ceiling at 273 GB/s",
+      "type": "hbars",
+      "unit": "tok/s (upper bound)",
+      "labels": ["Llama 3.1 8B", "Qwen3 32B", "Llama 3.3 70B", "gpt-oss-120b (5.1B active)", "Qwen3 235B-A22B"],
+      "series": [
+        {"name": "nvfp4 ceiling", "values": [60.7, 14.8, 6.9, 95.2, 22.1], "color": "cyan"}
+      ],
+      "caption": "bandwidth ÷ bytes of active weights per token. Real engines land below this; batching raises total throughput across users, not this per-stream number. Mixture-of-Experts models read few weights per token, so they stay fast."
+    }
+  ]
+}

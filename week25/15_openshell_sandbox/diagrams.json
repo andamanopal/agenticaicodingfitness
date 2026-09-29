@@ -1,0 +1,247 @@
+{
+  "architecture": {
+    "title": "The NAT hotel agent inside an OpenShell sandbox on the Spark",
+    "caption": "The gateway (a systemd user service running k3s in Docker) creates the sandbox from policies/hotel_agent_policy.yaml. Landlock confines writes to /sandbox and /tmp; the process runs as the unprivileged user 'sandbox'; every outbound connection goes through the egress proxy, which denies anything no policy group names (host + port + binary). The agent's model calls go to https://inference.local/v1, which the proxy routes to the provider local-vllm — vLLM on the Spark's host IP. Your laptop only runs the CLI and the offline policy labs.",
+    "lanes": [
+      {
+        "id": "laptop",
+        "label": "Your laptop"
+      },
+      {
+        "id": "gw",
+        "label": "OpenShell gateway (Spark)"
+      },
+      {
+        "id": "sb",
+        "label": "sandbox 'hotel-agent'"
+      },
+      {
+        "id": "host",
+        "label": "Spark host"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "cli",
+        "label": "openshell CLI + policykit",
+        "lane": "laptop",
+        "sub": "labs 15-2 / 15-3 · parse, validate, preview",
+        "accent": "green"
+      },
+      {
+        "id": "gateway",
+        "label": "openshell-gateway",
+        "lane": "gw",
+        "sub": "k3s in Docker · policy store",
+        "accent": "cyan"
+      },
+      {
+        "id": "proxy",
+        "label": "egress proxy",
+        "lane": "gw",
+        "sub": "allow · deny · inspect_for_inference",
+        "accent": "red"
+      },
+      {
+        "id": "agent",
+        "label": "NAT tool_calling_agent",
+        "lane": "sb",
+        "sub": "/sandbox/.venv-nat · user sandbox",
+        "accent": "amber"
+      },
+      {
+        "id": "files",
+        "label": "Landlock filesystem",
+        "lane": "sb",
+        "sub": "rw /sandbox /tmp · ro /usr /etc …"
+      },
+      {
+        "id": "vllm",
+        "label": "vLLM :8000 (0.0.0.0)",
+        "lane": "host",
+        "sub": "provider local-vllm · Qwen3.6-35B-A3B-NVFP4",
+        "accent": "violet"
+      },
+      {
+        "id": "net",
+        "label": "the internet",
+        "lane": "host",
+        "sub": "api.openai.com, pypi.org …"
+      }
+    ],
+    "edges": [
+      {
+        "from": "cli",
+        "to": "gateway",
+        "label": "sandbox create --policy · policy update"
+      },
+      {
+        "from": "gateway",
+        "to": "agent",
+        "label": "starts + enforces"
+      },
+      {
+        "from": "agent",
+        "to": "files",
+        "label": "tickets.jsonl"
+      },
+      {
+        "from": "agent",
+        "to": "proxy",
+        "label": "https://inference.local/v1",
+        "animated": true
+      },
+      {
+        "from": "proxy",
+        "to": "vllm",
+        "label": "http://<host-ip>:8000/v1",
+        "animated": true
+      },
+      {
+        "from": "proxy",
+        "to": "net",
+        "label": "✕ deny (not in policy)"
+      }
+    ]
+  },
+  "sequence": {
+    "title": "Lab 15-4 — from policy file to a fenced agent (course-designed, not yet run on a Spark)",
+    "caption": "Provider and inference routing are the playbook's Steps 6–7. The sandbox for a NAT agent is course-designed: NAT is installed while the setup-only pypi group is open, then the group is removed with a hot-reload before the agent runs. The last two steps are the proof: the model call is routed, a direct internet call is denied.",
+    "actors": [
+      {
+        "id": "you",
+        "label": "you (Spark shell)"
+      },
+      {
+        "id": "gw",
+        "label": "openshell gateway"
+      },
+      {
+        "id": "sb",
+        "label": "sandbox hotel-agent"
+      },
+      {
+        "id": "px",
+        "label": "egress proxy"
+      },
+      {
+        "id": "llm",
+        "label": "vLLM"
+      }
+    ],
+    "steps": [
+      {
+        "from": "you",
+        "to": "gw",
+        "label": "provider create local-vllm · inference set",
+        "kind": "call"
+      },
+      {
+        "from": "you",
+        "to": "gw",
+        "label": "sandbox create --from base --policy hotel_agent_policy.yaml --upload 14_nat_agents",
+        "kind": "call"
+      },
+      {
+        "from": "gw",
+        "to": "sb",
+        "label": "Landlock + user sandbox + network groups: inference, pypi",
+        "kind": "note"
+      },
+      {
+        "from": "you",
+        "to": "sb",
+        "label": "exec: pip install nvidia-nat (pypi group open)",
+        "kind": "call"
+      },
+      {
+        "from": "you",
+        "to": "gw",
+        "label": "policy update --remove-rule pypi --wait",
+        "kind": "call"
+      },
+      {
+        "from": "you",
+        "to": "sb",
+        "label": "exec: nat run --config_file hotel_agent_spark.yml",
+        "kind": "call"
+      },
+      {
+        "from": "sb",
+        "to": "px",
+        "label": "POST https://inference.local/v1/chat/completions",
+        "kind": "call"
+      },
+      {
+        "from": "px",
+        "to": "llm",
+        "label": "inspect_for_inference → provider local-vllm",
+        "kind": "call"
+      },
+      {
+        "from": "llm",
+        "to": "sb",
+        "label": "tool calls → answer with ticket id",
+        "kind": "return"
+      },
+      {
+        "from": "sb",
+        "to": "px",
+        "label": "curl https://api.openai.com",
+        "kind": "call"
+      },
+      {
+        "from": "px",
+        "to": "sb",
+        "label": "✕ deny · CONNECT 403",
+        "kind": "return"
+      }
+    ]
+  },
+  "charts": [
+    {
+      "title": "Lab 15-3 — 13 agent actions against policies/hotel_agent_policy.yaml",
+      "type": "donut",
+      "unit": "actions",
+      "labels": [
+        "allow",
+        "routed to inference",
+        "deny"
+      ],
+      "series": [
+        {
+          "name": "decisions",
+          "values": [
+            5,
+            1,
+            7
+          ],
+          "color": "cyan"
+        }
+      ],
+      "caption": "From one run of lab 15-3 on this Mac, using policykit.decide — a course-made teaching model of OpenShell's policy semantics, not OpenShell. The 5 allows and 1 routed call are the agent doing its job (plus pip during setup); all 7 denies are the hijack attempts."
+    },
+    {
+      "title": "Lab 15-2 — who catches which broken policy?",
+      "type": "bars",
+      "unit": "variants (of 8)",
+      "labels": [
+        "OpenShell CLI parser (laptop)",
+        "policykit errors",
+        "policykit warnings"
+      ],
+      "series": [
+        {
+          "name": "caught",
+          "values": [
+            3,
+            6,
+            2
+          ],
+          "color": "amber"
+        }
+      ],
+      "caption": "From one run of lab 15-2 on this Mac: 8 deliberately broken variants of the hotel policy. The real OpenShell 0.0.111 parser rejects the 3 structural mistakes (Version, list instead of map, unknown field `description`). policykit reports errors for those 3 plus the 3 semantic ones the gateway checks on push (relative path, root, missing port), and warnings for the 2 that apply but then deny every call (no binaries, no access mode)."
+    }
+  ]
+}

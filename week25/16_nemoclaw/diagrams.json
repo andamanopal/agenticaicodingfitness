@@ -1,0 +1,64 @@
+{
+  "architecture": {
+    "title": "NemoClaw on one Spark — the agent lives in a sandbox, the model stays on the host",
+    "caption": "The nemoclaw CLI on the Spark creates an OpenShell sandbox and runs OpenClaw inside it. Every outbound connection from the sandbox goes through the OpenShell egress proxy, which allows only the hosts in the sandbox policy. Model calls go to inference.local, which OpenShell routes to local vLLM on the host's :8000. You reach the Web UI from your laptop through an ssh -L tunnel to 127.0.0.1:18789. Telegram is optional and uses long-polling, so no public URL is needed.",
+    "lanes": [
+      {"id": "laptop", "label": "Your laptop"},
+      {"id": "host", "label": "DGX Spark host"},
+      {"id": "sandbox", "label": "OpenShell sandbox (my-assistant)"},
+      {"id": "net", "label": "Internet (policy-gated)"}
+    ],
+    "nodes": [
+      {"id": "browser", "label": "Browser", "lane": "laptop", "sub": "http://127.0.0.1:18789/#token=…", "accent": "cyan"},
+      {"id": "labs", "label": "labs 16-1…16-4", "lane": "laptop", "sub": "preflight · status · preset · route", "accent": "green"},
+      {"id": "cli", "label": "nemoclaw / openshell CLI", "lane": "host", "sub": "onboard · status · policy-add · logs"},
+      {"id": "vllm", "label": "vLLM :8000", "lane": "host", "sub": "managed (Express) or existing", "accent": "violet"},
+      {"id": "gateway", "label": "OpenClaw gateway + Web UI", "lane": "sandbox", "sub": ":18789 · forwarded by openshell", "accent": "amber"},
+      {"id": "agent", "label": "OpenClaw agent", "lane": "sandbox", "sub": "tools · skills · cron"},
+      {"id": "proxy", "label": "OpenShell egress proxy", "lane": "sandbox", "sub": "network_policies allow-list", "accent": "red"},
+      {"id": "allowed", "label": "allowed hosts only", "lane": "net", "sub": "e.g. news-sources preset"},
+      {"id": "telegram", "label": "api.telegram.org", "lane": "net", "sub": "optional channel · long-polling"}
+    ],
+    "edges": [
+      {"from": "browser", "to": "gateway", "label": "ssh -L 18789:127.0.0.1:18789", "animated": true},
+      {"from": "labs", "to": "cli", "label": "ssh (read-only checks)"},
+      {"from": "cli", "to": "gateway", "label": "creates + manages"},
+      {"from": "gateway", "to": "agent", "label": "chat turns"},
+      {"from": "agent", "to": "vllm", "label": "inference.local → :8000", "animated": true},
+      {"from": "agent", "to": "proxy", "label": "every outbound call"},
+      {"from": "proxy", "to": "allowed", "label": "allowed → tunnel"},
+      {"from": "proxy", "to": "telegram", "label": "only with the telegram preset"}
+    ]
+  },
+  "sequence": {
+    "title": "One agent turn — a tool call that the policy refuses",
+    "caption": "The model asks for a tool; the agent runs it inside the sandbox; the egress proxy checks the policy and refuses a host that is not allowed with 'CONNECT tunnel failed, response 403'. The denial is logged (nemoclaw <name> logs, openshell term) and the agent reports the failure instead of leaking data. The tool name is illustrative; the 403 text is quoted from the playbook. This is the boundary lab 16-2 tests.",
+    "actors": [
+      {"id": "you", "label": "You (Web UI)"},
+      {"id": "agent", "label": "OpenClaw (sandbox)"},
+      {"id": "model", "label": "vLLM via inference.local"},
+      {"id": "proxy", "label": "OpenShell proxy"}
+    ],
+    "steps": [
+      {"from": "you", "to": "agent", "label": "summarise https://example.com for me", "kind": "call"},
+      {"from": "agent", "to": "model", "label": "chat/completions + tools", "kind": "call"},
+      {"from": "model", "to": "agent", "label": "tool_call <fetch tool>(url=example.com)", "kind": "return"},
+      {"from": "agent", "to": "proxy", "label": "CONNECT example.com:443", "kind": "call"},
+      {"from": "proxy", "to": "proxy", "label": "host not in network_policies → deny + log", "kind": "note"},
+      {"from": "proxy", "to": "agent", "label": "403 CONNECT tunnel failed", "kind": "return"},
+      {"from": "agent", "to": "you", "label": "'I could not reach that site (blocked by policy)'", "kind": "return"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Extra internet hosts each example agent needs (beyond inference.local)",
+      "type": "hbars",
+      "unit": "hosts",
+      "labels": ["Software Development Agent", "Deck Reviewer (default)", "Calendar Negotiator (propose-only)", "Daily News Digest"],
+      "series": [
+        {"name": "egress hosts", "values": [0, 0, 0, 4], "color": "amber"}
+      ],
+      "caption": "From the NemoClaw applications playbook: the developer agent, deck reviewer and propose-only calendar agent run with no outbound network at all; the news digest adds its three example sources (news-sources preset) plus api.telegram.org for delivery. Fewer hosts, smaller blast radius."
+    }
+  ]
+}
