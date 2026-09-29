@@ -128,31 +128,65 @@ Five interactive web apps that take the whole stack onto an **NVIDIA DGX** — r
 - **`week19/self_evolving_agent_v2/`** (port 8095) — the Week 18 self-evolving agent, made sovereign: a **switchable brain** (DGX ↔ Claude) + tripartite **memory on the DGX** that learns over time.
 - **`week19/dgx_litellm/`** (port 8096) — the **serving gateway**: one OpenAI URL over all backends with **LiteLLM** — routing, fallbacks, hot-swap, virtual keys/budgets, logging → Phoenix.
 
+#### 🔹 Week 21: Physical AI & Digital Twins for Buildings
+**Digital twin = scene (OpenUSD) + state (live data) + simulation (physics) + agents.** Thirteen interactive apps (SIM/REAL) on NVIDIA Omniverse + OpenUSD and the Physical AI stack, from the three-computer model to a running building.
+- 👉 **Start here → [`week21/README.md`](week21/README.md)** · apps `01_physical_ai_landscape` → `13_capstone_smart_city` on ports **8200–8212** (e.g. `.venv/bin/python week21/01_physical_ai_landscape/tutorial_server.py`).
+- OpenUSD foundations · BIM → USD · scene assembly · live BACnet/Modbus → MQTT binding · EnergyPlus simulation and what-if sweeps · PhysicsNeMo surrogates · RL building controls · a self-evolving operator and a staff copilot · two capstones (a hotel twin, a sovereign smart city).
+
+### Phase ⑥ The open stack, typed decisions & your own hardware
+
+#### 🔹 Week 23: The Open Superintelligence Stack (NVIDIA)
+**Agent = model + harness.** Twelve interactive apps that walk NVIDIA's open stack for long-running, self-evolving, sovereign agents, then combine it into a capstone that runs a building.
+- 👉 **Start here → [`week23/README.md`](week23/README.md)** · hub `00_stack_navigator` (port **8112**) · hands-on **Lab Runner** `00_lab_runner` (port **8113**) · apps `01`–`12` on ports **8100–8111**.
+- Nemotron models · NIM microservices · Dynamo serving · agent skills · AI-Q research lab · NemoClaw · guardrails + OpenShell · NeMo Relay · inference economics · NeMo Gym RL · the data flywheel · capstone smart hotel.
+
+#### 🔹 Week 24: Typed AI Decisions with Jev (TypeSafe System One)
+**Jev judges, your code decides.** Jev returns typed judgments (`choice`, `noul`, `score`) instead of prose, so code can route, rank and verify, with actions kept behind deterministic policy.
+- 👉 **Start here:** `.venv/bin/python week24/00_jev_lab_runner/tutorial_server.py` → **http://127.0.0.1:8124** · [`week24/README.md`](week24/README.md)
+- 14 modules, EN + ไทย: the three primitives · question design · intent routing · email triage · HR evidence · AFDD alarm triage · leads/RAG · evaluation and cost · Jev vs Laya · Jev + an LLM of your choice · a hotel copilot capstone · multimodal and live (voice/video) agents. Runs **LIVE** with `TYPESAFE_API_KEY`, or **DRY** from recorded answers at $0.
+
+#### 🔹 Week 25: DGX Spark — Fine-Tune, Serve & Build Sandboxed Agents
+NVIDIA's official [DGX Spark playbooks](https://build.nvidia.com/spark), hands-on, on one Spark or two cabled together.
+- 👉 **Start here:** `.venv/bin/python week25/00_spark_lab_runner/tutorial_server.py` → **http://127.0.0.1:8125** · [`week25/README.md`](week25/README.md)
+- 21 modules, EN + ไทย: connect and budget a Spark · two Sparks over QSFP + NCCL · **serve** with Ollama, llama.cpp, vLLM, SGLang, TensorRT-LLM, NIM, NVFP4 and speculative decoding · a **LiteLLM** gateway · **fine-tune** with LLaMA Factory, Unsloth, PyTorch/NeMo and VLM/FLUX · evaluate → serve → route your fine-tune · **agents** with NeMo Agent Toolkit, OpenShell, NemoClaw, OpenClaw/Hermes and local coding agents · a capstone that puts a fine-tuned router, as a tool, behind a gateway for an agent in a sandbox · an atlas of every other playbook.
+- Labs drive your Spark over SSH (**LIVE**), or run **DRY** with every output labelled RECORDED, REFERENCE or EXAMPLE. Agent and gateway labs run for real against Ollama on your laptop.
+
+### 🦾 Special track: Agentic Robotics (SO-ARM101)
+From a simulated SO-ARM101 arm to a tool-using robot agent, in numbered lessons: MuJoCo manual control → record/replay → kinematic pick-and-place → active perception with the wrist camera → semantic scene → **agentic manipulation** (safe robot tools for an LLM) → a guided full pipeline. A workshop portal (`08_workshop_portal/`, **http://127.0.0.1:8000**) operates the simulation or a safety-gated LeRobot path to the physical arm.
+- 👉 **Start here → [`week_agentic_robotic/README.md`](week_agentic_robotic/README.md)** (`00_getting_started/check_setup.py` first).
+
+> Weeks 12, 13, 20 and 22 are not published in this repository.
+
 ---
 
 ## 🛠️ Getting Started
 
 ### 1. Requirements
-Ensure you have **Python 3.10+** installed on your machine.
+- **Python 3.13** (the repo's `pyproject.toml` requires it) and [**uv**](https://docs.astral.sh/uv/) (recommended), or plain `venv` + `pip`.
+- Optional: [**Ollama**](https://ollama.com) for free local models (weeks 18–25 use it as a stand-in when no GPU box is around). Optional: Docker, for Neo4j (weeks 14–15) and NVIDIA containers (weeks 19–25).
 
-Clone the repository and set up a virtual environment:
+Clone the repository and create the shared virtual environment. The labs call `.venv/bin/python`, so keep it at the repo root:
 ```bash
-git clone https://github.com/your-username/AgenticCoding.git
-cd AgenticCoding
-python3 -m venv venv
-source venv/bin/activate  # On Windows use: venv\Scripts\activate
+git clone https://github.com/kwarodom/agenticaicodingfitness.git
+cd agenticaicodingfitness
+uv venv -p 3.13 .venv                    # or: python3.13 -m venv .venv
+source .venv/bin/activate                # Windows: .venv\Scripts\activate
 ```
 
 ### 2. Install Dependencies
 ```bash
-pip install -r requirements.txt
+uv pip install -r requirements.txt       # or: pip install -r requirements.txt
 ```
+Weeks with extra dependencies (frameworks, web apps, GPU tooling) list them in their own `README.md` or `requirements.txt`. Week 25 keeps its NeMo Agent Toolkit and LiteLLM tools in their own venvs; see [`week25/README.md`](week25/README.md).
 
 ### 3. Environment Variables
-To authenticate with the models, create a `.env` file in the root directory:
-```ini
-ANTHROPIC_API_KEY="sk-ant-api03-YourAnthropicKeyHere..."
+Copy the template and fill in **only the keys for the weeks you are doing**:
+```bash
+cp .env.example .env
 ```
+[`.env.example`](.env.example) lists every variable the code reads, grouped by the week that needs it. Most weeks need just `ANTHROPIC_API_KEY`, and many labs run with no key at all ($0 / DRY / SIM modes, or a local model). Some weeks ship their own template as well: `week6/`, `week10/`, `week15/code/`, `week23/`, `week24/` and `week25/`.
+
+> 🔐 `.env` is gitignored. Never commit a key, paste one into code or a notebook, or show one in a screenshot. If a key is ever exposed, **revoke it at the provider**. Deleting it from the code does not un-publish it.
 
 ### 4. Hardware Configuration (Optional)
 - **Tapo Lights**: Edit `tapo_config.json` with your TP-Link account credentials and local IP address of your light bulb. 
