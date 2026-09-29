@@ -1,0 +1,83 @@
+{
+  "architecture": {
+    "title": "The multi-agent chatbot on one Spark — a supervisor LLM, four MCP tools, specialists on the Docker network",
+    "caption": "From the playbook's docker-compose.yml, docker-compose-models.yml and backend/client.py. Only the frontend (:3000), backend (:8000), Postgres (:5432) and Milvus (:19530, :9091) publish host ports; the model servers are reached by container name on chatbot-net (http://<name>:8000/v1). The supervisor is forbidden to write code or answer from documents itself, and the tool loop stops after 3 iterations.",
+    "lanes": [
+      {"id": "laptop", "label": "Your laptop"},
+      {"id": "app", "label": "Spark · application containers"},
+      {"id": "models", "label": "Spark · model servers (GPU)"}
+    ],
+    "nodes": [
+      {"id": "browser", "label": "Browser", "lane": "laptop", "sub": "ssh -L 3000 -L 8000", "accent": "cyan"},
+      {"id": "frontend", "label": "frontend :3000", "lane": "app", "sub": "Next.js chat UI"},
+      {"id": "backend", "label": "backend :8000", "lane": "app", "sub": "FastAPI · LangGraph · supervisor", "accent": "green"},
+      {"id": "mcp", "label": "MCP servers (stdio)", "lane": "app", "sub": "write_code · search_documents · explain_image · weather", "accent": "amber"},
+      {"id": "milvus", "label": "Milvus :19530", "lane": "app", "sub": "chunks 1000/200 · k=8"},
+      {"id": "gptoss", "label": "gpt-oss-120b", "lane": "models", "sub": "llama.cpp · supervisor", "accent": "violet"},
+      {"id": "coder", "label": "deepseek-coder", "lane": "models", "sub": "llama.cpp · 6.7B Q8_0"},
+      {"id": "embed", "label": "qwen3-embedding", "lane": "models", "sub": "llama.cpp --embeddings"},
+      {"id": "vlm", "label": "qwen2.5-vl", "lane": "models", "sub": "trtllm-serve · Qwen2-VL-7B-Instruct"}
+    ],
+    "edges": [
+      {"from": "browser", "to": "frontend", "label": "HTTP"},
+      {"from": "frontend", "to": "backend", "label": "chat", "animated": true},
+      {"from": "backend", "to": "gptoss", "label": "tools + messages", "animated": true},
+      {"from": "backend", "to": "mcp", "label": "tool calls"},
+      {"from": "mcp", "to": "coder", "label": "write_code"},
+      {"from": "mcp", "to": "milvus", "label": "search_documents"},
+      {"from": "milvus", "to": "embed", "label": "embed query"},
+      {"from": "mcp", "to": "vlm", "label": "explain_image"}
+    ]
+  },
+  "sequence": {
+    "title": "A dependent request: 'search my documents, then build a website from them'",
+    "caption": "The supervisor prompt's own few-shot example: a call whose arguments depend on another call's output is staged, not batched. Lab 19-3 does the retrieval step with stdlib TF-IDF instead of Qwen3 vectors in Milvus; exercise 19 builds the graph context txt2kg would add.",
+    "actors": [
+      {"id": "user", "label": "user"},
+      {"id": "sup", "label": "supervisor (gpt-oss-120b)"},
+      {"id": "rag", "label": "search_documents"},
+      {"id": "code", "label": "write_code (deepseek-coder)"}
+    ],
+    "steps": [
+      {"from": "user", "to": "sup", "label": "search my documents for design requirements, then build a website", "kind": "call"},
+      {"from": "sup", "to": "rag", "label": "tool_call search_documents({query})", "kind": "call"},
+      {"from": "rag", "to": "sup", "label": "answer from k=8 retrieved chunks", "kind": "return"},
+      {"from": "sup", "to": "sup", "label": "iteration 2 of max 3", "kind": "note"},
+      {"from": "sup", "to": "code", "label": "tool_call write_code({query + requirements, 'HTML'})", "kind": "call"},
+      {"from": "code", "to": "sup", "label": "raw code", "kind": "return"},
+      {"from": "sup", "to": "user", "label": "final answer built on both tool results", "kind": "return"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Lab 19-3 — stdlib TF-IDF over 65 playbook READMEs, 8 questions with known answers",
+      "type": "bars",
+      "unit": "questions answered correctly (of 8)",
+      "labels": ["hit@1", "hit@3"],
+      "series": [
+        {"name": "TF-IDF retriever", "values": [6, 8], "color": "green"}
+      ],
+      "caption": "Measured on this Mac (retrieval is arithmetic, identical on every machine; dgx-spark-playbooks@3410c65, 1510 sections). Both misses at #1 lost to playbooks sharing the words, not the intent (VLM, VS Code)."
+    },
+    {
+      "title": "Lab 19-2 — txt2kg's prompt on three playbook paragraphs: facts vs. a connected graph",
+      "type": "bars",
+      "unit": "count",
+      "labels": ["unique triples", "entities", "connected components", "entities linking 2+ playbooks"],
+      "series": [
+        {"name": "gemma4:12b (laptop stand-in)", "values": [22, 33, 11, 1], "color": "amber"}
+      ],
+      "caption": "LAPTOP STAND-IN, measured in one run on this Mac (extraction is sampled; a second run gave the same pattern). Good-looking triples, a fragmented graph: the only cross-document entity was the word 'playbook'. Entity resolution, not extraction, is the hard part."
+    },
+    {
+      "title": "Multi-agent chatbot default model downloads",
+      "type": "donut",
+      "unit": "GB",
+      "labels": ["gpt-oss-120B", "Deepseek-Coder 6.7B", "Qwen3-Embedding-4B"],
+      "series": [
+        {"name": "download", "values": [63, 7, 4], "color": "violet"}
+      ],
+      "caption": "REFERENCE: sizes from the multi-agent-chatbot playbook's prerequisites (~75 GB total). The playbook says the running demo uses ~120 GB of memory by default, so it needs the Spark to itself."
+    }
+  ]
+}

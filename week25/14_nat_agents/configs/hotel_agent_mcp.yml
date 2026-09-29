@@ -1,0 +1,31 @@
+# Week 25 · Module 14 — the same agent, but its hotel tools come from an MCP server (§6).
+# Terminal 1 serves the tools:  ../.venv-nat/bin/nat mcp serve --config_file configs/hotel_agent.yml \
+#                                   --name hotel-ops --port 9901 --tool_names room_temperature --tool_names create_maintenance_ticket
+# Terminal 2 runs this agent:   ../.venv-nat/bin/nat run --config_file configs/hotel_agent_mcp.yml --input "..."
+
+llms:
+  hotel_llm:
+    _type: openai
+    base_url: ${HOTEL_LLM_BASE_URL:-http://localhost:11434/v1}
+    model_name: ${HOTEL_LLM_MODEL:-nemotron-3-nano:latest}
+    api_key: ${HOTEL_LLM_API_KEY:-not-needed}
+    temperature: 0.0
+    max_tokens: 512
+    reasoning_effort: ${HOTEL_LLM_REASONING:-none}
+
+function_groups:
+  hotel_mcp:                               # every tool the MCP server lists becomes an agent tool
+    _type: mcp_client
+    server:
+      transport: streamable-http
+      url: ${HOTEL_MCP_URL:-http://localhost:9901/mcp}
+
+workflow:
+  _type: tool_calling_agent
+  llm_name: hotel_llm
+  tool_names: [hotel_mcp]
+  max_iterations: 6
+  system_prompt: |
+    You are the night-shift operations assistant of a small hotel. Read a room before you judge it.
+    Open a maintenance ticket only for a fault or a room outside its comfort band, and quote the ticket id.
+    Answer in two short sentences.

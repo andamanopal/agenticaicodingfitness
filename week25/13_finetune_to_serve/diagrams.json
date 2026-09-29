@@ -1,0 +1,230 @@
+{
+  "architecture": {
+    "title": "Close the loop — score, serve, route, gate",
+    "caption": "Module 09 trains a LoRA adapter on the Spark. This module scores it against a prompt-only baseline with one shared scorer (_hotel_eval.py), serves it on vLLM as an adapter (or merged, or as GGUF on Ollama), and puts one LiteLLM alias in front with a fallback chain. The ship gate decides; the fallback header tells you when the fine-tune is silently not serving.",
+    "lanes": [
+      {
+        "id": "spark",
+        "label": "DGX Spark"
+      },
+      {
+        "id": "laptop",
+        "label": "Laptop (labs + gateway)"
+      },
+      {
+        "id": "clients",
+        "label": "Clients"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "train",
+        "label": "LLaMA Factory (Module 09)",
+        "lane": "spark",
+        "sub": "LoRA adapter · predict file",
+        "accent": "violet"
+      },
+      {
+        "id": "vllm",
+        "label": "vLLM :8000",
+        "lane": "spark",
+        "sub": "base + --lora-modules hotel-ft",
+        "accent": "green"
+      },
+      {
+        "id": "score",
+        "label": "_hotel_eval.py",
+        "lane": "laptop",
+        "sub": "JSON · dept · urgent · time rule",
+        "accent": "cyan"
+      },
+      {
+        "id": "gate",
+        "label": "Ship gate",
+        "lane": "laptop",
+        "sub": "vs baseline · every metric ✓",
+        "accent": "amber"
+      },
+      {
+        "id": "gw",
+        "label": "LiteLLM :4000",
+        "lane": "laptop",
+        "sub": "hotel-router → ft → base → laptop",
+        "accent": "green"
+      },
+      {
+        "id": "app",
+        "label": "Hotel apps",
+        "lane": "clients",
+        "sub": "always ask for hotel-router"
+      }
+    ],
+    "edges": [
+      {
+        "from": "train",
+        "to": "vllm",
+        "label": "adapter folder (~60 MB)",
+        "animated": true
+      },
+      {
+        "from": "train",
+        "to": "score",
+        "label": "generated_predictions.jsonl"
+      },
+      {
+        "from": "score",
+        "to": "gate",
+        "label": "metrics"
+      },
+      {
+        "from": "app",
+        "to": "gw",
+        "label": "model: hotel-router",
+        "animated": true
+      },
+      {
+        "from": "gw",
+        "to": "vllm",
+        "label": "hotel-ft (or fallback)"
+      },
+      {
+        "from": "gate",
+        "to": "gw",
+        "label": "ship → route traffic"
+      }
+    ]
+  },
+  "sequence": {
+    "title": "Lab 13-4 — one request through the fallback chain (no Spark serving)",
+    "caption": "Captured on the laptop with a real LiteLLM 1.89 proxy: the fine-tune and base deployments on Spark A were unreachable, so the laptop answered with HTTP 200. Only the x-litellm-attempted-fallbacks header reveals it.",
+    "actors": [
+      {
+        "id": "client",
+        "label": "lab04 (client)"
+      },
+      {
+        "id": "gw",
+        "label": "LiteLLM"
+      },
+      {
+        "id": "spark",
+        "label": "Spark A vLLM"
+      },
+      {
+        "id": "laptop",
+        "label": "laptop Ollama"
+      }
+    ],
+    "steps": [
+      {
+        "from": "client",
+        "to": "gw",
+        "label": "POST model=hotel-router",
+        "kind": "call"
+      },
+      {
+        "from": "gw",
+        "to": "spark",
+        "label": "hotel-ft",
+        "kind": "call"
+      },
+      {
+        "from": "spark",
+        "to": "gw",
+        "label": "connection failed",
+        "kind": "return"
+      },
+      {
+        "from": "gw",
+        "to": "laptop",
+        "label": "fallback → gemma4:12b",
+        "kind": "call"
+      },
+      {
+        "from": "laptop",
+        "to": "gw",
+        "label": "{\"department\": …}",
+        "kind": "return"
+      },
+      {
+        "from": "gw",
+        "to": "client",
+        "label": "HTTP 200 · x-litellm-attempted-fallbacks: 1",
+        "kind": "return"
+      },
+      {
+        "from": "client",
+        "to": "client",
+        "label": "log the header — or a dead fine-tune goes unnoticed",
+        "kind": "note"
+      }
+    ]
+  },
+  "charts": [
+    {
+      "title": "Prompt-only baseline vs the ship gate (lab 13-1, laptop stand-in)",
+      "type": "bars",
+      "unit": "%",
+      "labels": [
+        "json_valid",
+        "department_acc",
+        "urgent_recall",
+        "reply_policy"
+      ],
+      "series": [
+        {
+          "name": "baseline (gemma4:12b, laptop)",
+          "values": [
+            97,
+            97,
+            80,
+            97
+          ],
+          "color": "cyan"
+        },
+        {
+          "name": "needed to ship",
+          "values": [
+            98,
+            90,
+            100,
+            95
+          ],
+          "color": "amber"
+        }
+      ],
+      "caption": "Real run on this Mac, 60 held-out messages, temperature 0. The two failures are both security emergencies answered with unquoted \"urgent\" — invalid JSON. The fine-tune's column appears once lab 13-2 runs on a Spark."
+    },
+    {
+      "title": "The same baseline, sliced by guest language (lab 13-2)",
+      "type": "bars",
+      "unit": "%",
+      "labels": [
+        "department",
+        "priority",
+        "normal → urgent"
+      ],
+      "series": [
+        {
+          "name": "English (n=50)",
+          "values": [
+            96,
+            96,
+            0
+          ],
+          "color": "cyan"
+        },
+        {
+          "name": "Thai (n=10)",
+          "values": [
+            100,
+            10,
+            90
+          ],
+          "color": "red"
+        }
+      ],
+      "caption": "Real run on this Mac (gemma4:12b, laptop stand-in). 9 of 10 normal Thai requests were flagged urgent, 0 of 40 English. Small sample (n=10), one model, one run — but the average hid it completely."
+    }
+  ]
+}

@@ -1,0 +1,69 @@
+{
+  "architecture": {
+    "title": "Two Sparks, one cluster — management network for control, QSFP link for data",
+    "caption": "Your laptop drives both Sparks over SSH on the management network (Ethernet enP7s7, Wi-Fi or Tailscale). One QSFP cable joins the ConnectX-7 chips directly; each physical port shows up as two logical interfaces, each on its own /24 subnet (192.168.100.x and 192.168.101.x in the playbook). mpirun starts on Spark A and SSHes to Spark B; NCCL sends the bulk data over the RoCE devices on the cable.",
+    "lanes": [
+      {"id": "laptop", "label": "Your laptop"},
+      {"id": "a", "label": "Spark A (node 1 · launcher)"},
+      {"id": "b", "label": "Spark B (node 2)"}
+    ],
+    "nodes": [
+      {"id": "labs", "label": "labs/*.py + sparkkit", "lane": "laptop", "sub": "sh(which='a') · sh(which='b')", "accent": "green"},
+      {"id": "mgmt_a", "label": "enP7s7 (management)", "lane": "a", "sub": "SSH · mpirun control"},
+      {"id": "cx7_a", "label": "ConnectX-7 port 1", "lane": "a", "sub": "enp1s0f1np1 .100.10 · enP2p1s0f1np1 .101.10", "accent": "cyan"},
+      {"id": "rank0", "label": "NCCL rank 0", "lane": "a", "sub": "all_gather_perf · GB10", "accent": "violet"},
+      {"id": "mgmt_b", "label": "enP7s7 (management)", "lane": "b", "sub": "SSH from Spark A"},
+      {"id": "cx7_b", "label": "ConnectX-7 port 1", "lane": "b", "sub": "enp1s0f1np1 .100.11 · enP2p1s0f1np1 .101.11", "accent": "cyan"},
+      {"id": "rank1", "label": "NCCL rank 1", "lane": "b", "sub": "started by mpirun over SSH", "accent": "violet"}
+    ],
+    "edges": [
+      {"from": "labs", "to": "mgmt_a", "label": "ssh spark-a"},
+      {"from": "labs", "to": "mgmt_b", "label": "ssh spark-b"},
+      {"from": "mgmt_a", "to": "mgmt_b", "label": "mpirun → ssh (passwordless)"},
+      {"from": "cx7_a", "to": "cx7_b", "label": "QSFP 200 Gb/s · RoCE", "animated": true},
+      {"from": "rank0", "to": "cx7_a", "label": "NCCL data"},
+      {"from": "rank1", "to": "cx7_b", "label": "NCCL data"}
+    ]
+  },
+  "sequence": {
+    "title": "Lab 02-3 — one NCCL all-gather test across two Sparks",
+    "caption": "The lab checks the build on both Sparks, reads both management IPs, and runs the playbook's mpirun command on Spark A. mpirun starts rank 1 on Spark B over SSH; the ranks exchange 16 GB over the QSFP link. The lab parses the nccl-tests table and compares '# Avg bus bandwidth' with the 21.875 GB/s pass mark from NVIDIA's cluster script. In DRY mode the table is an EXAMPLE; the parser is also tested on NVIDIA's real RDMA sample.",
+    "actors": [
+      {"id": "lab", "label": "lab03 (laptop)"},
+      {"id": "a", "label": "Spark A"},
+      {"id": "b", "label": "Spark B"}
+    ],
+    "steps": [
+      {"from": "lab", "to": "a", "label": "ls ~/nccl/build/lib/libnccl.so.2 ~/nccl-tests/build/all_gather_perf", "kind": "call"},
+      {"from": "lab", "to": "b", "label": "same check · ip -4 -o addr show enP7s7", "kind": "call"},
+      {"from": "lab", "to": "a", "label": "mpirun -np 2 -H A:1,B:1 … all_gather_perf -b 16G -e 16G -f 2", "kind": "call"},
+      {"from": "a", "to": "b", "label": "ssh: start rank 1", "kind": "call"},
+      {"from": "a", "to": "b", "label": "16 GB all-gather over QSFP (RoCE)", "kind": "note"},
+      {"from": "a", "to": "lab", "label": "size · time · algbw · busbw · # Avg bus bandwidth", "kind": "return"},
+      {"from": "lab", "to": "lab", "label": "busbw = algbw × (n−1)/n · ≥ 21.875 GB/s → pass", "kind": "note"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Bandwidth at each layer, in GB/s",
+      "type": "hbars",
+      "unit": "GB/s",
+      "labels": ["Memory, per Spark", "QSFP line rate (200 Gb/s)", "RDMA sample, 2 interfaces (playbook)", "NCCL pass mark, direct", "NCCL pass mark, 3-Spark ring"],
+      "series": [
+        {"name": "GB/s", "values": [273, 25, 23.73, 21.875, 10], "color": "cyan"}
+      ],
+      "caption": "Memory: DGX Spark spec. Line rate: 200 ÷ 8. RDMA: the playbook's ib_write_bw sample, 92.57 + 97.28 = 189.85 Gb/s ÷ 8 (re-computed by lab 03). Pass marks: MIN_NCCL_TEST_BW and MIN_NCCL_TEST_BW_RING in NVIDIA's spark_cluster_setup.py. The cable is about 12× slower than memory, so only activations cross it."
+    },
+    {
+      "title": "Per-token time, one Spark vs TP=2 (α = 30 µs assumed)",
+      "type": "bars",
+      "unit": "ms per token (lower is better)",
+      "labels": ["Llama 3.1 8B", "Llama 3.3 70B", "gpt-oss-120b"],
+      "series": [
+        {"name": "1 Spark", "values": [16.5, 145.5, 10.5], "color": "amber"},
+        {"name": "TP=2", "values": [10.2, 77.7, 7.4], "color": "green"}
+      ],
+      "caption": "From lab 04 (arithmetic, not a measurement): NVFP4-sized weights read at 273 GB/s, plus 2 × layers all-reduces at an ASSUMED 30 µs latency and 21.875 GB/s busbw. At 100 µs gpt-oss-120b becomes slower on two Sparks (0.84×). Module 05 measures real numbers."
+    }
+  ]
+}

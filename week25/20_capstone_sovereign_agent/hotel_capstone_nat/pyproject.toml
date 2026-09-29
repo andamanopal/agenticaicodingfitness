@@ -1,0 +1,19 @@
+# The capstone's NeMo Agent Toolkit plugin: ONE extra tool, route_guest_message, which asks the
+# fine-tuned hotel router (Module 09 → served in Module 13) through the LiteLLM gateway (Module 08).
+# The room/ticket tools come from Module 14's hotel_ops_nat plugin, installed alongside it.
+#
+#   uv pip install --python week25/.venv-nat/bin/python --no-deps -e week25/20_capstone_sovereign_agent/hotel_capstone_nat
+
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = ["setuptools >= 64"]
+
+[project]
+name = "hotel_capstone_nat"
+version = "0.1.0"
+dependencies = ["nvidia-nat[langchain]~=1.9"]
+requires-python = ">=3.11,<3.14"
+description = "Week 25 capstone: route_guest_message tool (fine-tuned router behind a LiteLLM gateway)"
+
+[project.entry-points.'nat.components']
+hotel_capstone_nat = "hotel_capstone_nat.register"

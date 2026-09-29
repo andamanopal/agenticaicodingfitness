@@ -1,0 +1,50 @@
+# LLaMA Factory · Week 25 Module 09 · hotel guest-request router · method: lora
+# Written by labs/lab03_config_and_launch.py — adapted from the playbook's examples/train_lora/qwen3_lora_sft.yaml.
+# Run from ~/w25/m09 on the Spark:  llamafactory-cli train configs/hotel_lora_sft.yaml
+### model
+model_name_or_path: Qwen/Qwen3-4B-Instruct-2507   # base model from Hugging Face (not gated: no hf login needed)
+trust_remote_code: true
+
+### method
+stage: sft                       # supervised fine-tuning on (prompt, response) pairs
+do_train: true
+finetuning_type: lora           # train a small adapter, freeze the base
+lora_rank: 16                    # r: width of the adapter. 8 in the playbook example; 16 for a 6-way router
+lora_alpha: 32                   # scale = alpha / r. LLaMA Factory's default is 2 × rank
+lora_dropout: 0.05
+lora_target: all                 # adapt all 7 linear layers in every block (q k v o gate up down)
+
+### dataset
+dataset_dir: data                # folder holding dataset_info.json (relative to where you run the command)
+dataset: hotel_ops               # a NAME registered in data/dataset_info.json, not a file name
+eval_dataset: hotel_ops_eval     # held-out requests: gives an eval_loss curve next to the train loss
+template: qwen3_nothink           # chat format of the base model. Must match in chat, predict and merge
+cutoff_len: 1024                 # max tokens per record; lab 02 estimates the longest at ~180
+max_samples: 1000
+preprocessing_num_workers: 16
+dataloader_num_workers: 4
+
+### output
+output_dir: saves/qwen3-4b-hotel/lora/sft   # adapter (or full model) + trainer_log.jsonl + training_loss.png
+logging_steps: 5                 # one loss line every 5 optimizer steps → ~37 points for lab 04
+save_steps: 100
+plot_loss: true
+overwrite_output_dir: true
+save_only_model: false
+report_to: none                  # choices: [none, wandb, tensorboard, swanlab, mlflow]
+
+### train
+per_device_train_batch_size: 2
+gradient_accumulation_steps: 4   # effective batch = 2 × 4 = 8, the same as the playbook's 1 × 8
+learning_rate: 1.0e-4           # write 1.0e-4, not 1e-4: plain YAML 1.1 parsers read 1e-4 as a string
+num_train_epochs: 3.0
+lr_scheduler_type: cosine
+warmup_ratio: 0.1
+bf16: true                       # bfloat16 mixed precision, as in the playbook example
+ddp_timeout: 180000000
+resume_from_checkpoint: null
+
+### eval
+per_device_eval_batch_size: 1
+eval_strategy: steps
+eval_steps: 50

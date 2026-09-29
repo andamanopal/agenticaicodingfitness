@@ -1,0 +1,72 @@
+{
+  "architecture": {
+    "title": "From a BF16 checkpoint to a fast NVFP4 server — quantize once, then speculate at serve time",
+    "caption": "Model Optimizer runs inside NVIDIA's TensorRT-LLM container on the Spark. It calibrates on sample text, rewrites the weights as NVFP4 (4-bit E2M1 values + one FP8 scale per 16), and exports a Hugging Face checkpoint with hf_quant_config.json. trtllm-serve loads it on :8355 (the course port). Speculative decoding is a serve-time option in the same engine: a draft (an EAGLE-3 head or a small FP4 model) proposes tokens and the target checks them in one pass.",
+    "lanes": [
+      {"id": "hub", "label": "Hugging Face"},
+      {"id": "spark", "label": "DGX Spark (GB10 · 128 GB unified)"},
+      {"id": "client", "label": "Clients"}
+    ],
+    "nodes": [
+      {"id": "bf16", "label": "BF16 checkpoint", "lane": "hub", "sub": "DeepSeek-R1-Distill-Llama-8B · ~16 GB", "accent": "red"},
+      {"id": "fp4hub", "label": "Pre-quantized FP4", "lane": "hub", "sub": "nvidia/Llama-3.3-70B-Instruct-FP4 …", "accent": "green"},
+      {"id": "modelopt", "label": "Model Optimizer 0.35.0", "lane": "spark", "sub": "huggingface_example.sh --quant nvfp4", "accent": "amber"},
+      {"id": "ckpt", "label": "NVFP4 HF checkpoint", "lane": "spark", "sub": "safetensors + hf_quant_config.json", "accent": "green"},
+      {"id": "serve", "label": "trtllm-serve :8355", "lane": "spark", "sub": "--backend pytorch", "accent": "violet"},
+      {"id": "draft", "label": "Draft path", "lane": "spark", "sub": "EAGLE-3 head · or 8B FP4 draft model", "accent": "cyan"},
+      {"id": "app", "label": "OpenAI client / lab 03", "lane": "client", "sub": "/v1/completions · tok/s"}
+    ],
+    "edges": [
+      {"from": "bf16", "to": "modelopt", "label": "hf download"},
+      {"from": "modelopt", "to": "ckpt", "label": "calibrate · quantize · export", "animated": true},
+      {"from": "ckpt", "to": "serve", "label": "-v $MODEL_PATH:/workspace/model"},
+      {"from": "fp4hub", "to": "serve", "label": "ready-made NVFP4"},
+      {"from": "draft", "to": "serve", "label": "speculative_config", "animated": true},
+      {"from": "app", "to": "serve", "label": "HTTP", "animated": true}
+    ]
+  },
+  "sequence": {
+    "title": "One speculative decoding step (k = 4 drafted tokens)",
+    "caption": "The draft proposes 4 tokens cheaply, one after another. The target scores all of them in ONE forward pass, which costs about the same as a normal decode step because decode is memory-bound (lab 04, Step 1). Tokens are accepted left to right until the first disagreement; the target then adds its own token. So each step yields between 1 and k+1 tokens, and the output is what the target would have produced anyway.",
+    "actors": [
+      {"id": "client", "label": "Client"},
+      {"id": "draft", "label": "Draft (EAGLE-3 head / 8B)"},
+      {"id": "target", "label": "Target (gpt-oss-120b / 70B)"}
+    ],
+    "steps": [
+      {"from": "client", "to": "target", "label": "prompt … 'the train travels'", "kind": "call"},
+      {"from": "target", "to": "draft", "label": "context so far", "kind": "call"},
+      {"from": "draft", "to": "draft", "label": "guess 4 tokens: ' at' ' 60' ' km' ' per'", "kind": "note"},
+      {"from": "draft", "to": "target", "label": "4 drafted tokens", "kind": "return"},
+      {"from": "target", "to": "target", "label": "ONE forward pass scores all 4 positions (weights read once)", "kind": "note"},
+      {"from": "target", "to": "target", "label": "accept ' at' ' 60' ' km' · reject ' per' → emit its own '/h'", "kind": "note"},
+      {"from": "target", "to": "client", "label": "4 tokens from 1 target pass (3 accepted + 1 own)", "kind": "return"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Quantization error on 65,536 weight-like numbers (higher is better)",
+      "type": "bars",
+      "unit": "SQNR dB",
+      "labels": ["FP8 E4M3", "NVFP4", "MXFP4", "INT4 g128", "INT4 per-tensor"],
+      "series": [
+        {"name": "Gaussian", "values": [31.4, 20.4, 18.8, 18.6, 13.9], "color": "cyan"},
+        {"name": "with 0.5% outliers", "values": [31.4, 20.5, 16.7, 11.5, 2.4], "color": "amber"}
+      ],
+      "caption": "From lab 01 (pure Python, seeded, so the same on every machine). Bits per value including scales: 8 · 4.5 · 4.25 · 4.125 · 4. NVFP4's 16-value FP8-scaled blocks keep the error flat when outliers appear; formats with bigger blocks or coarser scales lose accuracy. This is layer-level error, not model accuracy."
+    },
+    {
+      "title": "Expected tokens per target pass vs draft length",
+      "type": "line",
+      "unit": "tokens per step",
+      "labels": ["k=1", "k=2", "k=3", "k=4", "k=5", "k=6", "k=7", "k=8"],
+      "series": [
+        {"name": "α = 0.6", "values": [1.6, 1.96, 2.18, 2.31, 2.38, 2.43, 2.46, 2.47], "color": "red"},
+        {"name": "α = 0.7", "values": [1.7, 2.19, 2.53, 2.77, 2.94, 3.06, 3.14, 3.2], "color": "amber"},
+        {"name": "α = 0.8", "values": [1.8, 2.44, 2.95, 3.36, 3.69, 3.95, 4.16, 4.33], "color": "cyan"},
+        {"name": "α = 0.9", "values": [1.9, 2.71, 3.44, 4.1, 4.69, 5.22, 5.7, 6.13], "color": "green"}
+      ],
+      "caption": "E = (1 − α^(k+1)) / (1 − α), from lab 04 (arithmetic). Each curve flattens towards 1 ÷ (1 − α): past that, longer drafts only add draft cost. The playbooks use max_draft_len 5 (EAGLE-3), 4 (Draft-Target) and 3 (two-Spark Qwen3-235B)."
+    }
+  ]
+}

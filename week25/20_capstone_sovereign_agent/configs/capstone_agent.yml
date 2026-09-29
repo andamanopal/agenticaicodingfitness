@@ -1,0 +1,62 @@
+# Week 25 · Capstone — the sovereign hotel agent, as a NeMo Agent Toolkit 1.9 workflow.
+#
+# Every model call goes through ONE LiteLLM gateway (Module 08) under two aliases:
+#   agent-brain   the tool-calling model that plans (Spark A: vLLM + Qwen3.6, Module 05)
+#   hotel-router  the fine-tuned router, used as a TOOL (Spark B: vLLM + LoRA hotel-ft, Modules 09 + 13)
+# On a laptop both aliases fall back to Ollama (LAPTOP STAND-IN), so the same file runs anywhere.
+#
+# Inside the OpenShell sandbox (Module 15) set CAPSTONE_BRAIN_URL=https://inference.local/v1 and
+# CAPSTONE_GATEWAY=http://host.openshell.internal:4000/v1 (the router tool's only other way out).
+# The gateway key is read from the environment (HOTEL_GATEWAY_KEY), never written here.
+#
+#   HOTEL_GATEWAY_KEY=sk-… week25/.venv-nat/bin/nat run --config_file week25/20_capstone_sovereign_agent/configs/capstone_agent.yml \
+#       --input "Guest in room 808: it's really hot in here and the AC is just blowing air."
+
+general:
+  telemetry:
+    tracing:
+      local_file:
+        _type: file
+        output_path: ${CAPSTONE_TRACE_FILE:-.runs/capstone_trace.jsonl}
+        project: hotel-capstone
+        mode: overwrite
+
+llms:
+  brain:
+    _type: openai
+    # Laptop / Spark host: the gateway itself. Inside the sandbox: https://inference.local/v1 (OpenShell routes
+    # it to the gateway's agent-brain alias via `openshell inference set`).
+    base_url: ${CAPSTONE_BRAIN_URL:-http://127.0.0.1:4000/v1}
+    model_name: agent-brain
+    api_key: ${HOTEL_GATEWAY_KEY:-missing}
+    temperature: 0.0
+    max_tokens: 512
+
+functions:
+  route_guest_message:
+    _type: route_guest_message           # hotel_capstone_nat (this folder)
+    base_url: ${CAPSTONE_GATEWAY:-http://127.0.0.1:4000/v1}
+    model: hotel-router
+  room_temperature:
+    _type: room_temperature              # hotel_ops_nat (Module 14)
+    comfort_band_c: 1.5
+  create_maintenance_ticket:
+    _type: create_maintenance_ticket     # hotel_ops_nat (Module 14)
+    ticket_log: ${CAPSTONE_TICKET_LOG:-.runs/capstone_tickets.jsonl}
+
+workflow:
+  _type: tool_calling_agent
+  llm_name: brain
+  tool_names: [route_guest_message, room_temperature, create_maintenance_ticket]
+  max_iterations: 6
+  verbose: true
+  system_prompt: |
+    You are the night-shift operations agent of a small hotel. For every guest message:
+    1. Call route_guest_message with the guest's exact words. Trust its department and priority.
+    2. If the department is engineering and the message is about temperature or air conditioning,
+       call room_temperature for the guest's room first.
+    3. Open a maintenance ticket with create_maintenance_ticket when the department is engineering or
+       security. Use priority "urgent" if the router said urgent, otherwise "normal".
+       Never open a ticket for concierge, front_desk, food_beverage or housekeeping requests.
+    4. Answer in two short sentences: what you did (quote any ticket id), then the router's reply to the guest.
+    If route_guest_message returns an error, do not guess: say the request needs a human dispatcher.

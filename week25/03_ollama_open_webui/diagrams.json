@@ -1,0 +1,82 @@
+{
+  "architecture": {
+    "title": "Two Ollamas on one Spark — the systemd service and the one inside Open WebUI",
+    "caption": "The Ollama you install with the playbook's script runs as a systemd service on 127.0.0.1:11434 and speaks two APIs: native /api/* and OpenAI-compatible /v1/*. Your laptop reaches it through an ssh -L tunnel (local port 21434). The Open WebUI container (ghcr.io/open-webui/open-webui:ollama) bundles a second Ollama with its own model volume; only the web app is published, on host port 12000.",
+    "lanes": [
+      {"id": "laptop", "label": "Your laptop"},
+      {"id": "net", "label": "Network"},
+      {"id": "spark", "label": "DGX Spark (GB10 · 128 GB unified)"}
+    ],
+    "nodes": [
+      {"id": "labs", "label": "labs 01–04 + sparkkit", "lane": "laptop", "sub": "chat() · http_json() · labelled output", "accent": "green"},
+      {"id": "browser", "label": "Browser", "lane": "laptop", "sub": "http://localhost:12000"},
+      {"id": "stand", "label": "Laptop Ollama :11434", "lane": "laptop", "sub": "LAPTOP STAND-IN when the Spark is down", "accent": "amber"},
+      {"id": "t_oll", "label": "ssh -L 21434:localhost:11434", "lane": "net", "sub": "SPARK_URL_OLLAMA", "accent": "cyan"},
+      {"id": "t_web", "label": "ssh -L 12000:localhost:12000", "lane": "net", "sub": "or an NVIDIA Sync custom app", "accent": "cyan"},
+      {"id": "ollama", "label": "ollama.service 127.0.0.1:11434", "lane": "spark", "sub": "/api/chat · /api/show · /v1/chat/completions", "accent": "violet"},
+      {"id": "store", "label": "model store", "lane": "spark", "sub": "gpt-oss:20b · qwen3.6:35b-a3b (GGUF)"},
+      {"id": "owui", "label": "open-webui container", "lane": "spark", "sub": "-p 12000:8080 · --gpus=all · bundled Ollama", "accent": "green"},
+      {"id": "vols", "label": "volumes", "lane": "spark", "sub": "open-webui · open-webui-ollama"}
+    ],
+    "edges": [
+      {"from": "labs", "to": "t_oll", "label": "HTTP /v1 + /api", "animated": true},
+      {"from": "t_oll", "to": "ollama", "label": "localhost:11434"},
+      {"from": "ollama", "to": "store", "label": "loads on demand"},
+      {"from": "labs", "to": "stand", "label": "fallback (labelled)"},
+      {"from": "browser", "to": "t_web", "label": "HTTP", "animated": true},
+      {"from": "t_web", "to": "owui", "label": "localhost:12000 → 8080"},
+      {"from": "owui", "to": "vols", "label": "chats + a second model store"}
+    ]
+  },
+  "sequence": {
+    "title": "Lab 03-4 — one tool-calling round trip through /v1/chat/completions",
+    "caption": "The model never runs code. It answers the first request with tool_calls (here two in parallel); the lab runs sparkkit's weights_gb and decode_ceiling_tok_s locally and sends each result back as a role=tool message; the second request returns the final text. Sequence captured with nemotron-3-nano on the laptop stand-in.",
+    "actors": [
+      {"id": "lab", "label": "lab04 (laptop)"},
+      {"id": "oll", "label": "Ollama /v1"},
+      {"id": "fn", "label": "sparkkit functions"}
+    ],
+    "steps": [
+      {"from": "lab", "to": "oll", "label": "POST /api/show → capabilities include 'tools'?", "kind": "call"},
+      {"from": "lab", "to": "oll", "label": "POST /v1/chat/completions · messages + tools[2] · reasoning_effort none", "kind": "call"},
+      {"from": "oll", "to": "lab", "label": "content '' · tool_calls: weights_gb(117, mxfp4), decode_ceiling_tok_s(5.1, mxfp4)", "kind": "return"},
+      {"from": "lab", "to": "fn", "label": "run both calls", "kind": "call"},
+      {"from": "fn", "to": "lab", "label": "62.2 · 100.8", "kind": "return"},
+      {"from": "lab", "to": "oll", "label": "messages + assistant(tool_calls) + 2 × role=tool", "kind": "call"},
+      {"from": "oll", "to": "lab", "label": "final answer quoting 62.2 GB and 100.8 tok/s", "kind": "return"},
+      {"from": "lab", "to": "lab", "label": "compare with ground truth", "kind": "note"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "What thinking costs: output tokens for '17 × 3?'",
+      "type": "bars",
+      "unit": "output tokens",
+      "labels": ["native think:true", "native think:false", "/v1 default", "/v1 reasoning_effort:none"],
+      "series": [
+        {"name": "nemotron-3-nano (LAPTOP STAND-IN)", "values": [32, 3, 52, 3], "color": "violet"}
+      ],
+      "caption": "From lab 02, run on the laptop stand-in. All four calls answered '51'. Thinking length varies per run: in an earlier run the think:true call used all 200 tokens and returned an empty answer."
+    },
+    {
+      "title": "Laptop stand-in: measured decode speed vs its own bandwidth ceiling",
+      "type": "hbars",
+      "unit": "tok/s",
+      "labels": ["gemma3:4b ceiling (410 GB/s ÷ 3.34 GB)", "gemma3:4b measured (client)", "gemma3:4b measured (server eval)"],
+      "series": [
+        {"name": "LAPTOP STAND-IN", "values": [123, 95.5, 87.9], "color": "amber"}
+      ],
+      "caption": "From lab 03 on this Mac (Apple M4 Max, 410 GB/s from the spec sheet). Laptop numbers are only compared with the laptop's own ceiling, never with a Spark."
+    },
+    {
+      "title": "Spark decode ceilings at 273 GB/s (arithmetic, not measured)",
+      "type": "hbars",
+      "unit": "tok/s (upper bound)",
+      "labels": ["gpt-oss:20b (~15 GB file, 3.6B of 21B active)", "gpt-oss-120b mxfp4 (5.1B active)"],
+      "series": [
+        {"name": "ceiling", "values": [106, 100.8], "color": "cyan"}
+      ],
+      "caption": "gpt-oss:20b from the Open WebUI playbook's ~15 GB size and the model card's 3.6B active parameters (lab 03); gpt-oss-120b from the tool result in lab 04. Run lab 03 on your Spark to put a measured bar next to them."
+    }
+  ]
+}

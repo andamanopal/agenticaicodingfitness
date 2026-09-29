@@ -1,0 +1,87 @@
+{
+  "architecture": {
+    "title": "How the atlas is built — the READMEs are the only source of truth",
+    "caption": "Everything in this module is read from the local clone of NVIDIA's playbooks. Lab 21-1 parses each nvidia/playbook-*/README.md (title, Estimated time, Supported hardware platforms, Prerequisites disk) and joins it with the module table in week25/AUTHORING.md. Labs 21-2 and 21-3 and Exercise 21 import that parser. The lab stays offline: links are built from the directory name and checked against the build.nvidia.com/spark slug index (fetched 2026-09-29, stored in the lab) and against links written in the READMEs.",
+    "lanes": [
+      {"id": "src", "label": "Sources on this laptop"},
+      {"id": "labs", "label": "Module 21 labs"},
+      {"id": "out", "label": "What you get"}
+    ],
+    "nodes": [
+      {"id": "readmes", "label": "64 playbook READMEs", "lane": "src", "sub": "dgx-spark-playbooks/nvidia/playbook-*", "accent": "green"},
+      {"id": "authoring", "label": "week25/AUTHORING.md", "lane": "src", "sub": "module table: playbook → 01–20"},
+      {"id": "atlas", "label": "lab21-1 atlas", "lane": "labs", "sub": "load_playbooks() · themes · slug evidence", "accent": "cyan"},
+      {"id": "rec", "label": "lab21-2 recommender", "lane": "labs", "sub": "TF-IDF · cosine · top 3", "accent": "violet"},
+      {"id": "plan", "label": "lab21-3 budget planner", "lane": "labs", "sub": "time · disk · what to bring", "accent": "amber"},
+      {"id": "ex", "label": "ex21 goal router", "lane": "labs", "sub": "your tokenizer + IDF + test set"},
+      {"id": "table", "label": "one table of 64", "lane": "out", "sub": "time · Spark? · covered by"},
+      {"id": "pick", "label": "your next playbook", "lane": "out", "sub": "cited README + build.nvidia.com link", "accent": "green"},
+      {"id": "spark", "label": "your DGX Spark", "lane": "out", "sub": "run the playbook's own commands"}
+    ],
+    "edges": [
+      {"from": "readmes", "to": "atlas", "label": "parse"},
+      {"from": "authoring", "to": "atlas", "label": "module map"},
+      {"from": "atlas", "to": "table", "label": "print"},
+      {"from": "atlas", "to": "rec", "label": "import parser"},
+      {"from": "atlas", "to": "plan", "label": "import parser"},
+      {"from": "atlas", "to": "ex", "label": "import parser"},
+      {"from": "rec", "to": "pick", "label": "top 3 + matched words", "animated": true},
+      {"from": "plan", "to": "pick", "label": "fits in time and disk?"},
+      {"from": "pick", "to": "spark", "label": "follow the playbook", "animated": true}
+    ]
+  },
+  "sequence": {
+    "title": "Lab 21-2 — from a goal in plain words to a cited playbook",
+    "caption": "The recommender never calls a model. It tokenizes the goal with the same stopwords as the READMEs, weights each word by how rare it is across the 64 playbooks (IDF), and ranks playbooks by cosine similarity. It prints the words that matched, so you can see why a playbook won — and why a goal worded differently from the README misses (step 3).",
+    "actors": [
+      {"id": "you", "label": "you"},
+      {"id": "lab", "label": "lab21-2"},
+      {"id": "atlas", "label": "lab21-1 parser"},
+      {"id": "fs", "label": "README files"}
+    ],
+    "steps": [
+      {"from": "you", "to": "lab", "label": "\"describe what my webcam sees in real time\"", "kind": "call"},
+      {"from": "lab", "to": "atlas", "label": "load_playbooks()", "kind": "call"},
+      {"from": "atlas", "to": "fs", "label": "read 64 × README.md", "kind": "call"},
+      {"from": "fs", "to": "atlas", "label": "title · tagline · overview · platforms", "kind": "return"},
+      {"from": "atlas", "to": "lab", "label": "64 dicts", "kind": "return"},
+      {"from": "lab", "to": "lab", "label": "TF-IDF vectors · cosine(goal, each playbook)", "kind": "note"},
+      {"from": "lab", "to": "you", "label": "live-vlm-webui 0.147 · matched: webcam, real · Spark ✓", "kind": "return"},
+      {"from": "lab", "to": "you", "label": "cite: README path + build.nvidia.com link", "kind": "return"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "The 26 playbooks Modules 01–20 do not cover, by theme and platform",
+      "type": "bars",
+      "unit": "playbooks",
+      "labels": ["images & video", "vision & video agents", "robotics", "data science & HPC", "kernels & pretraining", "platform & multi-GPU", "Station serving/agents"],
+      "series": [
+        {"name": "runs on DGX Spark", "values": [2, 2, 2, 5, 1, 1, 0], "color": "green"},
+        {"name": "DGX Station only", "values": [0, 0, 1, 1, 3, 2, 3], "color": "violet"},
+        {"name": "RTX PC only", "values": [2, 0, 0, 0, 0, 1, 0], "color": "amber"}
+      ],
+      "caption": "Counts from lab 21-1 step 3, which reads each README's 'Supported hardware platforms' table (sglang-inference has no table; its platform is inferred from the overview). 13 of the 26 run on a Spark."
+    },
+    {
+      "title": "Where all 64 playbooks live in this course",
+      "type": "donut",
+      "unit": "playbooks",
+      "labels": ["Modules 01–20", "Atlas · Spark", "Atlas · Station only", "Atlas · RTX only"],
+      "series": [
+        {"name": "playbooks", "values": [38, 13, 10, 3], "color": "cyan"}
+      ],
+      "caption": "From lab 21-1: 64 nvidia/playbook-* directories (playbook-test excluded), matched against the module table in AUTHORING.md."
+    },
+    {
+      "title": "README time for the 13 atlas playbooks that run on a Spark",
+      "type": "hbars",
+      "unit": "minutes (README 'Estimated time', upper end)",
+      "labels": ["jax", "spark-reachy-photo-booth", "cupynumeric", "cutile-kernels", "multi-modal-inference", "comfyui", "vss", "cuda-x-data-science", "isaac", "live-vlm-webui", "portfolio-optimization", "single-cell", "brev"],
+      "series": [
+        {"name": "README time", "values": [120, 120, 60, 60, 60, 45, 45, 30, 30, 30, 20, 15, 10], "color": "cyan"}
+      ],
+      "caption": "From lab 21-3: the first figure in each README's 'Estimated time' line (upper end of a range). 645 min ≈ 10.8 h in total. These are NVIDIA's estimates, not measurements; first runs with big downloads take longer."
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+# build artefacts of the editable plugin install
+*.egg-info/

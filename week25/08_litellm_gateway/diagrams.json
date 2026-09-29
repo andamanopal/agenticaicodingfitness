@@ -1,0 +1,236 @@
+{
+  "architecture": {
+    "title": "One gateway in front of every engine on both Sparks — and a laptop fallback",
+    "caption": "Clients speak one OpenAI API to LiteLLM on :4000 and ask for an alias (chat, spark-a/vllm, laptop-fast …). The gateway checks the master key, picks a deployment (simple-shuffle across Spark A and Spark B for chat), retries or benches a failing one (allowed_fails, cooldown_time), and falls back to the laptop's Ollama when a whole alias is down. The engines themselves have no authentication, so keep their ports private and publish only :4000.",
+    "lanes": [
+      {
+        "id": "clients",
+        "label": "Clients"
+      },
+      {
+        "id": "gw",
+        "label": "LiteLLM proxy :4000"
+      },
+      {
+        "id": "sparka",
+        "label": "Spark A"
+      },
+      {
+        "id": "sparkb",
+        "label": "Spark B"
+      },
+      {
+        "id": "laptop",
+        "label": "Laptop"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "sdk",
+        "label": "OpenAI SDK · curl · agents",
+        "lane": "clients",
+        "sub": "base_url=…:4000/v1 · Bearer sk-…",
+        "accent": "green"
+      },
+      {
+        "id": "auth",
+        "label": "master key check",
+        "lane": "gw",
+        "sub": "os.environ/LITELLM_MASTER_KEY",
+        "accent": "red"
+      },
+      {
+        "id": "router",
+        "label": "Router",
+        "lane": "gw",
+        "sub": "aliases · shuffle · retries · cooldown · fallbacks",
+        "accent": "violet"
+      },
+      {
+        "id": "a_eng",
+        "label": "Ollama · vLLM · SGLang · TRT-LLM",
+        "lane": "sparka",
+        "sub": ":11434 :8000 :30000 :8355",
+        "accent": "cyan"
+      },
+      {
+        "id": "b_eng",
+        "label": "Ollama · vLLM · SGLang · TRT-LLM",
+        "lane": "sparkb",
+        "sub": ":11434 :8000 :30000 :8355",
+        "accent": "cyan"
+      },
+      {
+        "id": "lap",
+        "label": "Ollama :11434",
+        "lane": "laptop",
+        "sub": "gemma3:4b · nemotron-3-nano",
+        "accent": "amber"
+      }
+    ],
+    "edges": [
+      {
+        "from": "sdk",
+        "to": "auth",
+        "label": "POST /v1/chat/completions {model: chat}",
+        "animated": true
+      },
+      {
+        "from": "auth",
+        "to": "router",
+        "label": "401 if no key"
+      },
+      {
+        "from": "router",
+        "to": "a_eng",
+        "label": "chat → hosted_vllm (A)",
+        "animated": true
+      },
+      {
+        "from": "router",
+        "to": "b_eng",
+        "label": "chat → hosted_vllm (B)",
+        "animated": true
+      },
+      {
+        "from": "router",
+        "to": "lap",
+        "label": "fallback: laptop-fast"
+      }
+    ]
+  },
+  "sequence": {
+    "title": "Lab 08-3 — one group, one Spark down: retry, then cooldown",
+    "caption": "Measured on this Mac with no Spark configured (lab 03, Step 3). The alias one-spark-down has two deployments: Spark A's vLLM and the laptop's Ollama. Calls 1 and 2 landed on Spark A, failed, and were retried on the laptop (x-litellm-attempted-retries: 1); the client saw HTTP 200 both times. Spark A had now failed more than allowed_fails: 1, so the router put it in cooldown for 30 s, and calls 3–6 went straight to the laptop (retries 0).",
+    "actors": [
+      {
+        "id": "client",
+        "label": "lab03 (client)"
+      },
+      {
+        "id": "gw",
+        "label": "LiteLLM :4000"
+      },
+      {
+        "id": "spark",
+        "label": "Spark A vLLM :8000"
+      },
+      {
+        "id": "laptop",
+        "label": "laptop Ollama"
+      }
+    ],
+    "steps": [
+      {
+        "from": "client",
+        "to": "gw",
+        "label": "call 1 · model=one-spark-down · Bearer master key",
+        "kind": "call"
+      },
+      {
+        "from": "gw",
+        "to": "spark",
+        "label": "shuffle picked Spark A",
+        "kind": "call"
+      },
+      {
+        "from": "spark",
+        "to": "gw",
+        "label": "connection error",
+        "kind": "return"
+      },
+      {
+        "from": "gw",
+        "to": "laptop",
+        "label": "num_retries: 1 → the group's other deployment",
+        "kind": "call"
+      },
+      {
+        "from": "laptop",
+        "to": "gw",
+        "label": "\"1\"",
+        "kind": "return"
+      },
+      {
+        "from": "gw",
+        "to": "client",
+        "label": "200 · attempted-retries: 1",
+        "kind": "return"
+      },
+      {
+        "from": "gw",
+        "to": "gw",
+        "label": "call 2: same again → Spark A has failed > allowed_fails → cooldown 30 s",
+        "kind": "note"
+      },
+      {
+        "from": "client",
+        "to": "gw",
+        "label": "calls 3–6",
+        "kind": "call"
+      },
+      {
+        "from": "gw",
+        "to": "laptop",
+        "label": "Spark A skipped (in cooldown)",
+        "kind": "call"
+      },
+      {
+        "from": "gw",
+        "to": "client",
+        "label": "200 · attempted-retries: 0",
+        "kind": "return"
+      }
+    ]
+  },
+  "charts": [
+    {
+      "title": "laptop-pair: which deployment the router picked, 8 calls",
+      "type": "donut",
+      "unit": "calls",
+      "labels": [
+        "http://127.0.0.1:11434/v1",
+        "http://localhost:11434/v1"
+      ],
+      "series": [
+        {
+          "name": "calls",
+          "values": [
+            4,
+            4
+          ],
+          "color": "cyan"
+        }
+      ],
+      "caption": "One run of lab 03, Step 4, on this Mac: 4 and 4. simple-shuffle picks at random, so your split will differ. Both names reach the same laptop Ollama: a stand-in for two Sparks, to watch the balancer, not a speed test."
+    },
+    {
+      "title": "one-spark-down: retries per call (lab 03, Step 3, this Mac)",
+      "type": "bars",
+      "unit": "retries",
+      "labels": [
+        "call 1",
+        "call 2",
+        "call 3",
+        "call 4",
+        "call 5",
+        "call 6"
+      ],
+      "series": [
+        {
+          "name": "x-litellm-attempted-retries",
+          "values": [
+            1,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          "color": "amber"
+        }
+      ],
+      "caption": "Measured once on this Mac (LAPTOP STAND-IN). Calls 1–2 hit the dead Spark A deployment and were retried on the laptop; after that Spark A was in cooldown and skipped. Which calls hit the dead deployment is random (simple-shuffle), so your pattern will differ."
+    }
+  ]
+}

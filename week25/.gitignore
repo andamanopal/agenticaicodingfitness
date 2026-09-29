@@ -1,0 +1,8 @@
+.env.local
+00_spark_lab_runner/progress.json
+00_spark_lab_runner/.run_history.json
+**/.runs/
+.venv-nat/
+**/__pycache__/
+.venv-litellm/
+*.egg-info/

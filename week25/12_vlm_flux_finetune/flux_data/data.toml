@@ -1,0 +1,30 @@
+# Week 25 · Module 12 — the playbook's flux_data/data.toml plus a third concept.
+# Written by labs/lab03_flux_dataset.py. Lab 04 uploads it to assets/flux_data/data.toml on the Spark.
+[general]
+shuffle_caption = false
+keep_tokens = 2
+
+[[datasets]]
+resolution = 1024
+batch_size = 1
+
+    [[datasets.subsets]]
+    image_dir = "flux_data/tjtoy"
+    class_tokens = "tjtoy toy"
+    num_repeats = 1
+    is_reg = false
+    flip_aug = true
+
+    [[datasets.subsets]]
+    image_dir = "flux_data/sparkgpu"
+    class_tokens = "sparkgpu gpu"
+    num_repeats = 2
+    is_reg = false
+    flip_aug = true
+
+    [[datasets.subsets]]
+    image_dir = "flux_data/sparkhotel"
+    class_tokens = "sparkhotel lobby"
+    num_repeats = 1
+    is_reg = false
+    flip_aug = false                # a mirrored logo is a different logo: no flipping for this concept

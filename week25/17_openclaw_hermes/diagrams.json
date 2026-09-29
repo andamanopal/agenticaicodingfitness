@@ -1,0 +1,63 @@
+{
+  "architecture": {
+    "title": "Two agents, one local model — OpenClaw and Hermes on the Spark host, no sandbox",
+    "caption": "vLLM serves the agent-ready model on the Spark's :8000. OpenClaw (config in ~/.openclaw/openclaw.json) and Hermes (config in ~/.hermes, set with `hermes config set`) both call it through the OpenAI-compatible /v1 API and run the returned tool calls themselves, directly on the host. You reach OpenClaw's dashboard through an SSH tunnel and Hermes' TUI through SSH. Messaging gateways are optional; the playbooks say restrict them to your own user ID and never expose the dashboard or :8000 publicly.",
+    "lanes": [
+      {"id": "laptop", "label": "Your laptop"},
+      {"id": "spark", "label": "DGX Spark host (your user account)"},
+      {"id": "net", "label": "Internet (optional)"}
+    ],
+    "nodes": [
+      {"id": "browser", "label": "Browser", "lane": "laptop", "sub": "OpenClaw dashboard URL + token", "accent": "cyan"},
+      {"id": "term", "label": "Terminal (ssh -t spark-a)", "lane": "laptop", "sub": "hermes · hermes -z", "accent": "cyan"},
+      {"id": "labs", "label": "labs 17-1…17-3", "lane": "laptop", "sub": "preflight · tool probe · configs", "accent": "green"},
+      {"id": "openclaw", "label": "OpenClaw gateway", "lane": "spark", "sub": "skills · hooks · channels", "accent": "amber"},
+      {"id": "hermes", "label": "Hermes Agent", "lane": "spark", "sub": "tools · self-made skills · cron", "accent": "violet"},
+      {"id": "vllm", "label": "vLLM :8000", "lane": "spark", "sub": "nvidia/Qwen3.6-35B-A3B-NVFP4", "accent": "green"},
+      {"id": "host", "label": "files + shell of your user", "lane": "spark", "sub": "what tools can touch", "accent": "red"},
+      {"id": "tg", "label": "Telegram / Discord / Slack", "lane": "net", "sub": "optional · allowed user IDs"}
+    ],
+    "edges": [
+      {"from": "browser", "to": "openclaw", "label": "ssh -L <port>:127.0.0.1:<port>", "animated": true},
+      {"from": "term", "to": "hermes", "label": "ssh session"},
+      {"from": "labs", "to": "vllm", "label": "GET /v1/models · tool probes"},
+      {"from": "openclaw", "to": "vllm", "label": "baseUrl http://localhost:8000/v1", "animated": true},
+      {"from": "hermes", "to": "vllm", "label": "model.base_url http://localhost:8000/v1", "animated": true},
+      {"from": "openclaw", "to": "host", "label": "skills with shell/file access"},
+      {"from": "hermes", "to": "host", "label": "terminal backend: local"},
+      {"from": "hermes", "to": "tg", "label": "hermes gateway (optional)"}
+    ]
+  },
+  "sequence": {
+    "title": "One tool call, end to end — the model proposes, the agent executes",
+    "caption": "Both agents work the same way at the API level: they send the conversation plus tool definitions, the model answers with a tool_call (name + JSON arguments), the agent runs the tool on the host and sends the result back as a `tool` message, and the model writes the final answer. Lab 17-2 tests exactly these four steps (P1–P4) plus restraint (P5). There is no sandbox here: the tool runs as your user.",
+    "actors": [
+      {"id": "you", "label": "You"},
+      {"id": "agent", "label": "OpenClaw or Hermes"},
+      {"id": "model", "label": "vLLM :8000"},
+      {"id": "tool", "label": "tool on the host"}
+    ],
+    "steps": [
+      {"from": "you", "to": "agent", "label": "Convert 120 USD to THB", "kind": "call"},
+      {"from": "agent", "to": "model", "label": "messages + tools[convert_currency, get_time, lookup_ticket]", "kind": "call"},
+      {"from": "model", "to": "agent", "label": "tool_call convert_currency({amount:120, from_ccy:USD, to_ccy:THB})", "kind": "return"},
+      {"from": "agent", "to": "tool", "label": "run it (as your user, no sandbox)", "kind": "call"},
+      {"from": "tool", "to": "agent", "label": "{result: 4380.0}", "kind": "return"},
+      {"from": "agent", "to": "model", "label": "role=tool message with the result", "kind": "call"},
+      {"from": "model", "to": "agent", "label": "'120 USD is about 4,380 THB'", "kind": "return"},
+      {"from": "agent", "to": "you", "label": "final answer", "kind": "return"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Tool-calling probe on the laptop stand-in — probes passed out of 5",
+      "type": "hbars",
+      "unit": "probes passed (of 5)",
+      "labels": ["gemma4:12b", "nemotron-3-nano", "gemma3:4b"],
+      "series": [
+        {"name": "P1–P5 passed", "values": [5, 5, 0], "color": "cyan"}
+      ],
+      "caption": "Measured by lab 17-2 on this Mac's Ollama (LAPTOP STAND-IN, not the Spark). gemma3:4b fails every probe because Ollama answers 'does not support tools': it can chat, but it cannot drive an agent. Run the lab on your Spark to score the model you actually serve."
+    }
+  ]
+}

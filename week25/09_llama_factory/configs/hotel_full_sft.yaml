@@ -1,0 +1,48 @@
+# LLaMA Factory · Week 25 Module 09 · hotel guest-request router · method: full
+# Written by labs/lab03_config_and_launch.py — adapted from the playbook's examples/train_lora/qwen3_lora_sft.yaml.
+# Run from ~/w25/m09 on the Spark:  llamafactory-cli train configs/hotel_full_sft.yaml
+### model
+model_name_or_path: Qwen/Qwen3-4B-Instruct-2507   # base model from Hugging Face (not gated: no hf login needed)
+trust_remote_code: true
+
+### method
+stage: sft                       # supervised fine-tuning on (prompt, response) pairs
+do_train: true
+finetuning_type: full           # train every weight (no adapter)
+# upstream examples/train_full/qwen3_full_sft.yaml also sets deepspeed: examples/deepspeed/ds_z3_config.json
+# (ZeRO-3 shards across GPUs). One Spark has one GPU and step 1 says 4B full fits, so this course drops it.
+
+### dataset
+dataset_dir: data                # folder holding dataset_info.json (relative to where you run the command)
+dataset: hotel_ops               # a NAME registered in data/dataset_info.json, not a file name
+eval_dataset: hotel_ops_eval     # held-out requests: gives an eval_loss curve next to the train loss
+template: qwen3_nothink           # chat format of the base model. Must match in chat, predict and merge
+cutoff_len: 1024                 # max tokens per record; lab 02 estimates the longest at ~180
+max_samples: 1000
+preprocessing_num_workers: 16
+dataloader_num_workers: 4
+
+### output
+output_dir: saves/qwen3-4b-hotel/full/sft   # adapter (or full model) + trainer_log.jsonl + training_loss.png
+logging_steps: 5                 # one loss line every 5 optimizer steps → ~37 points for lab 04
+save_steps: 100
+plot_loss: true
+overwrite_output_dir: true
+save_only_model: false
+report_to: none                  # choices: [none, wandb, tensorboard, swanlab, mlflow]
+
+### train
+per_device_train_batch_size: 2
+gradient_accumulation_steps: 4   # effective batch = 2 × 4 = 8, the same as the playbook's 1 × 8
+learning_rate: 1.0e-5           # write 1.0e-4, not 1e-4: plain YAML 1.1 parsers read 1e-4 as a string
+num_train_epochs: 3.0
+lr_scheduler_type: cosine
+warmup_ratio: 0.1
+bf16: true                       # bfloat16 mixed precision, as in the playbook example
+ddp_timeout: 180000000
+resume_from_checkpoint: null
+
+### eval
+per_device_eval_batch_size: 1
+eval_strategy: steps
+eval_steps: 50
