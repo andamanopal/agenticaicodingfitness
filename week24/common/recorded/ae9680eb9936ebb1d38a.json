@@ -1,0 +1,40 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "model": "jev-1.13.0",
+  "state": {
+   "email": "Tenant on level 4 reports water leaking from the FCU above the server rack."
+  },
+  "questions": {
+   "vague_important": {
+    "type": "noul",
+    "instructions": "Is `email` important?"
+   },
+   "precise_same_day": {
+    "type": "noul",
+    "instructions": "Does `email` report a CURRENT equipment failure, outage, leak or loss of data at a site that operations must act on today?",
+    "criteria": {
+     "true": "A problem is happening now at a building or system we operate",
+     "false": "Deadlines, meetings, sales offers, newsletters or future plans — even if they say urgent"
+    }
+   }
+  }
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "vague_important": {
+    "type": "noul",
+    "noul": 0.87
+   },
+   "precise_same_day": {
+    "type": "noul",
+    "noul": 0.96
+   }
+  },
+  "usage": {
+   "input_tokens": 376,
+   "output_tokens": 43
+  }
+ }
+}

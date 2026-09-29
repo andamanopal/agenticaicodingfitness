@@ -1,0 +1,31 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "model": "jev-1.13.0",
+  "state": {
+   "email": {
+    "subject": "Lobby too hot + invoice question",
+    "body": "Hi team, since Monday the lobby at Riverside Hotel has been around 28°C in the afternoons and guests are complaining. Also, invoice INV-2291 seems to charge us twice for the September maintenance visit. Can someone call me back today? — Nok, Chief Engineer"
+   }
+  },
+  "questions": {
+   "wants_callback": {
+    "type": "noul",
+    "instructions": "Does the sender of `email` ask to be phoned or called back?"
+   }
+  }
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "wants_callback": {
+    "type": "noul",
+    "noul": 0.99
+   }
+  },
+  "usage": {
+   "input_tokens": 367,
+   "output_tokens": 22
+  }
+ }
+}

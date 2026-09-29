@@ -1,0 +1,80 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "model": "jev-1.13.0",
+  "state": {
+   "message": "I've been waiting 45 minutes for room service. If it isn't here in 10 I want my money back."
+  },
+  "questions": {
+   "department": {
+    "type": "choice",
+    "instructions": "Which hotel team should handle `message`?",
+    "criteria": {
+     "room_service": "Food or drink orders delivered to the room, and their delays",
+     "housekeeping": "Cleaning, towels, blankets, linen and amenities",
+     "front_desk": "Key cards, check-in/out, billing and general requests",
+     "unknown": "No clear request for any of these teams"
+    }
+   },
+   "mentions_refund": {
+    "type": "noul",
+    "instructions": "Does `message` ask for a refund or say the guest wants their money back?",
+    "criteria": {
+     "true": "A refund, compensation or money back is requested or demanded, even conditionally",
+     "false": "No refund or money back is mentioned"
+    }
+   },
+   "anger": {
+    "type": "score",
+    "instructions": "How angry is the guest who wrote `message`?",
+    "criteria": [
+     "Calm or friendly",
+     "Mildly annoyed",
+     "Clearly frustrated, complaining",
+     "Furious: threats, insults or demands"
+    ]
+   }
+  }
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "department": {
+    "type": "choice",
+    "choice": "room_service",
+    "confidence": 1.0,
+    "probabilities": {
+     "room_service": 1.0,
+     "unknown": 0.0,
+     "front_desk": 0.0,
+     "housekeeping": 0.0
+    }
+   },
+   "mentions_refund": {
+    "type": "noul",
+    "noul": 0.99
+   },
+   "anger": {
+    "type": "score",
+    "score": 2.93,
+    "confidence": 0.93,
+    "legend": {
+     "0": "Calm or friendly",
+     "1": "Mildly annoyed",
+     "2": "Clearly frustrated, complaining",
+     "3": "Furious: threats, insults or demands"
+    },
+    "probabilities": {
+     "0": 0.0,
+     "1": 0.0,
+     "2": 0.07,
+     "3": 0.93
+    }
+   }
+  },
+  "usage": {
+   "input_tokens": 537,
+   "output_tokens": 84
+  }
+ }
+}

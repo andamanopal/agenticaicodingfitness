@@ -1,0 +1,101 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "model": "jev-1.13.0",
+  "state": {
+   "email": {
+    "subject": "Lobby too hot + invoice question",
+    "body": "Hi team, since Monday the lobby at Riverside Hotel has been around 28°C in the afternoons and guests are complaining. Also, invoice INV-2291 seems to charge us twice for the September maintenance visit. Can someone call me back today? — Nok, Chief Engineer"
+   }
+  },
+  "questions": {
+   "topic": {
+    "type": "choice",
+    "instructions": "What is the main topic of `email.body`?",
+    "criteria": {
+     "hvac": "Cooling, heating or ventilation performance",
+     "billing": "Invoices, charges or payments",
+     "other": "Anything else"
+    }
+   },
+   "mentions_billing": {
+    "type": "noul",
+    "instructions": "Does `email.body` raise an invoice or billing issue?"
+   },
+   "mentions_comfort": {
+    "type": "noul",
+    "instructions": "Does `email.body` report guests or occupants being uncomfortable?"
+   },
+   "wants_callback": {
+    "type": "noul",
+    "instructions": "Does the sender of `email` ask to be phoned or called back?"
+   },
+   "sender_is_engineer": {
+    "type": "noul",
+    "instructions": "Does `email` say the sender works in an engineering role?"
+   },
+   "urgency": {
+    "type": "score",
+    "instructions": "How urgent is `email`?",
+    "criteria": [
+     "No time pressure",
+     "Should be handled this week",
+     "Needs a response today",
+     "Emergency now"
+    ]
+   }
+  }
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "topic": {
+    "type": "choice",
+    "choice": "hvac",
+    "confidence": 0.7,
+    "probabilities": {
+     "other": 0.19,
+     "billing": 0.01,
+     "hvac": 0.8
+    }
+   },
+   "mentions_billing": {
+    "type": "noul",
+    "noul": 0.99
+   },
+   "mentions_comfort": {
+    "type": "noul",
+    "noul": 0.98
+   },
+   "wants_callback": {
+    "type": "noul",
+    "noul": 0.99
+   },
+   "sender_is_engineer": {
+    "type": "noul",
+    "noul": 0.98
+   },
+   "urgency": {
+    "type": "score",
+    "score": 2.0,
+    "confidence": 1.0,
+    "legend": {
+     "0": "No time pressure",
+     "1": "Should be handled this week",
+     "2": "Needs a response today",
+     "3": "Emergency now"
+    },
+    "probabilities": {
+     "0": 0.0,
+     "1": 0.0,
+     "2": 1.0,
+     "3": 0.0
+    }
+   }
+  },
+  "usage": {
+   "input_tokens": 558,
+   "output_tokens": 130
+  }
+ }
+}

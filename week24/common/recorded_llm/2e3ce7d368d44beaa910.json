@@ -1,0 +1,20 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "provider": "gemini",
+  "model": "gemini-3.5-flash",
+  "system": "",
+  "user": "Reply with exactly: hello from <your model name>",
+  "max_tokens": 200
+ },
+ "response": {
+  "text": "hello from Gemini",
+  "provider": "gemini",
+  "model": "gemini-3.5-flash",
+  "usage": {
+   "input_tokens": 12,
+   "output_tokens": 3
+  },
+  "latency_ms": 1887.6
+ }
+}

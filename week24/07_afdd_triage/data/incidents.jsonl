@@ -1,0 +1,5 @@
+{"id": "fault-1", "state": {"operator_note": "Guests report warm rooms on floor 3. AHU-3 is running.", "zone_c": 29.1, "setpoint_c": 24.0, "humidity_pct": 62, "age_seconds": 120, "quality_ok": true}}
+{"id": "fault-2", "state": {"operator_note": "Gateway offline; do not trust the last room value.", "zone_c": 23.0, "setpoint_c": 24.0, "humidity_pct": 55, "age_seconds": 7200, "quality_ok": true}}
+{"id": "fault-3", "state": {"operator_note": "Burning smell reported near the AHU-2 plant room. Room temperatures look normal.", "zone_c": 24.4, "setpoint_c": 24.0, "humidity_pct": 58, "age_seconds": 60, "quality_ok": true}}
+{"id": "fault-4", "state": {"operator_note": "Room 214 sensor reads 35 C but the guest says the room feels cold.", "zone_c": 35.0, "setpoint_c": 23.0, "humidity_pct": 50, "age_seconds": 90, "quality_ok": false}}
+{"id": "fault-5", "state": {"operator_note": "Lobby slightly warm this afternoon, no guest complaints.", "zone_c": 25.2, "setpoint_c": 24.0, "humidity_pct": 66, "age_seconds": 300, "quality_ok": true}}

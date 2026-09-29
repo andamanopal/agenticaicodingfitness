@@ -1,0 +1,32 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "model": "jev-1.13.0",
+  "state": {
+   "message": "The room is fine I guess, but it smells a bit different from last time."
+  },
+  "questions": {
+   "reports_problem": {
+    "type": "noul",
+    "instructions": "Does `message` report a problem with the room or its equipment?",
+    "criteria": {
+     "true": "The guest says something in the room is broken, dirty, too hot/cold or not working",
+     "false": "No problem with the room is mentioned"
+    }
+   }
+  }
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "reports_problem": {
+    "type": "noul",
+    "noul": 0.5
+   }
+  },
+  "usage": {
+   "input_tokens": 345,
+   "output_tokens": 21
+  }
+ }
+}

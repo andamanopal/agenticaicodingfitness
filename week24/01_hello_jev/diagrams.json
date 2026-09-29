@@ -1,0 +1,61 @@
+{
+  "architecture": {
+    "title": "Where Jev sits — code owns the workflow, Jev supplies typed judgments",
+    "caption": "Your code builds state + typed questions and sends one HTTPS POST. Jev returns one typed answer per question (never prose). Deterministic policy in your code turns those answers into a proposal; actions stay behind separate authorization. In this course the key lives server-side in the repo-root .env and never reaches the browser.",
+    "lanes": [
+      {"id": "app", "label": "Your application code"},
+      {"id": "jev", "label": "TypeSafe System One API"},
+      {"id": "after", "label": "What happens next — still your code"}
+    ],
+    "nodes": [
+      {"id": "input", "label": "Authorized input", "lane": "app", "sub": "guest message · email · record", "accent": "cyan"},
+      {"id": "build", "label": "state + questions", "lane": "app", "sub": "choice · noul · score, named by you"},
+      {"id": "api", "label": "POST /v1/systemone", "lane": "jev", "sub": "api.typesafe.ai · Bearer key", "accent": "violet"},
+      {"id": "model", "label": "Jev (jev-1.13.0)", "lane": "jev", "sub": "typed answers + probabilities", "accent": "violet"},
+      {"id": "policy", "label": "Deterministic policy", "lane": "after", "sub": "thresholds · rules · uncertainty gate", "accent": "green"},
+      {"id": "out", "label": "Proposal / review queue", "lane": "after", "sub": "execute: False until approved", "accent": "amber"}
+    ],
+    "edges": [
+      {"from": "input", "to": "build", "label": "filter, compute in code"},
+      {"from": "build", "to": "api", "label": "one request", "animated": true},
+      {"from": "api", "to": "model", "label": "questions run in parallel"},
+      {"from": "model", "to": "policy", "label": "answers keyed by your ids", "animated": true},
+      {"from": "policy", "to": "out", "label": "route · priority · review"}
+    ]
+  },
+  "sequence": {
+    "title": "Lab 01-2 — one request, three typed answers, one decision",
+    "caption": "Measured live on jev-1.13.0: 478 input tokens, ~450-530 ms, $0.000020. The priority rule (P1 = event affected + explicit deadline) is ordinary Python you can read and test.",
+    "actors": [
+      {"id": "lab", "label": "lab02 (your code)"},
+      {"id": "jev", "label": "Jev API"},
+      {"id": "policy", "label": "policy (your code)"}
+    ],
+    "steps": [
+      {"from": "lab", "to": "jev", "label": "state: 'lobby freezing … before the 6pm wedding'", "kind": "call"},
+      {"from": "lab", "to": "jev", "label": "questions: department · has_deadline · severity", "kind": "call"},
+      {"from": "jev", "to": "lab", "label": "hvac (conf 1.00) · noul 0.98 · score 2.00", "kind": "return"},
+      {"from": "lab", "to": "policy", "label": "validate, then apply thresholds", "kind": "call"},
+      {"from": "policy", "to": "lab", "label": "→ hvac queue · P1", "kind": "return"},
+      {"from": "lab", "to": "lab", "label": "execute: False — prints the proposal only", "kind": "note"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "What each Module 01 call cost",
+      "type": "hbars",
+      "unit": "input tokens",
+      "labels": ["lab01 · 1 question", "lab02 · 3 questions", "ex01 · 3 questions (avg)"],
+      "series": [{"name": "input tokens", "values": [299, 478, 523], "color": "violet"}],
+      "caption": "Measured live on jev-1.13.0 (2026-09-27). Three questions cost ~1.6× one question, not 3×, because the state is ingested once. At $0.042/Mtok the whole module is ≈ $0.0001."
+    },
+    {
+      "title": "Round-trip latency, live",
+      "type": "bars",
+      "unit": "ms",
+      "labels": ["lab01", "lab02", "ex01 #1", "ex01 #2", "ex01 #3"],
+      "series": [{"name": "HTTP round trip", "values": [462, 454, 522, 408, 474], "color": "cyan"}],
+      "caption": "Wall-clock per call from this Mac to api.typesafe.ai, single observations — not a benchmark. Network dominates; Jev itself is a fast System One model."
+    }
+  ]
+}

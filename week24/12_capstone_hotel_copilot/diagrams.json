@@ -1,0 +1,74 @@
+{
+  "architecture": {
+    "title": "The guest-request copilot — code for facts, Jev for judgments, code for policy, people for actions",
+    "caption": "Language and room number are computed exactly in code; ONE batched Jev call answers five independent questions; a readable policy applies the safety override and the uncertainty gate; the output is a ticket proposal with a templated reply draft and execute: False.",
+    "lanes": [
+      {"id": "in", "label": "Guest message — EN / TH / mixed"},
+      {"id": "code", "label": "Code — exact, free, testable"},
+      {"id": "jev", "label": "Jev — one batched call"},
+      {"id": "out", "label": "Proposal — a person or governed system acts"}
+    ],
+    "nodes": [
+      {"id": "msg", "label": "guest message", "lane": "in", "sub": "“burning smell from the AC in 1507!”", "accent": "amber"},
+      {"id": "lang", "label": "detect_language()", "lane": "code", "sub": "Thai Unicode block → en / th / mixed", "accent": "cyan"},
+      {"id": "room", "label": "extract_room()", "lane": "code", "sub": "regex — copied, never guessed", "accent": "cyan"},
+      {"id": "q", "label": "5 typed questions", "lane": "jev", "sub": "department · severity · safety · needs_human · mentions_room", "accent": "green"},
+      {"id": "policy", "label": "policy()", "lane": "code", "sub": "safety ≥ .20 → P0 · unknown/torn → review", "accent": "cyan"},
+      {"id": "ticket", "label": "ticket JSON", "lane": "out", "sub": "route · priority · follow-ups · execute: False", "accent": "violet"},
+      {"id": "reply", "label": "reply draft", "lane": "out", "sub": "approved EN/TH templates — an LLM could go here", "accent": "violet"},
+      {"id": "human", "label": "duty manager / team", "lane": "out", "sub": "approves and acts; alarms run independently"}
+    ],
+    "edges": [
+      {"from": "msg", "to": "lang", "label": "text"},
+      {"from": "msg", "to": "room", "label": "text"},
+      {"from": "msg", "to": "q", "label": "state", "animated": true},
+      {"from": "q", "to": "policy", "label": "typed answers", "animated": true},
+      {"from": "room", "to": "ticket", "label": "room + cross-check"},
+      {"from": "lang", "to": "reply", "label": "template language"},
+      {"from": "policy", "to": "ticket", "label": "decision"},
+      {"from": "ticket", "to": "reply", "label": "fill template"},
+      {"from": "ticket", "to": "human", "label": "proposal", "animated": true}
+    ]
+  },
+  "sequence": {
+    "title": "One message through the copilot (lab 01)",
+    "caption": "The only network hop is the single Jev call (~800 input tokens, ≈ $0.00003). Everything before and after is deterministic code you can unit-test with hand-written answers.",
+    "actors": [
+      {"id": "guest", "label": "Guest"},
+      {"id": "code", "label": "copilot code"},
+      {"id": "jev", "label": "Jev"},
+      {"id": "staff", "label": "Duty manager"}
+    ],
+    "steps": [
+      {"from": "guest", "to": "code", "label": "“burning smell from the AC in 1507!”", "kind": "call"},
+      {"from": "code", "to": "code", "label": "language en · room 1507 (regex)", "kind": "note"},
+      {"from": "code", "to": "jev", "label": "state + 5 guarded questions", "kind": "call"},
+      {"from": "jev", "to": "code", "label": "hvac 0.93 · severity 2.99 · safety 0.98 · room stated 0.68", "kind": "return"},
+      {"from": "code", "to": "code", "label": "safety ≥ 0.20 → duty_manager · P0 · approval required", "kind": "note"},
+      {"from": "code", "to": "staff", "label": "ticket T-ba643575 + reply draft · execute False", "kind": "call"},
+      {"from": "staff", "to": "guest", "label": "a person decides what is said and done", "kind": "return"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Shadow mode — correct routes on 13 author-written messages",
+      "type": "hbars",
+      "unit": "messages",
+      "labels": ["keyword router (live)", "Jev copilot (shadow)", "both agree"],
+      "series": [
+        {"name": "count of 13", "values": [8, 13, 8], "color": "cyan"}
+      ],
+      "caption": "Measured by labs/lab02_shadow_mode.py (jev-1.13.0, 2026-09-27). The same author wrote the messages and the keyword list — a stacked deck that shows failure KINDS, not accuracy. Promotion needs a large held-out set of real traffic."
+    },
+    {
+      "title": "Where the 9 demo messages were routed",
+      "type": "donut",
+      "unit": "tickets",
+      "labels": ["team queue (hvac/housekeeping/maintenance/F&B)", "duty manager — safety override", "front-desk review — unclear"],
+      "series": [
+        {"name": "lab01", "values": [6, 2, 1], "color": "green"}
+      ],
+      "caption": "labs/lab01_capstone_demo.py: two safety overrides (burning smell; Thai overflowing toilet at safety 0.94) and one vague 'hello?' sent to review. Every ticket carries execute: False."
+    }
+  ]
+}

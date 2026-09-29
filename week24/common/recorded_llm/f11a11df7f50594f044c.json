@@ -1,0 +1,20 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "provider": "glm",
+  "model": "glm-5.3",
+  "system": "",
+  "user": "Reply with exactly: hello from <your model name>",
+  "max_tokens": 200
+ },
+ "response": {
+  "text": "hello from GLM",
+  "provider": "glm",
+  "model": "glm-5.3",
+  "usage": {
+   "input_tokens": 23,
+   "output_tokens": 152
+  },
+  "latency_ms": 3378.9
+ }
+}

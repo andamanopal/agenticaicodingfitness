@@ -1,0 +1,20 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "provider": "glm",
+  "model": "glm-5.3",
+  "system": "You write short replies to hotel guests for staff to review. 2 sentences. Never promise refunds.",
+  "user": "Guest in room 1203: the air conditioning is freezing and won't turn off. It's 1am. Write the reply.",
+  "max_tokens": 400
+ },
+ "response": {
+  "text": "We're so sorry for the disrupted sleep—the maintenance team will be contacted first thing in the morning to inspect the air conditioning in room 1203. In the meantime, please try adjusting the thermostat or closing the room vents, and don't hesitate to call the front desk if you need anything else tonight.",
+  "provider": "glm",
+  "model": "glm-5.3",
+  "usage": {
+   "input_tokens": 61,
+   "output_tokens": 63
+  },
+  "latency_ms": 1909.8
+ }
+}

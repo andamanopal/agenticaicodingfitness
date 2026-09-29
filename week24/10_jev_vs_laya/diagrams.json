@@ -1,0 +1,75 @@
+{
+  "architecture": {
+    "title": "One harness, two deployment models — identical input, independent policy",
+    "caption": "The shared runner serializes each row's state ONCE and sends the byte-identical string to Jev (hosted) and Laya (local). A no-truncation preflight blocks unfair Laya input; results, hashes and failures land in a new run folder. Neither model's answer is ever an action.",
+    "lanes": [
+      {"id": "data", "label": "Corpus — your side"},
+      {"id": "runner", "label": "jev_laya_benchmark.py"},
+      {"id": "models", "label": "Models — hosted vs self-operated"},
+      {"id": "evidence", "label": "Evidence — a new folder per run"}
+    ],
+    "nodes": [
+      {"id": "smoke", "label": "smoke.jsonl", "lane": "data", "sub": "28 fictional rows · 7 schemas · EN/TH/mixed", "accent": "amber"},
+      {"id": "shared", "label": "shared state string", "lane": "runner", "sub": "canonical JSON · sha256 per row", "accent": "cyan"},
+      {"id": "preflight", "label": "no-truncation preflight", "lane": "runner", "sub": "laya_head_would_truncate → refuse", "accent": "cyan"},
+      {"id": "jev", "label": "Jev — api.typesafe.ai", "lane": "models", "sub": "managed · $0.042/M input tok", "accent": "green"},
+      {"id": "laya", "label": "Laya — your CPU/GPU", "lane": "models", "sub": "open weights · optional here", "accent": "violet"},
+      {"id": "results", "label": "results.jsonl + summary.json", "lane": "evidence", "sub": "failures kept · hashes · no raw state"},
+      {"id": "report", "label": "report.md", "lane": "evidence", "sub": "per-question accuracy · coverage · wrong accepted"}
+    ],
+    "edges": [
+      {"from": "smoke", "to": "shared", "label": "prepare() allow-list"},
+      {"from": "shared", "to": "jev", "label": "same string", "animated": true},
+      {"from": "shared", "to": "preflight", "label": "token budget check"},
+      {"from": "preflight", "to": "laya", "label": "only if it fits", "animated": true},
+      {"from": "jev", "to": "results", "label": "typed answers"},
+      {"from": "laya", "to": "results", "label": "typed answers"},
+      {"from": "results", "to": "report", "label": "metrics"}
+    ]
+  },
+  "sequence": {
+    "title": "Lab 10 — verify, plan, then (and only then) spend",
+    "caption": "Labs 01 and 02 cost nothing and prove the harness is honest; lab 03 is the only billed step (~28 calls, ≈ $0.001); lab 04 probes negation because averages hide it.",
+    "actors": [
+      {"id": "you", "label": "You"},
+      {"id": "tests", "label": "offline tests"},
+      {"id": "runner", "label": "benchmark runner"},
+      {"id": "jev", "label": "Jev"}
+    ],
+    "steps": [
+      {"from": "you", "to": "tests", "label": "lab01: selftest + 32 unit tests", "kind": "call"},
+      {"from": "tests", "to": "you", "label": "46 + 32 passed · no network", "kind": "return"},
+      {"from": "you", "to": "runner", "label": "lab02: init + plan --limit 28", "kind": "call"},
+      {"from": "runner", "to": "you", "label": "dry_run_no_inference · 28 calls planned", "kind": "return"},
+      {"from": "you", "to": "runner", "label": "lab03: run --providers jev --live-jev", "kind": "call"},
+      {"from": "runner", "to": "jev", "label": "28 × shared state + schema", "kind": "call"},
+      {"from": "jev", "to": "runner", "label": "28 ok · p50 442 ms · p95 1304 ms", "kind": "return"},
+      {"from": "runner", "to": "you", "label": "report · 3 disagreements to adjudicate", "kind": "return"},
+      {"from": "you", "to": "you", "label": "Laya side is optional: same command + --live-laya", "kind": "note"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Published typed-decisions results — as published on the Laya model card, NOT reproduced",
+      "type": "bars",
+      "unit": "metric value",
+      "labels": ["accuracy ↑", "soft accuracy ↑", "Brier ↓", "ECE ↓", "score MAE ↓"],
+      "series": [
+        {"name": "fine-tuned Laya", "values": [0.766, 0.471, 0.062, 0.213, 0.242], "color": "violet"},
+        {"name": "Jev published reference", "values": [0.727, 0.580, 0.148, 0.144, 0.391], "color": "green"}
+      ],
+      "caption": "Source: huggingface.co/convaiinnovations/laya-typed-decisions. The card states Jev was not run by that project and prompts/sample sizes differ — so this is not a head-to-head result. Higher accuracy (Laya) and better calibration (Jev, lower ECE) point in different directions."
+    },
+    {
+      "title": "Our Jev-only smoke run — labeled decisions per question",
+      "type": "hbars",
+      "unit": "labels",
+      "labels": ["intent/intent", "email/category", "point/kind", "point/ambiguous", "hr/python_evidence", "intent/complexity"],
+      "series": [
+        {"name": "correct", "values": [10, 6, 3, 3, 1, 0], "color": "green"},
+        {"name": "disagreed with gold", "values": [1, 0, 0, 0, 1, 1], "color": "red"}
+      ],
+      "caption": "Measured by labs/lab03_jev_only_benchmark.py (jev-1.13.0, 28 rows, 2026-09-27). With 1–11 labels per question, one disagreement moves accuracy by 9–100 points — a smoke test shows the plumbing, not the quality."
+    }
+  ]
+}

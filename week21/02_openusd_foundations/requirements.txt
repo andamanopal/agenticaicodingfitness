@@ -1,0 +1,4 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+openai>=1.30
+# usd-core>=24.5  # optional — REAL OpenUSD mode (pip install usd-core; ~30 MB, no GPU)

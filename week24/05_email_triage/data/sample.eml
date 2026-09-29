@@ -1,0 +1,29 @@
+From: Somchai P. <facilities@example-hotel.test>
+To: support@example-altotech.test
+Subject: Room temperature complaints on floor 7
+Date: Mon, 22 Sep 2026 08:14:00 +0700
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="BOUNDARY42"
+
+--BOUNDARY42
+Content-Type: text/plain; charset="utf-8"
+
+Hello team,
+
+Since Saturday, guests on floor 7 keep reporting that their rooms stay at 27-28 C
+even with the thermostat set to 23 C. The AHU for that wing is running.
+Could you check the optimization settings and tell us what you find? We have a
+full house this weekend.
+
+Details are in the attached photo and on our portal: http://example-hotel.test/report?id=7
+
+Thanks,
+Somchai
+
+--BOUNDARY42
+Content-Type: image/jpeg; name="thermostat.jpg"
+Content-Disposition: attachment; filename="thermostat.jpg"
+Content-Transfer-Encoding: base64
+
+/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////
+--BOUNDARY42--

@@ -1,0 +1,20 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "provider": "openrouter",
+  "model": "openai/gpt-5.4-mini",
+  "system": "",
+  "user": "Reply with exactly: hello from <your model name>",
+  "max_tokens": 200
+ },
+ "response": {
+  "text": "hello from ChatGPT",
+  "provider": "openrouter",
+  "model": "openai/gpt-5.4-mini",
+  "usage": {
+   "input_tokens": 17,
+   "output_tokens": 8
+  },
+  "latency_ms": 1136.0
+ }
+}

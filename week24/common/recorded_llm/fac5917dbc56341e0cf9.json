@@ -1,0 +1,20 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "provider": "ollama",
+  "model": "gemma4:latest",
+  "system": "",
+  "user": "Reply with exactly: hello from <your model name>",
+  "max_tokens": 200
+ },
+ "response": {
+  "text": "hello from Gemma 4",
+  "provider": "ollama",
+  "model": "gemma4:latest",
+  "usage": {
+   "input_tokens": 27,
+   "output_tokens": 6
+  },
+  "latency_ms": 185.1
+ }
+}

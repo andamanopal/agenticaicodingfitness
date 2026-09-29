@@ -1,0 +1,6 @@
+{"id": "pt-1", "state": {"point_description": "AHU-3 SAT, measured supply air temperature at discharge duct; degrees Celsius."}}
+{"id": "pt-2", "state": {"point_description": "Room 301 desired room air temperature setting, degrees Celsius."}}
+{"id": "pt-3", "state": {"point_description": "Zone temperature sensor, meeting room 4B, degrees Celsius."}}
+{"id": "pt-4", "state": {"point_description": "TMP-01"}}
+{"id": "pt-5", "state": {"point_description": "AHU-1 SA-T SP, supply air temperature setpoint, degrees Celsius."}}
+{"id": "pt-6", "state": {"point_description": "RM-214 ZN-T"}}

@@ -1,0 +1,20 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "provider": "claude",
+  "model": "claude-sonnet-5",
+  "system": "You write short replies to hotel guests for staff to review. 2 sentences. Never promise refunds.",
+  "user": "Guest in room 1203: the air conditioning is freezing and won't turn off. It's 1am. Write the reply.",
+  "max_tokens": 400
+ },
+ "response": {
+  "text": "I'm so sorry for the discomfort—I'm sending someone up right away to take a look at the unit in room 1203. In the meantime, please feel free to call the front desk if you'd like extra blankets or a temporary room change while we resolve this.",
+  "provider": "claude",
+  "model": "claude-sonnet-5",
+  "usage": {
+   "input_tokens": 77,
+   "output_tokens": 80
+  },
+  "latency_ms": 1970.2
+ }
+}

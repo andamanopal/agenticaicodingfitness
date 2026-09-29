@@ -1,0 +1,65 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "model": "jev-1.13.0",
+  "state": {
+   "message": "The chiller tripped twice last night."
+  },
+  "questions": {
+   "topic": {
+    "type": "choice",
+    "instructions": "What is the main topic of `message`?",
+    "criteria": {
+     "hvac": "Cooling, heating, ventilation or air conditioning",
+     "energy": "Energy use, electricity bills, meters or savings",
+     "maintenance": "Repairs, inspections or work orders for equipment",
+     "other": "Anything else, or too vague to tell"
+    }
+   },
+   "effort": {
+    "type": "score",
+    "instructions": "How much work would answering `message` take?",
+    "criteria": [
+     "A one-line answer anyone could give",
+     "A specialist spends a few minutes",
+     "A specialist investigation over hours or days"
+    ]
+   }
+  }
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "topic": {
+    "type": "choice",
+    "choice": "hvac",
+    "confidence": 0.84,
+    "probabilities": {
+     "energy": 0.0,
+     "maintenance": 0.12,
+     "hvac": 0.88,
+     "other": 0.0
+    }
+   },
+   "effort": {
+    "type": "score",
+    "score": 0.88,
+    "confidence": 0.07,
+    "legend": {
+     "0": "A one-line answer anyone could give",
+     "1": "A specialist spends a few minutes",
+     "2": "A specialist investigation over hours or days"
+    },
+    "probabilities": {
+     "0": 0.37,
+     "1": 0.38,
+     "2": 0.25
+    }
+   }
+  },
+  "usage": {
+   "input_tokens": 440,
+   "output_tokens": 62
+  }
+ }
+}

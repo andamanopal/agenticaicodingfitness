@@ -1,0 +1,41 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "model": "jev-1.13.0",
+  "state": {
+   "operator_note": "Guests in the ballroom say it feels stuffy.",
+   "computed": {
+    "deviation_c": 2.1,
+    "warm_deviation": true,
+    "high_temp_alarm_count": 7
+   }
+  },
+  "questions": {
+   "comfort_complaint": {
+    "type": "noul",
+    "instructions": "Does `operator_note` report occupants feeling uncomfortable?"
+   },
+   "consistent": {
+    "type": "noul",
+    "instructions": "Is `operator_note` consistent with `computed.warm_deviation` being true?"
+   }
+  }
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "comfort_complaint": {
+    "type": "noul",
+    "noul": 0.95
+   },
+   "consistent": {
+    "type": "noul",
+    "noul": 0.92
+   }
+  },
+  "usage": {
+   "input_tokens": 356,
+   "output_tokens": 39
+  }
+ }
+}

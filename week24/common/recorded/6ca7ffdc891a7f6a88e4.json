@@ -1,0 +1,49 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "model": "jev-1.13.0",
+  "state": {
+   "message": "Compare an HVAC engineer's diagnosis with an M&V analyst's savings assessment and resolve their disagreement."
+  },
+  "questions": {
+   "intent": {
+    "type": "choice",
+    "instructions": "Classify the primary topic of `message`.",
+    "criteria": {
+     "hvac": "HVAC, chiller, AHU, VRF, cooling performance or diagnosis.",
+     "energy_mv": "Energy baselines, savings measurement or verification.",
+     "facility_ops": "Maintenance workflow, site operations, work orders.",
+     "unknown": "Too vague, unsupported topic, or no identifiable request."
+    }
+   },
+   "needs_several_experts": {
+    "type": "noul",
+    "instructions": "Does `message` explicitly require combining distinct expert analyses or resolving their disagreement?"
+   }
+  }
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "intent": {
+    "type": "choice",
+    "choice": "energy_mv",
+    "confidence": 0.79,
+    "probabilities": {
+     "unknown": 0.04,
+     "facility_ops": 0.0,
+     "hvac": 0.11,
+     "energy_mv": 0.85
+    }
+   },
+   "needs_several_experts": {
+    "type": "noul",
+    "noul": 0.98
+   }
+  },
+  "usage": {
+   "input_tokens": 427,
+   "output_tokens": 70
+  }
+ }
+}

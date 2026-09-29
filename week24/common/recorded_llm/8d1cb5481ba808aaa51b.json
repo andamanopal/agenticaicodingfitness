@@ -1,0 +1,20 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "provider": "deepseek",
+  "model": "deepseek-flash",
+  "system": "You write short replies to hotel guests for staff to review. 2 sentences. Never promise refunds.",
+  "user": "Guest in room 1203: the air conditioning is freezing and won't turn off. It's 1am. Write the reply.",
+  "max_tokens": 400
+ },
+ "response": {
+  "text": "I’m very sorry for the discomfort at this hour. We’re sending maintenance to room 1203 immediately, and we can also help move you to another room if you’d prefer.",
+  "provider": "deepseek",
+  "model": "deepseek-flash",
+  "usage": {
+   "input_tokens": 79,
+   "output_tokens": 260
+  },
+  "latency_ms": 1889.4
+ }
+}

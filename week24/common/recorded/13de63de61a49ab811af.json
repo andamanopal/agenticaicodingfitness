@@ -1,0 +1,52 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "model": "jev-1.13.0",
+  "state": {
+   "message": "The AC is dripping water onto the carpet and the minibar bill looks wrong."
+  },
+  "questions": {
+   "needs_hvac": {
+    "type": "noul",
+    "instructions": "Does `message` describe a heating or air-conditioning problem?"
+   },
+   "needs_housekeeping": {
+    "type": "noul",
+    "instructions": "Does `message` require cleaning or drying something in the room?"
+   },
+   "needs_billing": {
+    "type": "noul",
+    "instructions": "Does `message` raise a question or complaint about a bill or charge?"
+   },
+   "needs_security": {
+    "type": "noul",
+    "instructions": "Does `message` report a safety or security threat?"
+   }
+  }
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "needs_hvac": {
+    "type": "noul",
+    "noul": 0.97
+   },
+   "needs_housekeeping": {
+    "type": "noul",
+    "noul": 0.88
+   },
+   "needs_billing": {
+    "type": "noul",
+    "noul": 0.98
+   },
+   "needs_security": {
+    "type": "noul",
+    "noul": 0.2
+   }
+  },
+  "usage": {
+   "input_tokens": 363,
+   "output_tokens": 78
+  }
+ }
+}

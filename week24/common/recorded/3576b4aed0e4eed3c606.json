@@ -1,0 +1,41 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "model": "jev-1.13.0",
+  "state": {
+   "message": "Thanks, we had a lovely stay!"
+  },
+  "questions": {
+   "department": {
+    "type": "choice",
+    "instructions": "Which hotel team should handle `message`?",
+    "criteria": {
+     "hvac": "Heating, cooling, ventilation or air-conditioning problems",
+     "housekeeping": "Cleaning, towels, linen, amenities, room tidiness",
+     "front_desk": "Bookings, billing, check-in, check-out and general questions",
+     "unknown": "The message contains no request for any of these teams"
+    }
+   }
+  }
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "department": {
+    "type": "choice",
+    "choice": "unknown",
+    "confidence": 0.99,
+    "probabilities": {
+     "front_desk": 0.01,
+     "unknown": 0.99,
+     "housekeeping": 0.0,
+     "hvac": 0.0
+    }
+   }
+  },
+  "usage": {
+   "input_tokens": 397,
+   "output_tokens": 51
+  }
+ }
+}

@@ -1,0 +1,80 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "model": "jev-1.13.0",
+  "state": {
+   "message": "The shower in my bathroom has no hot water. This is unacceptable."
+  },
+  "questions": {
+   "is_complaint": {
+    "type": "noul",
+    "instructions": "Does `message` complain about a problem or express dissatisfaction?",
+    "criteria": {
+     "true": "The guest reports something wrong or is unhappy",
+     "false": "A neutral question or a polite request with no problem reported"
+    }
+   },
+   "room_area": {
+    "type": "choice",
+    "instructions": "Which area of the guest room is `message` about?",
+    "criteria": {
+     "bathroom": "Shower, toilet, sink, bath, hot water, towels in the bathroom",
+     "bedroom": "Bed, pillows, sheets, wardrobe, desk, room temperature in the bedroom",
+     "balcony": "Balcony door, balcony furniture, the view outside",
+     "not_stated": "The message does not mention any specific area of the room"
+    }
+   },
+   "politeness": {
+    "type": "score",
+    "instructions": "How polite is the tone of `message`?",
+    "criteria": [
+     "Rude or hostile",
+     "Blunt or demanding, but not rude",
+     "Neutral",
+     "Polite and friendly"
+    ]
+   }
+  }
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "is_complaint": {
+    "type": "noul",
+    "noul": 0.99
+   },
+   "room_area": {
+    "type": "choice",
+    "choice": "bathroom",
+    "confidence": 1.0,
+    "probabilities": {
+     "not_stated": 0.0,
+     "bathroom": 1.0,
+     "bedroom": 0.0,
+     "balcony": 0.0
+    }
+   },
+   "politeness": {
+    "type": "score",
+    "score": 0.98,
+    "confidence": 0.97,
+    "legend": {
+     "0": "Rude or hostile",
+     "1": "Blunt or demanding, but not rude",
+     "2": "Neutral",
+     "3": "Polite and friendly"
+    },
+    "probabilities": {
+     "0": 0.02,
+     "1": 0.98,
+     "2": 0.0,
+     "3": 0.0
+    }
+   }
+  },
+  "usage": {
+   "input_tokens": 525,
+   "output_tokens": 90
+  }
+ }
+}

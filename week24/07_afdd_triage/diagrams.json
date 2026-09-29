@@ -1,0 +1,66 @@
+{
+  "architecture": {
+    "title": "AFDD triage — facts from code, judgment from Jev, decisions from policy",
+    "caption": "Code validates the BMS reading and computes stale / bad_quality / deviation. Jev sees the operator note plus those facts and proposes a queue, a safety signal and a severity. A deterministic policy overrides the queue on bad data and ORs the safety signal with a keyword backstop. Nothing is written to the building.",
+    "lanes": [
+      {"id": "site", "label": "Site — BMS & operators"},
+      {"id": "code", "label": "Your code — compute & decide"},
+      {"id": "jev", "label": "Jev — typed judgments"},
+      {"id": "eng", "label": "Engineer — reviews"}
+    ],
+    "nodes": [
+      {"id": "bms", "label": "BMS reading", "lane": "site", "sub": "zone °C · setpoint · age · quality_ok"},
+      {"id": "note", "label": "Operator note", "lane": "site", "sub": "free text — untrusted"},
+      {"id": "flags", "label": "prepare()", "lane": "code", "sub": "stale >600 s · Δ >2 °C · bad_quality", "accent": "cyan"},
+      {"id": "jevcall", "label": "Jev triage", "lane": "jev", "sub": "queue · safety_concern · severity", "accent": "green"},
+      {"id": "policy", "label": "policy()", "lane": "code", "sub": "bad data → data-quality queue · safety OR keywords", "accent": "amber"},
+      {"id": "review", "label": "engineer_review", "lane": "eng", "sub": "no_bacnet_write · no_setpoint_change", "accent": "violet"},
+      {"id": "alarms", "label": "Fire & safety alarms", "lane": "site", "sub": "run independently — never gated by this", "accent": "red"}
+    ],
+    "edges": [
+      {"from": "bms", "to": "flags", "label": "raw numbers"},
+      {"from": "note", "to": "jevcall", "label": "text"},
+      {"from": "flags", "to": "jevcall", "label": "computed facts", "animated": true},
+      {"from": "jevcall", "to": "policy", "label": "typed answers", "animated": true},
+      {"from": "flags", "to": "policy", "label": "override inputs"},
+      {"from": "policy", "to": "review", "label": "proposal"}
+    ]
+  },
+  "sequence": {
+    "title": "Lab 07-2 — one call, four outcomes",
+    "caption": "Jev is asked about the note once. Four telemetry situations then flow through the same deterministic policy, producing different queues without another model call.",
+    "actors": [
+      {"id": "lab", "label": "lab02_what_if"},
+      {"id": "jev", "label": "Jev (jev-1.13.0)"},
+      {"id": "pol", "label": "policy()"}
+    ],
+    "steps": [
+      {"from": "lab", "to": "jev", "label": "note: 'Lobby is warm… No smoke or unusual noise reported.'", "kind": "call"},
+      {"from": "jev", "to": "lab", "label": "queue cooling 0.83 · safety 0.61 ('mentions' read literally)", "kind": "return"},
+      {"from": "lab", "to": "pol", "label": "fresh +4.2 °C", "kind": "call"},
+      {"from": "pol", "to": "lab", "label": "cooling", "kind": "return"},
+      {"from": "lab", "to": "pol", "label": "stale 2 h / bad quality", "kind": "call"},
+      {"from": "pol", "to": "lab", "label": "connectivity_or_data_quality (override)", "kind": "return"},
+      {"from": "lab", "to": "jev", "label": "reworded: safety concern 'currently present'?", "kind": "call"},
+      {"from": "jev", "to": "lab", "label": "no_smoke 0.02 · smoke 0.89", "kind": "return"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Same 'No smoke' note — the wording decides",
+      "type": "hbars",
+      "unit": "noul",
+      "labels": ["'explicitly mentions smoke…' (lab 07-1 question)", "'concern currently present?'", "'Smoke smell reported' note, 'present'"],
+      "series": [{"name": "safety probability", "values": [0.61, 0.02, 0.89], "color": "red"}],
+      "caption": "Measured by labs/lab02_what_if.py (jev-1.13.0). 'No smoke' literally mentions smoke. Test negations explicitly, and keep a deterministic backstop for safety."
+    },
+    {
+      "title": "Five incidents — safety probability vs the 0.20 review line",
+      "type": "bars",
+      "unit": "noul",
+      "labels": ["fault-1 warm", "fault-2 offline", "fault-3 burning", "fault-4 bad sensor", "fault-5 slightly warm"],
+      "series": [{"name": "safety_concern", "values": [0.03, 0.03, 0.73, 0.03, 0.02], "color": "amber"}],
+      "caption": "Measured by labs/lab01_triage_incidents.py. Even an explicit 'burning smell' scored 0.73, not ~1 — which is why the safety threshold is low (0.20) and OR'd with a keyword check."
+    }
+  ]
+}

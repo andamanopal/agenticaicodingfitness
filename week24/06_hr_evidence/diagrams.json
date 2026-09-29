@@ -1,0 +1,57 @@
+{
+  "architecture": {
+    "title": "Evidence checklist — the model finds evidence, people decide",
+    "caption": "Only lawfully obtained, minimised professional text reaches Jev. Code splits it into numbered sentences; Jev selects the evidence id or not_stated per criterion; code quotes the sentence verbatim. Every record goes to a recruiter — no score, no rank, no rejection.",
+    "lanes": [
+      {"id": "source", "label": "Authorized source"},
+      {"id": "code", "label": "Your code — minimise, split, quote"},
+      {"id": "jev", "label": "Jev — select evidence"},
+      {"id": "people", "label": "Recruiter — verify & follow up"}
+    ],
+    "nodes": [
+      {"id": "ats", "label": "ATS / direct submission", "lane": "source", "sub": "no scraping · provenance kept"},
+      {"id": "minimise", "label": "Minimise", "lane": "code", "sub": "no name, photo, age, gender, nationality", "accent": "amber"},
+      {"id": "split", "label": "split_sentences()", "lane": "code", "sub": "s1, s2, s3 … deterministic", "accent": "cyan"},
+      {"id": "select", "label": "Choice per criterion", "lane": "jev", "sub": "options = sentence ids + not_stated", "accent": "green"},
+      {"id": "quote", "label": "Verbatim quote", "lane": "code", "sub": "copied by code — never generated", "accent": "cyan"},
+      {"id": "review", "label": "recruiter_review", "lane": "people", "sub": "no_ranking · no_auto_rejection", "accent": "violet"}
+    ],
+    "edges": [
+      {"from": "ats", "to": "minimise", "label": "professional text"},
+      {"from": "minimise", "to": "split", "label": "job-related text only"},
+      {"from": "split", "to": "select", "label": "numbered sentences", "animated": true},
+      {"from": "select", "to": "quote", "label": "s2 · conf 1.00", "animated": true},
+      {"from": "quote", "to": "review", "label": "sentence + label"}
+    ]
+  },
+  "sequence": {
+    "title": "Lab 06-2 — select, don't generate",
+    "caption": "Jev only ever returns a sentence id. The quotation the recruiter sees is copied from the original text by code, so it cannot be fabricated.",
+    "actors": [
+      {"id": "lab", "label": "lab02_sentence_evidence"},
+      {"id": "jev", "label": "Jev (jev-1.13.0)"},
+      {"id": "rec", "label": "Recruiter"}
+    ],
+    "steps": [
+      {"from": "lab", "to": "lab", "label": "split candidate-004 into s1 · s2 · s3", "kind": "note"},
+      {"from": "lab", "to": "jev", "label": "which sentence evidences integration / building / python?", "kind": "call"},
+      {"from": "jev", "to": "lab", "label": "integration s1 (0.99) · building s1 (1.00) · python not_stated (0.64)", "kind": "return"},
+      {"from": "lab", "to": "rec", "label": "“Led a team that wrote BACnet drivers in C++.” + ask about Python", "kind": "call"},
+      {"from": "rec", "to": "rec", "label": "low confidence on 'reviewed Python PRs' = a judgment call for a person", "kind": "note"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Confidence per checklist cell (lab 06-1)",
+      "type": "bars",
+      "unit": "confidence",
+      "labels": ["candidate-001", "candidate-002", "candidate-003", "candidate-004"],
+      "series": [
+        {"name": "python", "values": [1.00, 0.88, 0.75, 0.46], "color": "amber"},
+        {"name": "integration", "values": [1.00, 1.00, 1.00, 0.99], "color": "cyan"},
+        {"name": "building", "values": [1.00, 1.00, 0.97, 0.97], "color": "green"}
+      ],
+      "caption": "Measured by labs/lab01_evidence_checklist.py (jev-1.13.0). The only low bar is candidate-004's Python cell — 'reviewed Python pull requests' — a genuinely borderline case the recruiter should judge."
+    }
+  ]
+}

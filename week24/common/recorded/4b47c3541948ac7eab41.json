@@ -1,0 +1,37 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "model": "jev-1.13.0",
+  "state": {
+   "subject": "Room temperature complaints on floor 7",
+   "body": "Since Saturday, guests on floor 7 keep reporting that their rooms stay at 27-28 C even with the thermostat set to 23 C. Could you check the optimization settings? We have a full house this weekend."
+  },
+  "questions": {
+   "urgent_literal": {
+    "type": "noul",
+    "instructions": "Does the sender explicitly describe an immediate outage, imminent deadline or safety concern?"
+   },
+   "urgent_business": {
+    "type": "noul",
+    "instructions": "Is guest comfort currently affected for many rooms, or does the sender mention an upcoming high-occupancy period such as a full house?"
+   }
+  }
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "urgent_literal": {
+    "type": "noul",
+    "noul": 0.11
+   },
+   "urgent_business": {
+    "type": "noul",
+    "noul": 0.95
+   }
+  },
+  "usage": {
+   "input_tokens": 384,
+   "output_tokens": 38
+  }
+ }
+}

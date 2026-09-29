@@ -1,0 +1,50 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "model": "jev-1.13.0",
+  "state": {
+   "guest_message": "Room 1203 is freezing and the AC won't turn off. It's 1am and my kids can't sleep.",
+   "facts": {
+    "room": "1203",
+    "team_asked": "hvac",
+    "urgency": "within the hour"
+   },
+   "draft": "So sorry about the cold room! We will refund tonight's stay in full, and our technician Somchai will be at your door by 1:15am. Guest Services"
+  },
+  "questions": {
+   "promises_compensation": {
+    "type": "noul",
+    "instructions": "Does `draft` promise or offer a refund, discount, free night, upgrade or other compensation?"
+   },
+   "invents_facts": {
+    "type": "noul",
+    "instructions": "Does `draft` state a specific fact — a person's name, a time or deadline, a price, or a cause of the problem — that appears in neither `guest_message` nor `facts`?"
+   },
+   "addresses_request": {
+    "type": "noul",
+    "instructions": "Does `draft` respond to what the guest actually asked for in `guest_message`?"
+   }
+  }
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "promises_compensation": {
+    "type": "noul",
+    "noul": 0.99
+   },
+   "invents_facts": {
+    "type": "noul",
+    "noul": 0.98
+   },
+   "addresses_request": {
+    "type": "noul",
+    "noul": 0.68
+   }
+  },
+  "usage": {
+   "input_tokens": 478,
+   "output_tokens": 60
+  }
+ }
+}

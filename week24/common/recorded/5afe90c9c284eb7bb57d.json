@@ -1,0 +1,67 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "model": "jev-1.13.0",
+  "state": {
+   "message": "We manage a Bangkok hospital with two chillers and need to assess cooling-plant energy efficiency. Please propose an initial assessment."
+  },
+  "questions": {
+   "solution": {
+    "type": "choice",
+    "instructions": "Which AltoTech solution family best matches the stated need in `message`?",
+    "criteria": {
+     "air_side": "Split-type, VRF or room/zone air-conditioning optimization.",
+     "water_side": "Chiller plant, pumps or cooling-tower optimization.",
+     "portfolio": "Multi-property energy visibility and comparison.",
+     "carbon": "Carbon baseline, emissions or sustainability reporting.",
+     "unknown": "No clear fit, insufficient details or unrelated need."
+    }
+   },
+   "buying_stage": {
+    "type": "score",
+    "instructions": "What buying intent is explicitly evidenced in `message`? Do not infer budget or purchase authority.",
+    "criteria": [
+     "General information only.",
+     "Exploring a concrete site requirement.",
+     "Explicit request for proposal, pilot, quotation or procurement."
+    ]
+   }
+  }
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "solution": {
+    "type": "choice",
+    "choice": "water_side",
+    "confidence": 1.0,
+    "probabilities": {
+     "air_side": 0.0,
+     "portfolio": 0.0,
+     "carbon": 0.0,
+     "water_side": 1.0,
+     "unknown": 0.0
+    }
+   },
+   "buying_stage": {
+    "type": "score",
+    "score": 1.2,
+    "confidence": 0.46,
+    "legend": {
+     "0": "General information only.",
+     "1": "Exploring a concrete site requirement.",
+     "2": "Explicit request for proposal, pilot, quotation or procurement."
+    },
+    "probabilities": {
+     "0": 0.08,
+     "1": 0.64,
+     "2": 0.28
+    }
+   }
+  },
+  "usage": {
+   "input_tokens": 501,
+   "output_tokens": 71
+  }
+ }
+}

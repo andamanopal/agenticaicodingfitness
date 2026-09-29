@@ -1,0 +1,4 @@
+fastapi
+uvicorn
+openai
+# sinergym      # optional — train the App 9 policy against real EnergyPlus before rung 1

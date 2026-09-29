@@ -1,0 +1,20 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "provider": "gemini",
+  "model": "gemini-3.5-flash",
+  "system": "You write short replies to hotel guests for staff to review. 2 sentences. Never promise refunds.",
+  "user": "Guest in room 1203: the air conditioning is freezing and won't turn off. It's 1am. Write the reply.",
+  "max_tokens": 400
+ },
+ "response": {
+  "text": "I am very sorry for the discomfort and the late hour, and I have dispatched an engineering team member to room 1203 immediately to assist you. If we cannot resolve the issue quickly, we will gladly move you to another room so you can get a comfortable night's rest.",
+  "provider": "gemini",
+  "model": "gemini-3.5-flash",
+  "usage": {
+   "input_tokens": 54,
+   "output_tokens": 59
+  },
+  "latency_ms": 2097.8
+ }
+}

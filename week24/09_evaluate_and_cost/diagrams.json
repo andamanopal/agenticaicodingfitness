@@ -1,0 +1,76 @@
+{
+  "architecture": {
+    "title": "An evaluation harness — labels in, defensible numbers out",
+    "caption": "Gold labels stay on your side of the wall: prepare() copies only the message into state. Jev returns typed answers; your code applies the gate, compares with gold, and produces the numbers. Thresholds are re-applied to saved answers with no new calls.",
+    "lanes": [
+      {"id": "data", "label": "Labeled data — your side"},
+      {"id": "code", "label": "Your evaluation code"},
+      {"id": "jev", "label": "Jev — api.typesafe.ai"},
+      {"id": "out", "label": "Numbers you can defend"}
+    ],
+    "nodes": [
+      {"id": "jsonl", "label": "intent_eval.jsonl", "lane": "data", "sub": "12 rows · EN + TH · gold labels", "accent": "amber"},
+      {"id": "prepare", "label": "prepare()", "lane": "code", "sub": "allow-list: message only — no labels", "accent": "cyan"},
+      {"id": "gate", "label": "gate()", "lane": "code", "sub": "conf ≥ .75 · top ≥ .80 · margin ≥ .20", "accent": "cyan"},
+      {"id": "saved", "label": ".runs/intent_answers.json", "lane": "code", "sub": "saved answers → free re-thresholding"},
+      {"id": "jevapi", "label": "POST /v1/systemone", "lane": "jev", "sub": "7 typed questions · ~863 tok/call", "accent": "green"},
+      {"id": "metrics", "label": "accuracy · coverage · wrong-accepted", "lane": "out", "sub": "83% · 83% · 1", "accent": "violet"},
+      {"id": "sweep", "label": "threshold sweep", "lane": "out", "sub": "0.5 → 0.99, zero new calls", "accent": "violet"},
+      {"id": "cost", "label": "cost & rate-limit check", "lane": "out", "sub": "$0.042 / M input tok", "accent": "violet"}
+    ],
+    "edges": [
+      {"from": "jsonl", "to": "prepare", "label": "rows"},
+      {"from": "prepare", "to": "jevapi", "label": "state + questions", "animated": true},
+      {"from": "jevapi", "to": "gate", "label": "typed answers", "animated": true},
+      {"from": "gate", "to": "metrics", "label": "compare with gold"},
+      {"from": "gate", "to": "saved", "label": "persist"},
+      {"from": "saved", "to": "sweep", "label": "re-gate offline"},
+      {"from": "saved", "to": "cost", "label": "measured tokens"}
+    ]
+  },
+  "sequence": {
+    "title": "Lab 09 — evaluate once, decide many times",
+    "caption": "Inference happens once per row. Every later decision — a different threshold, a different metric, a cost projection — reuses the saved answers.",
+    "actors": [
+      {"id": "you", "label": "You"},
+      {"id": "lab1", "label": "lab01_smoke_eval"},
+      {"id": "jev", "label": "Jev"},
+      {"id": "disk", "label": ".runs/"},
+      {"id": "lab2", "label": "lab02 / lab03"}
+    ],
+    "steps": [
+      {"from": "you", "to": "lab1", "label": "run the smoke eval", "kind": "call"},
+      {"from": "lab1", "to": "jev", "label": "12 × intent request (labels stripped)", "kind": "call"},
+      {"from": "jev", "to": "lab1", "label": "12 typed answers · p50 460 ms", "kind": "return"},
+      {"from": "lab1", "to": "disk", "label": "save intent_answers.json", "kind": "call"},
+      {"from": "lab1", "to": "you", "label": "83% acc · 83% coverage · 1 wrong accepted", "kind": "return"},
+      {"from": "you", "to": "lab2", "label": "try thresholds 0.5 … 0.99", "kind": "call"},
+      {"from": "lab2", "to": "disk", "label": "read saved answers — 0 API calls", "kind": "call"},
+      {"from": "lab2", "to": "you", "label": "at 0.90: 75% coverage · 0 wrong accepted", "kind": "return"},
+      {"from": "you", "to": "you", "label": "choose on CALIBRATION, report on TEST", "kind": "note"}
+    ]
+  },
+  "charts": [
+    {
+      "title": "Coverage vs wrong-accepted as the threshold rises",
+      "type": "bars",
+      "unit": "% of 12 rows / count",
+      "labels": ["0.50", "0.70", "0.80", "0.90", "0.95", "0.99"],
+      "series": [
+        {"name": "coverage %", "values": [92, 92, 83, 75, 75, 75], "color": "cyan"},
+        {"name": "accepted accuracy %", "values": [82, 82, 90, 100, 100, 100], "color": "green"}
+      ],
+      "caption": "Measured by labs/lab02_threshold_sweep.py on the answers lab01 saved (jev-1.13.0, 2026-09-27). Wrong-accepted falls 2 → 1 → 0 across 0.70 → 0.80 → 0.90. Twelve rows is a smoke test, not a calibration set."
+    },
+    {
+      "title": "Cost of the classifier alone — measured tokens",
+      "type": "hbars",
+      "unit": "USD",
+      "labels": ["10k requests", "100k requests", "1M requests", "1M, 7 separate calls"],
+      "series": [
+        {"name": "classifier cost", "values": [0.36, 3.62, 36.24, 94.1], "color": "amber"}
+      ],
+      "caption": "labs/lab03_cost_calculator.py: 863 measured input tokens/call × $0.042 per million. The last bar is the modelled cost of asking the same 7 questions in 7 separate calls instead of one batched call."
+    }
+  ]
+}

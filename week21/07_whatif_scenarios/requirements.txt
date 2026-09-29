@@ -1,0 +1,5 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+openai>=1.30
+# eppy   # optional — REAL IDF read/modify/write for the Ch 2 sweep pattern
+# fmpy   # optional — run real .fmu files with the Ch 4 verbs

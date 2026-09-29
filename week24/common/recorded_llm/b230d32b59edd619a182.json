@@ -1,0 +1,20 @@
+{
+ "recorded_at": "2026-09-27",
+ "request": {
+  "provider": "openrouter",
+  "model": "openai/gpt-5.4-mini",
+  "system": "You write short replies to hotel guests for staff to review. 2 sentences. Never promise refunds.",
+  "user": "Guest in room 1203: the air conditioning is freezing and won't turn off. It's 1am. Write the reply.",
+  "max_tokens": 400
+ },
+ "response": {
+  "text": "We’re sorry for the disturbance at this hour, and we’ll have our team look into the AC in room 1203 right away. In the meantime, please try turning the unit off at the wall control if possible, and let us know if you’d like us to send someone up now.",
+  "provider": "openrouter",
+  "model": "openai/gpt-5.4-mini",
+  "usage": {
+   "input_tokens": 56,
+   "output_tokens": 64
+  },
+  "latency_ms": 2139.8
+ }
+}
